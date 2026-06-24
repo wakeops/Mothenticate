@@ -1,0 +1,272 @@
+@page "/admin/applications/create"
+@page "/admin/applications/{Id:int}"
+@attribute [Authorize(Policy = AuthDefaults.AppAdminUserPolicy)]
+@inject IAppLauncherService ApplicationService
+@inject IClientService ClientService
+@inject IUserService UserService
+@inject IGroupService GroupService
+@inject ISnackbar Snackbar
+@inject NavigationManager Navigation
+
+<PageTitle>@(_isCreate ? "New Application" : _model.Name) — Mothenticate Admin</PageTitle>
+
+<MudStack Row="true" AlignItems="AlignItems.Center" Class="mb-4">
+    <MudIconButton Icon="@Icons.Material.Filled.ArrowBack" OnClick='() => Navigation.NavigateTo("/admin/applications")' />
+    <MudText Typo="Typo.h4">@(_isCreate ? "New Application" : "Edit Application")</MudText>
+</MudStack>
+
+@if (_loading)
+{
+    <MudProgressLinear Indeterminate="true" />
+}
+else
+{
+    <MudGrid>
+        <MudItem xs="12" md="8">
+            <MudForm @ref="_form" @bind-IsValid="_valid">
+
+                <!-- Basic Info -->
+                <MudPaper Elevation="2" Class="pa-4 mb-4">
+                    <MudText Typo="Typo.h6" GutterBottom="true">Basic Information</MudText>
+                    <MudGrid>
+                        <MudItem xs="12" sm="6">
+                            <MudTextField @bind-Value="_model.Name" Label="Name" Required="true"
+                                          RequiredError="Name is required." Variant="Variant.Outlined" />
+                        </MudItem>
+                        <MudItem xs="12" sm="6">
+                            <MudTextField @bind-Value="_model.Slug" Label="Slug" Required="true"
+                                          RequiredError="Slug is required." Variant="Variant.Outlined"
+                                          HelperText="Unique URL-safe identifier." />
+                        </MudItem>
+                        <MudItem xs="12">
+                            <MudTextField @bind-Value="_model.Description" Label="Description" Variant="Variant.Outlined"
+                                          Lines="2" />
+                        </MudItem>
+                        <MudItem xs="12" sm="6">
+                            <MudTextField @bind-Value="_model.IconUrl" Label="Icon URL" Variant="Variant.Outlined"
+                                          HelperText="URL to application icon image." />
+                        </MudItem>
+                        <MudItem xs="12" sm="6">
+                            <MudTextField @bind-Value="_model.LaunchUrl" Label="Launch URL" Variant="Variant.Outlined"
+                                          HelperText="URL users are directed to when launching." />
+                        </MudItem>
+                        <MudItem xs="12">
+                            <MudSelect @bind-Value="_model.LinkedClientId" Label="Linked OIDC Client (optional)"
+                                       Variant="Variant.Outlined" Clearable="true"
+                                       HelperText="Associate this launcher with an OIDC client.">
+                                @foreach (var client in _clients)
+                                {
+                                    <MudSelectItem Value="@client.Id">@client.DisplayName (@client.ClientId)</MudSelectItem>
+                                }
+                            </MudSelect>
+                        </MudItem>
+                        <MudItem xs="12" sm="6">
+                            <MudSwitch @bind-Value="_model.IsEnabled" Label="Enabled" Color="Color.Primary" />
+                        </MudItem>
+                        <MudItem xs="12" sm="6">
+                            <MudSwitch @bind-Value="_model.IsPublic" Label="Public (visible to all users)"
+                                       Color="Color.Primary" />
+                        </MudItem>
+                    </MudGrid>
+                </MudPaper>
+
+                <MudStack Row="true">
+                    <MudButton Variant="Variant.Filled" Color="Color.Primary" OnClick="Save" Disabled="@_saving">
+                        @(_saving ? "Saving…" : (_isCreate ? "Create Application" : "Save Changes"))
+                    </MudButton>
+                    <MudButton Variant="Variant.Text" OnClick='() => Navigation.NavigateTo("/admin/applications")'>
+                        Cancel
+                    </MudButton>
+                </MudStack>
+            </MudForm>
+        </MudItem>
+
+        @if (!_isCreate)
+        {
+            <MudItem xs="12" md="4">
+                <!-- Access Control -->
+                <MudPaper Elevation="2" Class="pa-4 mb-4">
+                    <MudText Typo="Typo.h6" GutterBottom="true">Access Control</MudText>
+                    @if (_model.IsPublic)
+                    {
+                        <MudAlert Severity="Severity.Info" Dense="true">
+                            This application is public — all users can see it. Disable public access to restrict by group or user.
+                        </MudAlert>
+                    }
+                    else
+                    {
+                        <!-- Group Access -->
+                        <MudText Typo="Typo.subtitle2" Class="mt-3 mb-1">Group Access</MudText>
+                        @foreach (var entry in _accessEntries.Where(e => e.GroupId.HasValue))
+                        {
+                            var g = _groups.FirstOrDefault(x => x.Id == entry.GroupId);
+                            <MudStack Row="true" AlignItems="AlignItems.Center" Class="mb-1">
+                                <MudIcon Icon="@Icons.Material.Filled.Group" Size="Size.Small" />
+                                <MudText Typo="Typo.body2" Class="flex-1">@(g?.Name ?? "Unknown group")</MudText>
+                                <MudIconButton Icon="@Icons.Material.Filled.Close" Size="Size.Small"
+                                               OnClick="() => RemoveAccess(entry.Id)" />
+                            </MudStack>
+                        }
+                        <MudStack Row="true" Class="mt-2">
+                            <MudSelect @bind-Value="_addGroupId" Label="Add group" Variant="Variant.Outlined"
+                                       Margin="Margin.Dense" Class="flex-1">
+                                @foreach (var g in _groups.Where(g => !_accessEntries.Any(e => e.GroupId == g.Id)))
+                                {
+                                    <MudSelectItem Value="@((int?)g.Id)">@g.Name</MudSelectItem>
+                                }
+                            </MudSelect>
+                            <MudIconButton Icon="@Icons.Material.Filled.Add" Color="Color.Primary"
+                                           Disabled="@(_addGroupId is null)"
+                                           OnClick="AddGroupAccess" />
+                        </MudStack>
+
+                        <!-- User Access -->
+                        <MudDivider Class="my-3" />
+                        <MudText Typo="Typo.subtitle2" Class="mb-1">User Access</MudText>
+                        @foreach (var entry in _accessEntries.Where(e => e.UserId is not null))
+                        {
+                            var u = _users.FirstOrDefault(x => x.Id == entry.UserId);
+                            <MudStack Row="true" AlignItems="AlignItems.Center" Class="mb-1">
+                                <MudIcon Icon="@Icons.Material.Filled.Person" Size="Size.Small" />
+                                <MudText Typo="Typo.body2" Class="flex-1">@(u?.DisplayName ?? u?.UserName ?? "Unknown user")</MudText>
+                                <MudIconButton Icon="@Icons.Material.Filled.Close" Size="Size.Small"
+                                               OnClick="() => RemoveAccess(entry.Id)" />
+                            </MudStack>
+                        }
+                        <MudStack Row="true" Class="mt-2">
+                            <MudSelect @bind-Value="_addUserId" Label="Add user" Variant="Variant.Outlined"
+                                       Margin="Margin.Dense" Class="flex-1">
+                                @foreach (var u in _users.Where(u => !_accessEntries.Any(e => e.UserId == u.Id)))
+                                {
+                                    <MudSelectItem Value="@u.Id">@(u.DisplayName ?? u.UserName)</MudSelectItem>
+                                }
+                            </MudSelect>
+                            <MudIconButton Icon="@Icons.Material.Filled.Add" Color="Color.Primary"
+                                           Disabled="@string.IsNullOrEmpty(_addUserId)"
+                                           OnClick="AddUserAccess" />
+                        </MudStack>
+                    }
+                </MudPaper>
+            </MudItem>
+        }
+    </MudGrid>
+}
+
+@code {
+    [Parameter] public int? Id { get; set; }
+
+    private bool _isCreate;
+    private bool _valid;
+    private bool _saving;
+    private bool _loading = true;
+    private MudForm _form = default!;
+    private AppModel _model = new();
+    private List<ClientInfo> _clients = [];
+    private List<AppLauncherAccess> _accessEntries = [];
+    private List<Group> _groups = [];
+    private List<ApplicationUser> _users = [];
+    private int? _addGroupId;
+    private string? _addUserId;
+
+    protected override async Task OnInitializedAsync()
+    {
+        _isCreate = Id is null;
+        _clients = [.. await ClientService.GetAllAsync()];
+
+        if (!_isCreate)
+        {
+            var app = await ApplicationService.GetByIdAsync(Id!.Value);
+            if (app is null)
+            {
+                Navigation.NavigateTo("/admin/applications");
+                return;
+            }
+
+            _model = new AppModel
+            {
+                Name = app.Name,
+                Slug = app.Slug,
+                Description = app.Description,
+                IconUrl = app.IconUrl,
+                LaunchUrl = app.LaunchUrl,
+                LinkedClientId = app.LinkedClientId,
+                IsEnabled = app.IsEnabled,
+                IsPublic = app.IsPublic
+            };
+
+            _accessEntries = [.. await ApplicationService.GetAccessEntriesAsync(Id!.Value)];
+            _groups = [.. await GroupService.GetAllAsync()];
+            _users = [.. await UserService.GetAllAsync()];
+        }
+
+        _loading = false;
+    }
+
+    private async Task Save()
+    {
+        await _form.ValidateAsync();
+        if (!_valid) return;
+
+        _saving = true;
+        try
+        {
+            if (_isCreate)
+            {
+                await ApplicationService.CreateAsync(
+                    _model.Name, _model.Slug, _model.Description, _model.IconUrl,
+                    _model.LaunchUrl, _model.LinkedClientId, _model.IsEnabled, _model.IsPublic);
+                Snackbar.Add("Application created.", Severity.Success);
+                Navigation.NavigateTo("/admin/applications");
+            }
+            else
+            {
+                await ApplicationService.UpdateAsync(
+                    Id!.Value, _model.Name, _model.Slug, _model.Description, _model.IconUrl,
+                    _model.LaunchUrl, _model.LinkedClientId, _model.IsEnabled, _model.IsPublic);
+                Snackbar.Add("Application saved.", Severity.Success);
+            }
+        }
+        catch (Exception ex)
+        {
+            Snackbar.Add($"Error: {ex.Message}", Severity.Error);
+        }
+        finally
+        {
+            _saving = false;
+        }
+    }
+
+    private async Task AddGroupAccess()
+    {
+        if (_addGroupId is null) return;
+        await ApplicationService.AddGroupAccessAsync(Id!.Value, _addGroupId.Value);
+        _accessEntries = [.. await ApplicationService.GetAccessEntriesAsync(Id!.Value)];
+        _addGroupId = null;
+    }
+
+    private async Task AddUserAccess()
+    {
+        if (string.IsNullOrEmpty(_addUserId)) return;
+        await ApplicationService.AddUserAccessAsync(Id!.Value, _addUserId);
+        _accessEntries = [.. await ApplicationService.GetAccessEntriesAsync(Id!.Value)];
+        _addUserId = null;
+    }
+
+    private async Task RemoveAccess(int accessId)
+    {
+        await ApplicationService.RemoveAccessAsync(accessId);
+        _accessEntries = [.. await ApplicationService.GetAccessEntriesAsync(Id!.Value)];
+    }
+
+    private sealed class AppModel
+    {
+        public string Name { get; set; } = string.Empty;
+        public string Slug { get; set; } = string.Empty;
+        public string? Description { get; set; }
+        public string? IconUrl { get; set; }
+        public string? LaunchUrl { get; set; }
+        public string? LinkedClientId { get; set; }
+        public bool IsEnabled { get; set; } = true;
+        public bool IsPublic { get; set; } = true;
+    }
+}

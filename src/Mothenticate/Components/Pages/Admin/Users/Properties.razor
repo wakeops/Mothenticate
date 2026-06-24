@@ -1,0 +1,258 @@
+@page "/admin/users/properties"
+@attribute [Authorize(Policy = AuthDefaults.AppAdminUserPolicy)]
+@inject IUserPropertyService PropertyService
+@inject IAppSettingsService SettingsService
+@inject ISnackbar Snackbar
+@inject IDialogService DialogService
+
+<PageTitle>User Properties — Mothenticate Admin</PageTitle>
+
+<MudText Typo="Typo.h4" GutterBottom="true">User Properties</MudText>
+
+<MudGrid>
+    <MudItem xs="12" md="8">
+        <!-- Built-in properties info panel -->
+        <MudPaper Elevation="2" Class="pa-4 mb-4">
+            <MudText Typo="Typo.h6" GutterBottom="true">Built-in Properties</MudText>
+            <MudText Typo="Typo.caption" Color="Color.Secondary" Class="mb-3">
+                These properties are always present and cannot be removed.
+            </MudText>
+            <MudTable Items="@_builtinProperties" Dense="true" Hover="true">
+                <HeaderContent>
+                    <MudTh>Name</MudTh>
+                    <MudTh>Display Name</MudTh>
+                    <MudTh>Type</MudTh>
+                    <MudTh>Required</MudTh>
+                    <MudTh>Notes</MudTh>
+                </HeaderContent>
+                <RowTemplate>
+                    <MudTd>@context.Name</MudTd>
+                    <MudTd>@context.DisplayName</MudTd>
+                    <MudTd>@context.Type</MudTd>
+                    <MudTd><MudIcon Icon="@(context.Required ? Icons.Material.Filled.Check : Icons.Material.Filled.Close)" Size="Size.Small" /></MudTd>
+                    <MudTd>
+                        @if (context.Name == "avatar")
+                        {
+                            <MudText Color="Color.Secondary" Typo="Typo.caption">Requires avatar toggle below</MudText>
+                        }
+                    </MudTd>
+                </RowTemplate>
+            </MudTable>
+        </MudPaper>
+
+        <!-- Avatar toggle -->
+        <MudPaper Elevation="2" Class="pa-4 mb-4">
+            <MudStack Row="true" AlignItems="AlignItems.Center">
+                <MudStack Spacing="0">
+                    <MudText Typo="Typo.subtitle1">Enable User Avatars</MudText>
+                    <MudText Typo="Typo.caption" Color="Color.Secondary">
+                        Allows users to upload a cropped image (max 512×512 px).
+                    </MudText>
+                </MudStack>
+                <MudSpacer />
+                <MudSwitch Value="_avatarsEnabled" Color="Color.Primary"
+                           ValueChanged="@((bool v) => SaveAvatarToggle(v))" />
+            </MudStack>
+        </MudPaper>
+
+        <!-- Username as email -->
+        <MudPaper Elevation="2" Class="pa-4 mb-4">
+            <MudStack Row="true" AlignItems="AlignItems.Center">
+                <MudStack Spacing="0">
+                    <MudText Typo="Typo.subtitle1">Use Email as Username</MudText>
+                    <MudText Typo="Typo.caption" Color="Color.Secondary">
+                        When enabled, the username field is hidden and email is used as the unique login identifier.
+                    </MudText>
+                </MudStack>
+                <MudSpacer />
+                <MudSwitch Value="_useEmailAsUsername" Color="Color.Primary"
+                           ValueChanged="@((bool v) => SaveUseEmailToggle(v))" />
+            </MudStack>
+        </MudPaper>
+
+        <!-- Custom properties -->
+        <MudPaper Elevation="2" Class="pa-4">
+            <MudStack Row="true" AlignItems="AlignItems.Center" Class="mb-3">
+                <MudText Typo="Typo.h6">Custom Properties</MudText>
+                <MudSpacer />
+                <MudButton Variant="Variant.Filled" Color="Color.Primary"
+                           StartIcon="@Icons.Material.Filled.Add" OnClick="OpenCreateDialog">
+                    Add Property
+                </MudButton>
+            </MudStack>
+
+            @if (_properties.Count == 0)
+            {
+                <MudText Color="Color.Secondary">No custom properties defined yet.</MudText>
+            }
+            else
+            {
+                <MudTable Items="@_properties" Dense="true" Hover="true">
+                    <HeaderContent>
+                        <MudTh>Name</MudTh>
+                        <MudTh>Display Name</MudTh>
+                        <MudTh>Type</MudTh>
+                        <MudTh>Required</MudTh>
+                        <MudTh>Hidden</MudTh>
+                        <MudTh>Read-only</MudTh>
+                        <MudTh></MudTh>
+                    </HeaderContent>
+                    <RowTemplate>
+                        <MudTd>@context.Name</MudTd>
+                        <MudTd>@context.DisplayName</MudTd>
+                        <MudTd>@context.Type</MudTd>
+                        <MudTd><MudIcon Icon="@(context.IsRequired ? Icons.Material.Filled.Check : Icons.Material.Filled.Close)" Size="Size.Small" /></MudTd>
+                        <MudTd><MudIcon Icon="@(context.IsHidden ? Icons.Material.Filled.Check : Icons.Material.Filled.Close)" Size="Size.Small" /></MudTd>
+                        <MudTd><MudIcon Icon="@(context.IsReadOnly ? Icons.Material.Filled.Check : Icons.Material.Filled.Close)" Size="Size.Small" /></MudTd>
+                        <MudTd>
+                            <MudIconButton Icon="@Icons.Material.Filled.Edit" Size="Size.Small"
+                                           OnClick="() => OpenEditDialog(context)" />
+                            <MudIconButton Icon="@Icons.Material.Filled.Delete" Size="Size.Small" Color="Color.Error"
+                                           OnClick="() => DeleteProperty(context)" />
+                        </MudTd>
+                    </RowTemplate>
+                </MudTable>
+            }
+        </MudPaper>
+    </MudItem>
+</MudGrid>
+
+<!-- Property dialog -->
+<MudDialog @bind-Visible="_dialogOpen" Options="new DialogOptions { MaxWidth = MaxWidth.Small, FullWidth = true }">
+    <TitleContent>@(_editingProperty is null ? "Add Property" : "Edit Property")</TitleContent>
+    <DialogContent>
+        <MudForm @ref="_form">
+            <MudTextField @bind-Value="_dialogModel.Name" Label="Name (claim key)" Variant="Variant.Outlined"
+                          Required="true" Disabled="@(_editingProperty is not null)" Class="mb-3"
+                          HelperText="Unique identifier, used as the OIDC claim name." />
+            <MudTextField @bind-Value="_dialogModel.DisplayName" Label="Display Name" Variant="Variant.Outlined"
+                          Required="true" Class="mb-3" />
+            <MudSelect @bind-Value="_dialogModel.Type" Label="Type" Variant="Variant.Outlined" Class="mb-3">
+                <MudSelectItem Value="PropertyType.Text">Text</MudSelectItem>
+                <MudSelectItem Value="PropertyType.Date">Date</MudSelectItem>
+                <MudSelectItem Value="PropertyType.Boolean">Boolean</MudSelectItem>
+                <MudSelectItem Value="PropertyType.Avatar">Avatar</MudSelectItem>
+            </MudSelect>
+            <MudCheckBox @bind-Value="_dialogModel.IsRequired" Label="Required" Color="Color.Primary" />
+            <MudCheckBox @bind-Value="_dialogModel.IsHidden" Label="Hidden from user (admin/token only)" Color="Color.Primary" />
+            <MudCheckBox @bind-Value="_dialogModel.IsReadOnly" Label="Read-only (user cannot edit)" Color="Color.Primary" />
+        </MudForm>
+    </DialogContent>
+    <DialogActions>
+        <MudButton OnClick="() => _dialogOpen = false">Cancel</MudButton>
+        <MudButton Variant="Variant.Filled" Color="Color.Primary" OnClick="SaveProperty">Save</MudButton>
+    </DialogActions>
+</MudDialog>
+
+@code {
+    private List<UserProperty> _properties = [];
+    private bool _avatarsEnabled;
+    private bool _useEmailAsUsername;
+    private bool _dialogOpen;
+    private UserProperty? _editingProperty;
+    private PropertyDialogModel _dialogModel = new();
+    private MudForm _form = default!;
+
+    private static readonly (string Name, string DisplayName, string Type, bool Required)[] _builtinProperties =
+    [
+        ("username", "Username", "Text", true),
+        ("email", "Email", "Text", true),
+        ("firstname", "First Name", "Text", false),
+        ("lastname", "Last Name", "Text", false),
+        ("displayname", "Display Name", "Text", false),
+        ("avatar", "Avatar", "Avatar", false),
+    ];
+
+    protected override async Task OnInitializedAsync()
+    {
+        _properties = [.. await PropertyService.GetAllDefinitionsAsync()];
+        var settings = await SettingsService.GetAsync();
+        _avatarsEnabled = settings.AvatarsEnabled;
+        _useEmailAsUsername = settings.UseEmailAsUsername;
+    }
+
+    private async Task SaveAvatarToggle(bool value)
+    {
+        _avatarsEnabled = value;
+        var settings = await SettingsService.GetAsync();
+        settings.AvatarsEnabled = value;
+        await SettingsService.UpdateAsync(settings);
+        Snackbar.Add($"Avatars {(value ? "enabled" : "disabled")}.", Severity.Success);
+    }
+
+    private async Task SaveUseEmailToggle(bool value)
+    {
+        _useEmailAsUsername = value;
+        var settings = await SettingsService.GetAsync();
+        settings.UseEmailAsUsername = value;
+        await SettingsService.UpdateAsync(settings);
+        Snackbar.Add($"Email-as-username {(value ? "enabled" : "disabled")}.", Severity.Success);
+    }
+
+    private void OpenCreateDialog()
+    {
+        _editingProperty = null;
+        _dialogModel = new PropertyDialogModel();
+        _dialogOpen = true;
+    }
+
+    private void OpenEditDialog(UserProperty property)
+    {
+        _editingProperty = property;
+        _dialogModel = new PropertyDialogModel
+        {
+            Name = property.Name,
+            DisplayName = property.DisplayName,
+            Type = property.Type,
+            IsRequired = property.IsRequired,
+            IsHidden = property.IsHidden,
+            IsReadOnly = property.IsReadOnly
+        };
+        _dialogOpen = true;
+    }
+
+    private async Task SaveProperty()
+    {
+        if (_editingProperty is null)
+        {
+            await PropertyService.CreateDefinitionAsync(
+                _dialogModel.Name, _dialogModel.DisplayName, _dialogModel.Type,
+                _dialogModel.IsRequired, _dialogModel.IsHidden, _dialogModel.IsReadOnly);
+            Snackbar.Add("Property created.", Severity.Success);
+        }
+        else
+        {
+            await PropertyService.UpdateDefinitionAsync(
+                _editingProperty.Id, _dialogModel.DisplayName, _dialogModel.Type,
+                _dialogModel.IsRequired, _dialogModel.IsHidden, _dialogModel.IsReadOnly);
+            Snackbar.Add("Property updated.", Severity.Success);
+        }
+
+        _properties = [.. await PropertyService.GetAllDefinitionsAsync()];
+        _dialogOpen = false;
+    }
+
+    private async Task DeleteProperty(UserProperty property)
+    {
+        var confirmed = await DialogService.ConfirmDeleteAsync(
+            "Delete Property",
+            $"Delete '{property.DisplayName}'? Existing user values for this property will also be deleted.");
+
+        if (confirmed == true)
+        {
+            await PropertyService.DeleteDefinitionAsync(property.Id);
+            _properties = [.. await PropertyService.GetAllDefinitionsAsync()];
+            Snackbar.Add("Property deleted.", Severity.Success);
+        }
+    }
+
+    private sealed class PropertyDialogModel
+    {
+        public string Name { get; set; } = string.Empty;
+        public string DisplayName { get; set; } = string.Empty;
+        public PropertyType Type { get; set; } = PropertyType.Text;
+        public bool IsRequired { get; set; }
+        public bool IsHidden { get; set; }
+        public bool IsReadOnly { get; set; }
+    }
+}

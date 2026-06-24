@@ -1,0 +1,89 @@
+.auth-backdrop {
+  min-height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--mud-palette-background-gray);
+}
+
+.auth-card {
+  width: 100%;
+  max-width: 420px;
+}
+
+.auth-input {
+  width: 100%;
+  padding: 14px 12px;
+  border: 1px solid var(--mud-palette-lines-input);
+  border-radius: 4px;
+  font-size: 1rem;
+  box-sizing: border-box;
+  background: var(--mud-palette-surface);
+  color: var(--mud-palette-text-primary);
+  outline: none;
+}
+
+.font-family-mono {
+  font-family: monospace;
+}
+
+.auth-input-code {
+  font-size: 1.5rem;
+  text-align: center;
+  letter-spacing: 0.5rem;
+}
+
+.password-rules {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.password-rule {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 0.75rem;
+
+  &--met {
+    color: var(--mud-palette-success);
+  }
+
+  &--unmet {
+    color: var(--mud-palette-text-secondary);
+  }
+}
+
+.auth-checkbox {
+  margin-right: 8px;
+  width: 16px;
+  height: 16px;
+  cursor: pointer;
+}
+
+.cursor-pointer {
+  cursor: pointer;
+}
+
+.launcher-avatar {
+  width: 64px !important;
+  height: 64px !important;
+  font-size: 1.75rem !important;
+}
+
+.profile-avatar {
+  width: 96px !important;
+  height: 96px !important;
+  margin: 0 auto 16px !important;
+  font-size: 2.5rem !important;
+}
+
+.qr-container {
+  display: inline-block;
+  padding: 8px;
+  background: white;
+}
+
+.appbar-divider {
+  background: rgba(255, 255, 255, 0.3) !important;
+}

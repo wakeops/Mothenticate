@@ -1,0 +1,368 @@
+@page "/admin/clients/create"
+@page "/admin/clients/{Id}"
+@attribute [Authorize(Policy = AuthDefaults.AppAdminUserPolicy)]
+@inject IClientService ClientService
+@inject IDialogService DialogService
+@inject ISnackbar Snackbar
+@inject NavigationManager Navigation
+@using OpenIddict.Abstractions
+@using Mothenticate.IdentityProvider.Services
+
+<PageTitle>@(_isCreate ? "New Client" : _model.DisplayName) — Mothenticate Admin</PageTitle>
+
+<MudStack Row="true" AlignItems="AlignItems.Center" Class="mb-4">
+    <MudIconButton Icon="@Icons.Material.Filled.ArrowBack" OnClick='() => Navigation.NavigateTo("/admin/clients")' />
+    <MudText Typo="Typo.h4">@(_isCreate ? "New Client" : "Edit Client")</MudText>
+</MudStack>
+
+<MudGrid>
+    <MudItem xs="12" md="8">
+        <MudForm @ref="_form" @bind-IsValid="_valid">
+
+            <!-- Basic Info -->
+            <MudPaper Elevation="2" Class="pa-4 mb-4">
+                <MudText Typo="Typo.h6" GutterBottom="true">Basic Information</MudText>
+                <MudGrid>
+                    <MudItem xs="12" sm="6">
+                        <MudTextField @bind-Value="_model.DisplayName" Label="Display Name" Required="true"
+                                      RequiredError="Display name is required." Variant="Variant.Outlined" />
+                    </MudItem>
+                    <MudItem xs="12" sm="6">
+                        <MudTextField @bind-Value="_model.ClientId" Label="Client ID" Required="true"
+                                      RequiredError="Client ID is required." Variant="Variant.Outlined"
+                                      Disabled="@(!_isCreate)" HelperText="Unique identifier for this application." />
+                    </MudItem>
+                    <MudItem xs="12" sm="6">
+                        <MudSelect @bind-Value="_model.ClientType" Label="Client Type" Variant="Variant.Outlined">
+                            <MudSelectItem Value="@OpenIddictConstants.ClientTypes.Public">Public</MudSelectItem>
+                            <MudSelectItem Value="@OpenIddictConstants.ClientTypes.Confidential">Confidential</MudSelectItem>
+                        </MudSelect>
+                    </MudItem>
+                    <MudItem xs="12" sm="6">
+                        <MudSwitch @bind-Value="_model.IsEnabled" Label="Enabled" Color="Color.Primary" />
+                    </MudItem>
+                </MudGrid>
+            </MudPaper>
+
+            <!-- Redirect URIs -->
+            <MudPaper Elevation="2" Class="pa-4 mb-4">
+                <MudText Typo="Typo.h6" GutterBottom="true">Redirect URIs</MudText>
+                @for (int i = 0; i < _model.RedirectUris.Count; i++)
+                {
+                    var idx = i;
+                    <MudStack Row="true" Class="mb-2">
+                        <MudTextField @bind-Value="_model.RedirectUris[idx]" Label="@($"Redirect URI {idx + 1}")"
+                                      Variant="Variant.Outlined" FullWidth="true" />
+                        <MudIconButton Icon="@Icons.Material.Filled.Remove" Color="Color.Error"
+                                       OnClick="() => _model.RedirectUris.RemoveAt(idx)" />
+                    </MudStack>
+                }
+                <MudButton StartIcon="@Icons.Material.Filled.Add" Variant="Variant.Text"
+                           OnClick='() => _model.RedirectUris.Add(string.Empty)'>
+                    Add Redirect URI
+                </MudButton>
+            </MudPaper>
+
+            <!-- Post-Logout Redirect URIs -->
+            <MudPaper Elevation="2" Class="pa-4 mb-4">
+                <MudText Typo="Typo.h6" GutterBottom="true">Post-Logout Redirect URIs</MudText>
+                @for (int i = 0; i < _model.PostLogoutRedirectUris.Count; i++)
+                {
+                    var idx = i;
+                    <MudStack Row="true" Class="mb-2">
+                        <MudTextField @bind-Value="_model.PostLogoutRedirectUris[idx]" Label="@($"URI {idx + 1}")"
+                                      Variant="Variant.Outlined" FullWidth="true" />
+                        <MudIconButton Icon="@Icons.Material.Filled.Remove" Color="Color.Error"
+                                       OnClick="() => _model.PostLogoutRedirectUris.RemoveAt(idx)" />
+                    </MudStack>
+                }
+                <MudButton StartIcon="@Icons.Material.Filled.Add" Variant="Variant.Text"
+                           OnClick='() => _model.PostLogoutRedirectUris.Add(string.Empty)'>
+                    Add Post-Logout URI
+                </MudButton>
+            </MudPaper>
+
+            <!-- Permissions -->
+            <MudPaper Elevation="2" Class="pa-4 mb-4">
+                <MudText Typo="Typo.h6" GutterBottom="true">Permissions</MudText>
+                @foreach (var group in _permissionGroups)
+                {
+                    <MudText Typo="Typo.subtitle2" Class="mt-3 mb-1">@group.Key</MudText>
+                    <MudGrid Spacing="0">
+                        @foreach (var (label, permission) in group.Value)
+                        {
+                            <MudItem xs="12" sm="6">
+                                <MudCheckBox Value="@_model.Permissions.Contains(permission)"
+                                             ValueChanged="@((bool v) => TogglePermission(permission, v))"
+                                             Label="@label" Color="Color.Primary" />
+                            </MudItem>
+                        }
+                    </MudGrid>
+                }
+            </MudPaper>
+
+            <!-- Token Lifetimes -->
+            @if (!_isCreate)
+            {
+                <MudPaper Elevation="2" Class="pa-4 mb-4">
+                    <MudText Typo="Typo.h6" GutterBottom="true">Token Lifetimes</MudText>
+                    <MudText Typo="Typo.caption" Color="Color.Secondary" Class="mb-3">
+                        Leave blank to use the server defaults.
+                    </MudText>
+                    <MudGrid>
+                        <MudItem xs="12" sm="4">
+                            <MudNumericField T="int?" @bind-Value="_model.AccessTokenLifetimeMinutes"
+                                             Label="Access Token (minutes)" Variant="Variant.Outlined"
+                                             Placeholder="Default (60)" Min="1" />
+                        </MudItem>
+                        <MudItem xs="12" sm="4">
+                            <MudNumericField T="int?" @bind-Value="_model.IdentityTokenLifetimeMinutes"
+                                             Label="Identity Token (minutes)" Variant="Variant.Outlined"
+                                             Placeholder="Default (60)" Min="1" />
+                        </MudItem>
+                        <MudItem xs="12" sm="4">
+                            <MudNumericField T="int?" @bind-Value="_model.RefreshTokenLifetimeMinutes"
+                                             Label="Refresh Token (minutes)" Variant="Variant.Outlined"
+                                             Placeholder="Default (20160)" Min="1" />
+                        </MudItem>
+                    </MudGrid>
+                </MudPaper>
+            }
+
+            <MudStack Row="true">
+                <MudButton Variant="Variant.Filled" Color="Color.Primary" OnClick="Save" Disabled="@_saving">
+                    @(_saving ? "Saving…" : (_isCreate ? "Create Client" : "Save Changes"))
+                </MudButton>
+                <MudButton Variant="Variant.Text" OnClick='() => Navigation.NavigateTo("/admin/clients")'>
+                    Cancel
+                </MudButton>
+            </MudStack>
+        </MudForm>
+    </MudItem>
+
+    @if (!_isCreate)
+    {
+        <MudItem xs="12" md="4">
+            <MudPaper Elevation="2" Class="pa-4">
+                <MudText Typo="Typo.h6" GutterBottom="true">Client Secrets</MudText>
+                <MudText Typo="Typo.caption" Color="Color.Secondary" Class="mb-3">
+                    Secrets are used to authenticate confidential clients.
+                </MudText>
+
+                @foreach (var secret in _secrets)
+                {
+                    <MudPaper Outlined="true" Class="pa-3 mb-2">
+                        <MudStack Row="true" AlignItems="AlignItems.Center">
+                            <MudStack Spacing="0">
+                                <MudText Typo="Typo.body2">@(secret.Description ?? "No description")</MudText>
+                                <MudText Typo="Typo.caption" Color="@(secret.IsExpired ? Color.Error : Color.Secondary)">
+                                    @(secret.IsExpired ? "Expired" : secret.ExpiresAt.HasValue ? $"Expires {secret.ExpiresAt:yyyy-MM-dd}" : "No expiry")
+                                </MudText>
+                                <MudText Typo="Typo.caption" Color="Color.Secondary">Created @secret.CreatedAt.ToString("yyyy-MM-dd")</MudText>
+                            </MudStack>
+                            <MudSpacer />
+                            <MudIconButton Icon="@Icons.Material.Filled.Delete" Size="Size.Small" Color="Color.Error"
+                                           OnClick="() => DeleteSecret(secret.Id)" />
+                        </MudStack>
+                    </MudPaper>
+                }
+
+                <MudDivider Class="my-3" />
+                <MudText Typo="Typo.subtitle2" Class="mb-2">Add Secret</MudText>
+                <MudTextField @bind-Value="_newSecretDescription" Label="Description (optional)"
+                              Variant="Variant.Outlined" Margin="Margin.Dense" Class="mb-2" />
+                <MudDatePicker @bind-Date="_newSecretExpiry" Label="Expiry date (optional)"
+                               Variant="Variant.Outlined" Margin="Margin.Dense" Class="mb-2" />
+                <MudButton Variant="Variant.Filled" Color="Color.Primary" FullWidth="true" OnClick="AddSecret">
+                    Generate Secret
+                </MudButton>
+            </MudPaper>
+        </MudItem>
+    }
+</MudGrid>
+
+@code {
+    [Parameter] public string? Id { get; set; }
+
+    private bool _isCreate;
+    private bool _valid;
+    private bool _saving;
+    private MudForm _form = default!;
+    private ApplicationModel _model = new();
+    private List<Mothenticate.IdentityProvider.Models.ClientSecretInfo> _secrets = [];
+    private string? _newSecretDescription;
+    private DateTime? _newSecretExpiry;
+
+    private static readonly Dictionary<string, (string Label, string Permission)[]> _permissionGroups = new()
+    {
+        ["Endpoints"] =
+        [
+            ("Authorization", OpenIddictConstants.Permissions.Endpoints.Authorization),
+            ("Token", OpenIddictConstants.Permissions.Endpoints.Token),
+            ("Introspection", OpenIddictConstants.Permissions.Endpoints.Introspection),
+            ("Revocation", OpenIddictConstants.Permissions.Endpoints.Revocation),
+            ("End Session", OpenIddictConstants.Permissions.Endpoints.EndSession),
+            ("Device Authorization", OpenIddictConstants.Permissions.Endpoints.DeviceAuthorization),
+        ],
+        ["Grant Types"] =
+        [
+            ("Authorization Code", OpenIddictConstants.Permissions.GrantTypes.AuthorizationCode),
+            ("Client Credentials", OpenIddictConstants.Permissions.GrantTypes.ClientCredentials),
+            ("Device Code", OpenIddictConstants.Permissions.GrantTypes.DeviceCode),
+            ("Implicit", OpenIddictConstants.Permissions.GrantTypes.Implicit),
+            ("Password", OpenIddictConstants.Permissions.GrantTypes.Password),
+            ("Refresh Token", OpenIddictConstants.Permissions.GrantTypes.RefreshToken),
+        ],
+        ["Scopes"] =
+        [
+            ("Email", OpenIddictConstants.Permissions.Scopes.Email),
+            ("Profile", OpenIddictConstants.Permissions.Scopes.Profile),
+            ("Phone", OpenIddictConstants.Permissions.Scopes.Phone),
+            ("Roles", OpenIddictConstants.Permissions.Scopes.Roles),
+            ("Address", OpenIddictConstants.Permissions.Scopes.Address),
+        ],
+        ["Response Types"] =
+        [
+            ("Code", OpenIddictConstants.Permissions.ResponseTypes.Code),
+            ("Token", OpenIddictConstants.Permissions.ResponseTypes.Token),
+            ("ID Token", OpenIddictConstants.Permissions.ResponseTypes.IdToken),
+        ]
+    };
+
+    protected override async Task OnInitializedAsync()
+    {
+        _isCreate = string.IsNullOrEmpty(Id) || Id == "create";
+
+        if (!_isCreate)
+        {
+            var client = await ClientService.GetByIdAsync(Id!);
+            if (client is null)
+            {
+                Navigation.NavigateTo("/admin/clients");
+                return;
+            }
+
+            _model = new ApplicationModel
+            {
+                DisplayName = client.DisplayName ?? string.Empty,
+                ClientId = client.ClientId ?? string.Empty,
+                ClientType = client.ClientType ?? OpenIddictConstants.ClientTypes.Public,
+                IsEnabled = client.IsEnabled,
+                RedirectUris = [.. client.RedirectUris],
+                PostLogoutRedirectUris = [.. client.PostLogoutRedirectUris],
+                Permissions = [.. client.Permissions],
+                AccessTokenLifetimeMinutes = client.AccessTokenLifetime.HasValue ? client.AccessTokenLifetime.Value / 60 : null,
+                IdentityTokenLifetimeMinutes = client.IdentityTokenLifetime.HasValue ? client.IdentityTokenLifetime.Value / 60 : null,
+                RefreshTokenLifetimeMinutes = client.RefreshTokenLifetime.HasValue ? client.RefreshTokenLifetime.Value / 60 : null,
+            };
+
+            _secrets = [.. await ClientService.GetSecretsAsync(Id!)];
+        }
+    }
+
+    private void TogglePermission(string permission, bool add)
+    {
+        if (add) _model.Permissions.Add(permission);
+        else _model.Permissions.Remove(permission);
+    }
+
+    private async Task Save()
+    {
+        await _form.ValidateAsync();
+        if (!_valid) return;
+
+        _saving = true;
+        try
+        {
+            var descriptor = new OpenIddictApplicationDescriptor
+            {
+                ClientId = _model.ClientId,
+                DisplayName = _model.DisplayName,
+                ClientType = _model.ClientType,
+            };
+
+            foreach (var uri in _model.RedirectUris.Where(u => !string.IsNullOrWhiteSpace(u)))
+                descriptor.RedirectUris.Add(new Uri(uri));
+            foreach (var uri in _model.PostLogoutRedirectUris.Where(u => !string.IsNullOrWhiteSpace(u)))
+                descriptor.PostLogoutRedirectUris.Add(new Uri(uri));
+            foreach (var permission in _model.Permissions)
+                descriptor.Permissions.Add(permission);
+
+            descriptor.SetAccessTokenLifetime(_model.AccessTokenLifetimeMinutes.HasValue ? TimeSpan.FromMinutes(_model.AccessTokenLifetimeMinutes.Value) : null);
+            descriptor.SetIdentityTokenLifetime(_model.IdentityTokenLifetimeMinutes.HasValue ? TimeSpan.FromMinutes(_model.IdentityTokenLifetimeMinutes.Value) : null);
+            descriptor.SetRefreshTokenLifetime(_model.RefreshTokenLifetimeMinutes.HasValue ? TimeSpan.FromMinutes(_model.RefreshTokenLifetimeMinutes.Value) : null);
+
+            if (_isCreate)
+            {
+                var newId = await ClientService.CreateAsync(descriptor);
+                if (!_model.IsEnabled && newId is not null)
+                    await ClientService.SetEnabledAsync(newId, false);
+                Snackbar.Add("Client created.", Severity.Success);
+                Navigation.NavigateTo("/admin/clients");
+            }
+            else
+            {
+                await ClientService.UpdateAsync(Id!, descriptor);
+                await ClientService.SetEnabledAsync(Id!, _model.IsEnabled);
+                Snackbar.Add("Client saved.", Severity.Success);
+            }
+        }
+        catch (Exception ex)
+        {
+            Snackbar.Add($"Error: {ex.Message}", Severity.Error);
+        }
+        finally
+        {
+            _saving = false;
+        }
+    }
+
+    private async Task AddSecret()
+    {
+        var plaintext = GenerateSecret();
+        await ClientService.AddSecretAsync(
+            Id!,
+            plaintext,
+            string.IsNullOrWhiteSpace(_newSecretDescription) ? null : _newSecretDescription,
+            _newSecretExpiry.HasValue ? new DateTimeOffset(_newSecretExpiry.Value, TimeSpan.Zero) : null);
+
+        _newSecretDescription = null;
+        _newSecretExpiry = null;
+        _secrets = [.. await ClientService.GetSecretsAsync(Id!)];
+
+        var parameters = new DialogParameters<SecretRevealDialog> { { d => d.Secret, plaintext } };
+        var options = new DialogOptions { MaxWidth = MaxWidth.Small, FullWidth = true, CloseOnEscapeKey = false, BackdropClick = false };
+        await DialogService.ShowAsync<SecretRevealDialog>("Secret Generated", parameters, options);
+    }
+
+    private async Task DeleteSecret(int secretId)
+    {
+        var confirmed = await DialogService.ConfirmDeleteAsync("Delete Secret", "Delete this secret? Any clients using it will immediately lose access.");
+        if (confirmed != true) return;
+
+        await ClientService.RemoveSecretAsync(secretId);
+        _secrets = [.. await ClientService.GetSecretsAsync(Id!)];
+        Snackbar.Add("Secret deleted.", Severity.Success);
+    }
+
+    private static string GenerateSecret()
+    {
+        var bytes = new byte[32];
+        System.Security.Cryptography.RandomNumberGenerator.Fill(bytes);
+        return Convert.ToBase64String(bytes);
+    }
+
+    private sealed class ApplicationModel
+    {
+        public string DisplayName { get; set; } = string.Empty;
+        public string ClientId { get; set; } = string.Empty;
+        public string ClientType { get; set; } = OpenIddictConstants.ClientTypes.Public;
+        public bool IsEnabled { get; set; } = true;
+        public List<string> RedirectUris { get; set; } = [];
+        public List<string> PostLogoutRedirectUris { get; set; } = [];
+        public HashSet<string> Permissions { get; set; } = [];
+        public int? AccessTokenLifetimeMinutes { get; set; }
+        public int? IdentityTokenLifetimeMinutes { get; set; }
+        public int? RefreshTokenLifetimeMinutes { get; set; }
+    }
+}

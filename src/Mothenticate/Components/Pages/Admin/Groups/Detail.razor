@@ -1,0 +1,228 @@
+@page "/admin/groups/create"
+@page "/admin/groups/{Id:int}"
+@attribute [Authorize(Policy = AuthDefaults.AppAdminUserPolicy)]
+@inject IGroupService GroupService
+@inject IRoleService RoleService
+@inject IUserService UserService
+@inject ISnackbar Snackbar
+@inject NavigationManager Navigation
+
+<PageTitle>@(_isCreate ? "New Group" : _group?.Name ?? "Group") — Mothenticate Admin</PageTitle>
+
+<MudStack Row="true" AlignItems="AlignItems.Center" Class="mb-4">
+    <MudIconButton Icon="@Icons.Material.Filled.ArrowBack" OnClick='() => Navigation.NavigateTo("/admin/groups")' />
+    <MudText Typo="Typo.h4">@(_isCreate ? "New Group" : _group?.Name ?? "Group")</MudText>
+</MudStack>
+
+@if (_loading)
+{
+    <MudProgressLinear Indeterminate="true" />
+}
+else
+{
+    <MudGrid>
+        <!-- Group info -->
+        <MudItem xs="12" md="5">
+            <MudPaper Elevation="2" Class="pa-4 mb-4">
+                <MudText Typo="Typo.h6" GutterBottom="true">Group Details</MudText>
+                <MudForm @ref="_form">
+                    <MudTextField @bind-Value="_name" Label="Name" Variant="Variant.Outlined"
+                                  Required="true" Class="mb-3" />
+                    <MudTextField @bind-Value="_description" Label="Description" Variant="Variant.Outlined"
+                                  Lines="2" Class="mb-3" />
+                    <MudButton Variant="Variant.Filled" Color="Color.Primary" OnClick="Save">
+                        @(_isCreate ? "Create Group" : "Save")
+                    </MudButton>
+                </MudForm>
+            </MudPaper>
+        </MudItem>
+
+        @if (!_isCreate)
+        {
+            <!-- Members -->
+            <MudItem xs="12" md="7">
+                <MudPaper Elevation="2" Class="pa-4 mb-4">
+                    <MudText Typo="Typo.h6" GutterBottom="true">Members (@_members.Count)</MudText>
+
+                    @foreach (var member in _members)
+                    {
+                        <MudStack Row="true" AlignItems="AlignItems.Center" Class="mb-1">
+                            <MudAvatar Size="Size.Small" Color="Color.Primary">
+                                @((member.DisplayName ?? member.UserName ?? "?")[0].ToString().ToUpper())
+                            </MudAvatar>
+                            <MudStack Spacing="0">
+                                <MudText Typo="Typo.body2">@(member.DisplayName ?? member.UserName)</MudText>
+                                <MudText Typo="Typo.caption" Color="Color.Secondary">@member.Email</MudText>
+                            </MudStack>
+                            <MudSpacer />
+                            <MudIconButton Icon="@Icons.Material.Filled.PersonRemove" Size="Size.Small"
+                                           Color="Color.Error" OnClick="() => RemoveMember(member.Id)" />
+                        </MudStack>
+                    }
+
+                    @if (_nonMembers.Count > 0)
+                    {
+                        <MudDivider Class="my-3" />
+                        <MudSelect T="string?" Placeholder="Add member…" ValueChanged="AddMember"
+                                   Variant="Variant.Outlined" Margin="Margin.Dense">
+                            @foreach (var user in _nonMembers)
+                            {
+                                <MudSelectItem T="string?" Value="@user.Id">
+                                    @(user.DisplayName ?? user.UserName) (@user.Email)
+                                </MudSelectItem>
+                            }
+                        </MudSelect>
+                    }
+                </MudPaper>
+
+                <!-- Roles -->
+                <MudPaper Elevation="2" Class="pa-4">
+                    <MudText Typo="Typo.h6" GutterBottom="true">Roles</MudText>
+                    <MudText Typo="Typo.caption" Color="Color.Secondary" Class="mb-3">
+                        Roles assigned here are automatically granted to all group members.
+                    </MudText>
+
+                    @foreach (var role in _groupRoles)
+                    {
+                        <MudStack Row="true" AlignItems="AlignItems.Center" Class="mb-1">
+                            <MudChip T="string" Icon="@Icons.Material.Filled.Shield">@role.Name</MudChip>
+                            <MudIconButton Icon="@Icons.Material.Filled.Close" Size="Size.Small"
+                                           Color="Color.Error" OnClick="() => RemoveRole(role.Id)" />
+                        </MudStack>
+                    }
+
+                    @if (_availableRoles.Count > 0)
+                    {
+                        <MudSelect T="int?" Placeholder="Add role…" ValueChanged="AddRole"
+                                   Variant="Variant.Outlined" Margin="Margin.Dense" Class="mt-2">
+                            @foreach (var role in _availableRoles)
+                            {
+                                <MudSelectItem T="int?" Value="@((int?)role.Id)">@role.Name</MudSelectItem>
+                            }
+                        </MudSelect>
+                    }
+                    else if (_groupRoles.Count == 0)
+                    {
+                        <MudText Typo="Typo.body2" Color="Color.Secondary">
+                            No roles exist yet. <MudLink Href="/admin/roles">Create roles</MudLink> to assign them to groups.
+                        </MudText>
+                    }
+                    else
+                    {
+                        <MudText Typo="Typo.body2" Color="Color.Secondary" Class="mt-2">All available roles are assigned.</MudText>
+                    }
+                </MudPaper>
+            </MudItem>
+        }
+    </MudGrid>
+}
+
+@code {
+    [Parameter] public int? Id { get; set; }
+
+    private int? _loadedId = -1;
+    private bool _isCreate;
+    private bool _loading = true;
+    private MudForm _form = default!;
+
+    private Group? _group;
+    private string _name = string.Empty;
+    private string? _description;
+
+    private List<ApplicationUser> _members = [];
+    private List<ApplicationUser> _nonMembers = [];
+    private List<AppRole> _groupRoles = [];
+    private List<AppRole> _availableRoles = [];
+
+    protected override async Task OnParametersSetAsync()
+    {
+        if (_loadedId == Id) return;
+        _loadedId = Id;
+        _loading = true;
+        _isCreate = !Id.HasValue;
+        _name = string.Empty;
+        _description = null;
+        _group = null;
+
+        if (!_isCreate)
+        {
+            _group = await GroupService.GetByIdAsync(Id!.Value);
+            if (_group is null)
+            {
+                Navigation.NavigateTo("/admin/groups");
+                return;
+            }
+
+            _name = _group.Name;
+            _description = _group.Description;
+
+            await RefreshMembers();
+            await RefreshRoles();
+        }
+
+        _loading = false;
+    }
+
+    private async Task Save()
+    {
+        if (string.IsNullOrWhiteSpace(_name)) return;
+
+        if (_isCreate)
+        {
+            var group = await GroupService.CreateAsync(_name, _description);
+            Snackbar.Add("Group created.", Severity.Success);
+            Navigation.NavigateTo($"/admin/groups/{group.Id}");
+        }
+        else
+        {
+            await GroupService.UpdateAsync(Id!.Value, _name, _description);
+            Snackbar.Add("Group saved.", Severity.Success);
+        }
+    }
+
+    private async Task AddMember(string? userId)
+    {
+        if (userId is null) return;
+        await GroupService.AddMemberAsync(Id!.Value, userId);
+        await RefreshMembers();
+        Snackbar.Add("Member added.", Severity.Success);
+    }
+
+    private async Task RemoveMember(string userId)
+    {
+        await GroupService.RemoveMemberAsync(Id!.Value, userId);
+        await RefreshMembers();
+        Snackbar.Add("Member removed.", Severity.Success);
+    }
+
+    private async Task AddRole(int? roleId)
+    {
+        if (roleId is null) return;
+        await GroupService.AddRoleAsync(Id!.Value, roleId.Value);
+        await RefreshRoles();
+        Snackbar.Add("Role added.", Severity.Success);
+    }
+
+    private async Task RemoveRole(int roleId)
+    {
+        await GroupService.RemoveRoleAsync(Id!.Value, roleId);
+        await RefreshRoles();
+        Snackbar.Add("Role removed.", Severity.Success);
+    }
+
+    private async Task RefreshMembers()
+    {
+        _members = [.. await GroupService.GetMembersAsync(Id!.Value)];
+        var memberIds = _members.Select(m => m.Id).ToHashSet();
+        var allUsers = await UserService.GetAllAsync();
+        _nonMembers = allUsers.Where(u => !memberIds.Contains(u.Id)).ToList();
+    }
+
+    private async Task RefreshRoles()
+    {
+        _groupRoles = [.. await GroupService.GetRolesAsync(Id!.Value)];
+        var allRoles = await RoleService.GetAllAsync();
+        var assignedIds = _groupRoles.Select(r => r.Id).ToHashSet();
+        _availableRoles = allRoles.Where(r => !assignedIds.Contains(r.Id)).ToList();
+    }
+}

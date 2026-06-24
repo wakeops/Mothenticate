@@ -1,0 +1,81 @@
+@page "/admin/groups"
+@attribute [Authorize(Policy = AuthDefaults.AppAdminUserPolicy)]
+@inject IGroupService GroupService
+@inject IDialogService DialogService
+@inject ISnackbar Snackbar
+@inject NavigationManager Navigation
+
+<PageTitle>Groups — Mothenticate Admin</PageTitle>
+
+<MudStack Row="true" AlignItems="AlignItems.Center" Class="mb-4">
+    <MudText Typo="Typo.h4">Groups</MudText>
+    <MudSpacer />
+    <MudButton Variant="Variant.Filled" Color="Color.Primary" StartIcon="@Icons.Material.Filled.GroupAdd"
+               OnClick='() => Navigation.NavigateTo("/admin/groups/create")'>
+        New Group
+    </MudButton>
+</MudStack>
+
+@if (_loading)
+{
+    <MudProgressLinear Indeterminate="true" />
+}
+else if (_groups.Count == 0)
+{
+    <MudAlert Severity="Severity.Info">No groups created yet.</MudAlert>
+}
+else
+{
+    <MudDataGrid T="Group" Items="@_groups" Hover="true" Striped="true" Filterable="false">
+        <Columns>
+            <PropertyColumn Property="g => g.Name" Title="Group" />
+            <PropertyColumn Property="g => g.Description" Title="Description" />
+            <TemplateColumn Title="Roles">
+                <CellTemplate>
+                    @context.Item.GroupRoles.Count
+                </CellTemplate>
+            </TemplateColumn>
+            <TemplateColumn Title="Members">
+                <CellTemplate>
+                    @context.Item.UserGroups.Count
+                </CellTemplate>
+            </TemplateColumn>
+            <TemplateColumn Title="" StickyRight="true">
+                <CellTemplate>
+                    <MudIconButton Icon="@Icons.Material.Filled.Edit" Size="Size.Small"
+                                   OnClick='() => Navigation.NavigateTo("/admin/groups/" + context.Item.Id)' />
+                    <MudIconButton Icon="@Icons.Material.Filled.Delete" Size="Size.Small" Color="Color.Error"
+                                   OnClick="() => ConfirmDelete(context.Item)" />
+                </CellTemplate>
+            </TemplateColumn>
+        </Columns>
+        <PagerContent>
+            <MudDataGridPager T="Group" />
+        </PagerContent>
+    </MudDataGrid>
+}
+
+@code {
+    private List<Group> _groups = [];
+    private bool _loading = true;
+
+    protected override async Task OnInitializedAsync()
+    {
+        _groups = [.. await GroupService.GetAllAsync()];
+        _loading = false;
+    }
+
+    private async Task ConfirmDelete(Group group)
+    {
+        var confirmed = await DialogService.ConfirmDeleteAsync(
+            "Delete Group",
+            $"Delete '{group.Name}'? Members will lose any roles assigned via this group.");
+
+        if (confirmed == true)
+        {
+            await GroupService.DeleteAsync(group.Id);
+            _groups.RemoveAll(g => g.Id == group.Id);
+            Snackbar.Add("Group deleted.", Severity.Success);
+        }
+    }
+}

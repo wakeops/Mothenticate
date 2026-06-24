@@ -1,0 +1,88 @@
+@page "/portal"
+@layout UserLayout
+@attribute [Authorize]
+@inject IAppLauncherService ApplicationService
+@inject AuthenticationStateProvider AuthState
+@inject NavigationManager Navigation
+
+<PageTitle>Applications — Mothenticate</PageTitle>
+
+<MudText Typo="Typo.h4" Class="mb-6">Applications</MudText>
+
+@if (_loading)
+{
+    <MudGrid>
+        @for (int i = 0; i < 4; i++)
+        {
+            <MudItem xs="12" sm="6" md="4" lg="3">
+                <MudSkeleton SkeletonType="SkeletonType.Rectangle" Height="160px" />
+            </MudItem>
+        }
+    </MudGrid>
+}
+else if (_apps.Count == 0)
+{
+    <MudPaper Elevation="0" Class="pa-8 text-center">
+        <MudIcon Icon="@Icons.Material.Filled.Apps" Size="Size.Large" Color="Color.Secondary" Class="mb-3" />
+        <MudText Typo="Typo.h6" Color="Color.Secondary">No applications available</MudText>
+        <MudText Typo="Typo.body2" Color="Color.Secondary">
+            No applications have been configured or you don't have access to any.
+        </MudText>
+    </MudPaper>
+}
+else
+{
+    <MudGrid>
+        @foreach (var app in _apps)
+        {
+            <MudItem xs="12" sm="6" md="4" lg="3">
+                <MudCard Elevation="2" Class="h-100 cursor-pointer"
+                         @onclick='() => Launch(app)'>
+                    <MudCardContent Class="d-flex flex-column align-center pa-6">
+                        @if (!string.IsNullOrEmpty(app.IconUrl))
+                        {
+                            <MudAvatar Class="mb-3 launcher-avatar">
+                                <MudImage Src="@app.IconUrl"></MudImage>
+                            </MudAvatar>
+                        }
+                        else
+                        {
+                            <MudAvatar Color="Color.Primary" Class="mb-3 launcher-avatar">
+                                @(app.Name.Length > 0 ? app.Name[0].ToString().ToUpper() : "A")
+                            </MudAvatar>
+                        }
+                        <MudText Typo="Typo.h6" Align="Align.Center">@app.Name</MudText>
+                        @if (!string.IsNullOrEmpty(app.Description))
+                        {
+                            <MudText Typo="Typo.caption" Color="Color.Secondary" Align="Align.Center" Class="mt-1">
+                                @app.Description
+                            </MudText>
+                        }
+                    </MudCardContent>
+                </MudCard>
+            </MudItem>
+        }
+    </MudGrid>
+}
+
+@code {
+    private List<AppLauncher> _apps = [];
+    private bool _loading = true;
+
+    protected override async Task OnInitializedAsync()
+    {
+        var state = await AuthState.GetAuthenticationStateAsync();
+        var userId = state.User.GetUserId();
+
+        if (userId is not null)
+            _apps = [.. await ApplicationService.GetAccessibleForUserAsync(userId)];
+
+        _loading = false;
+    }
+
+    private void Launch(AppLauncher app)
+    {
+        if (!string.IsNullOrEmpty(app.LaunchUrl))
+            Navigation.NavigateTo(app.LaunchUrl, forceLoad: true);
+    }
+}

@@ -1,0 +1,101 @@
+@page "/login"
+@layout AuthLayout
+@inject IAppSettingsService AppSettingsService
+
+<PageTitle>Sign In — Mothenticate</PageTitle>
+
+@if (_error is not null)
+{
+    <MudAlert Severity="Severity.Error" Class="mb-4" Dense="true">@_error</MudAlert>
+}
+
+<form method="post" action="/account/login">
+    <input type="hidden" name="returnUrl" value="@_returnUrl" />
+
+    <div class="mb-4">
+        <label class="mud-typography mud-typography-body2 mb-1 d-block">
+            @(_useEmailAsUsername ? "Email" : "Username")
+        </label>
+        <input name="username" type="text" autocomplete="username" required class="auth-input" />
+    </div>
+
+    <div class="mb-4">
+        <label class="mud-typography mud-typography-body2 mb-1 d-block">Password</label>
+        <input name="password" type="password" autocomplete="current-password" required class="auth-input" />
+    </div>
+
+    <div class="d-flex align-center mb-4">
+        <input type="checkbox" id="rememberMe" name="rememberMe" value="true" class="auth-checkbox" />
+        <label for="rememberMe" class="mud-typography mud-typography-body2 cursor-pointer">
+            Remember me
+        </label>
+    </div>
+
+    <MudButton ButtonType="ButtonType.Submit" Variant="Variant.Filled" Color="Color.Primary"
+               FullWidth="true" Size="Size.Large" Class="mb-4">
+        Sign In
+    </MudButton>
+</form>
+
+@if (_googleEnabled || _githubEnabled)
+{
+    <MudDivider Class="mb-4" />
+    <MudStack Spacing="2">
+        @if (_googleEnabled)
+        {
+            <MudButton Variant="Variant.Outlined" FullWidth="true" StartIcon="@Icons.Custom.Brands.Google"
+                       Href="/connect/external/google">
+                Continue with Google
+            </MudButton>
+        }
+        @if (_githubEnabled)
+        {
+            <MudButton Variant="Variant.Outlined" FullWidth="true" StartIcon="@Icons.Custom.Brands.GitHub"
+                       Href="/connect/external/github">
+                Continue with GitHub
+            </MudButton>
+        }
+    </MudStack>
+}
+
+@if (_registrationEnabled)
+{
+    <MudDivider Class="my-4" />
+    <MudText Typo="Typo.body2" Align="Align.Center">
+        Don't have an account? <MudLink Href="/register">Register</MudLink>
+    </MudText>
+}
+
+@code {
+    [SupplyParameterFromQuery] private string? ReturnUrl { get; set; }
+    [SupplyParameterFromQuery] private string? Error { get; set; }
+
+    private string? _returnUrl;
+    private string? _error;
+    private bool _useEmailAsUsername;
+    private bool _registrationEnabled;
+    private bool _googleEnabled;
+    private bool _githubEnabled;
+
+    protected override async Task OnInitializedAsync()
+    {
+        _returnUrl = ReturnUrl;
+        _error = Error switch
+        {
+            AuthErrorCodes.InvalidCredentials      => "Invalid username or password.",
+            AuthErrorCodes.AccountLocked           => "This account has been locked. Please try again later.",
+            AuthErrorCodes.AccountInactive         => "This account is inactive. Please contact an administrator.",
+            AuthErrorCodes.SessionExpired          => "Your session expired. Please sign in again.",
+            AuthErrorCodes.AccountDisabled         => "This account has been disabled.",
+            AuthErrorCodes.RegistrationDisabledSso => "Registration is currently disabled.",
+            AuthErrorCodes.SsoFailed               => "Single sign-on failed. Please try again.",
+            _ => Error
+        };
+
+        var settings = await AppSettingsService.GetAsync();
+        _useEmailAsUsername  = settings.UseEmailAsUsername;
+        _registrationEnabled = settings.RegistrationEnabled;
+        _googleEnabled       = settings.GoogleSsoEnabled;
+        _githubEnabled       = settings.GitHubSsoEnabled;
+    }
+}

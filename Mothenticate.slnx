@@ -1,0 +1,22 @@
+<Solution>
+  <Folder Name="/Solution Items/">
+    <File Path=".dockerignore" />
+    <File Path=".editorconfig" />
+    <File Path=".gitignore" />
+    <File Path="Directory.Build.props" />
+    <File Path="Directory.Packages.props" />
+    <File Path="Dockerfile" />
+    <File Path="README.md" />
+  </Folder>
+  <Folder Name="/src/">
+    <Project Path="src/Mothenticate.Data/Mothenticate.Data.csproj" />
+    <Project Path="src/Mothenticate.Domain/Mothenticate.Domain.csproj" />
+    <Project Path="src/Mothenticate.IdentityProvider/Mothenticate.IdentityProvider.csproj" />
+    <Project Path="src/Mothenticate.UserManagement/Mothenticate.UserManagement.csproj" />
+    <Project Path="src/Mothenticate/Mothenticate.csproj" />
+  </Folder>
+  <Folder Name="/test/">
+    <Project Path="test/Mothenticate.IntegrationTests/Mothenticate.IntegrationTests.csproj" />
+    <Project Path="test/Mothenticate.Tests/Mothenticate.Tests.csproj" />
+  </Folder>
+</Solution>

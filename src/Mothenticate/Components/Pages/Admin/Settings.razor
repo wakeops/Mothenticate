@@ -1,0 +1,151 @@
+@page "/admin/settings"
+@attribute [Authorize(Policy = AuthDefaults.AppAdminUserPolicy)]
+@inject IAppSettingsService SettingsService
+@inject ISnackbar Snackbar
+
+<PageTitle>Settings — Mothenticate Admin</PageTitle>
+
+<MudText Typo="Typo.h4" GutterBottom="true">Settings</MudText>
+
+@if (_loading)
+{
+    <MudProgressLinear Indeterminate="true" />
+}
+else
+{
+    <MudGrid>
+        <!-- Branding -->
+        <MudItem xs="12" md="6">
+            <MudPaper Elevation="2" Class="pa-4 mb-4">
+                <MudText Typo="Typo.h6" GutterBottom="true">Branding</MudText>
+                <MudTextField @bind-Value="_settings.BrandingTitle" Label="Title" Variant="Variant.Outlined"
+                              Class="mb-3" HelperText="Shown on login and registration pages." />
+                <MudTextField @bind-Value="_settings.BrandingSubtitle" Label="Subtitle" Variant="Variant.Outlined"
+                              Lines="2" HelperText="Supporting text below the title." />
+            </MudPaper>
+        </MudItem>
+
+        <!-- User Management -->
+        <MudItem xs="12" md="6">
+            <MudPaper Elevation="2" Class="pa-4 mb-4">
+                <MudText Typo="Typo.h6" GutterBottom="true">User Management</MudText>
+
+                <MudStack Row="true" AlignItems="AlignItems.Center" Class="mb-3">
+                    <MudStack Spacing="0">
+                        <MudText Typo="Typo.subtitle2">Enable Registration</MudText>
+                        <MudText Typo="Typo.caption" Color="Color.Secondary">Allow new users to self-register.</MudText>
+                    </MudStack>
+                    <MudSpacer />
+                    <MudSwitch @bind-Value="_settings.RegistrationEnabled" Color="Color.Primary" />
+                </MudStack>
+
+                <MudStack Row="true" AlignItems="AlignItems.Center" Class="mb-3">
+                    <MudStack Spacing="0">
+                        <MudText Typo="Typo.subtitle2">Use Email as Username</MudText>
+                        <MudText Typo="Typo.caption" Color="Color.Secondary">
+                            Hide the username field and use email for login.
+                        </MudText>
+                    </MudStack>
+                    <MudSpacer />
+                    <MudSwitch @bind-Value="_settings.UseEmailAsUsername" Color="Color.Primary" />
+                </MudStack>
+
+                <MudStack Row="true" AlignItems="AlignItems.Center">
+                    <MudStack Spacing="0">
+                        <MudText Typo="Typo.subtitle2">Enable Avatars</MudText>
+                        <MudText Typo="Typo.caption" Color="Color.Secondary">
+                            Allow users to upload profile avatars (max 512×512 px).
+                        </MudText>
+                    </MudStack>
+                    <MudSpacer />
+                    <MudSwitch @bind-Value="_settings.AvatarsEnabled" Color="Color.Primary" />
+                </MudStack>
+            </MudPaper>
+        </MudItem>
+
+        <!-- Google SSO -->
+        <MudItem xs="12" md="6">
+            <MudPaper Elevation="2" Class="pa-4 mb-4">
+                <MudStack Row="true" AlignItems="AlignItems.Center" Class="mb-3">
+                    <MudText Typo="Typo.h6">Google SSO</MudText>
+                    <MudSpacer />
+                    <MudSwitch @bind-Value="_settings.GoogleSsoEnabled" Color="Color.Primary" />
+                </MudStack>
+
+                @if (_settings.GoogleSsoEnabled)
+                {
+                    <MudTextField @bind-Value="_settings.GoogleClientId" Label="Client ID"
+                                  Variant="Variant.Outlined" Class="mb-3" />
+                    <MudTextField @bind-Value="_googleClientSecret" Label="Client Secret"
+                                  Variant="Variant.Outlined" InputType="InputType.Password"
+                                  HelperText="Leave blank to keep existing secret." />
+                }
+            </MudPaper>
+        </MudItem>
+
+        <!-- GitHub SSO -->
+        <MudItem xs="12" md="6">
+            <MudPaper Elevation="2" Class="pa-4 mb-4">
+                <MudStack Row="true" AlignItems="AlignItems.Center" Class="mb-3">
+                    <MudText Typo="Typo.h6">GitHub SSO</MudText>
+                    <MudSpacer />
+                    <MudSwitch @bind-Value="_settings.GitHubSsoEnabled" Color="Color.Primary" />
+                </MudStack>
+
+                @if (_settings.GitHubSsoEnabled)
+                {
+                    <MudTextField @bind-Value="_settings.GitHubClientId" Label="Client ID"
+                                  Variant="Variant.Outlined" Class="mb-3" />
+                    <MudTextField @bind-Value="_gitHubClientSecret" Label="Client Secret"
+                                  Variant="Variant.Outlined" InputType="InputType.Password"
+                                  HelperText="Leave blank to keep existing secret." />
+                }
+            </MudPaper>
+        </MudItem>
+
+        <MudItem xs="12">
+            <MudButton Variant="Variant.Filled" Color="Color.Primary" OnClick="Save" Disabled="@_saving">
+                @(_saving ? "Saving…" : "Save Settings")
+            </MudButton>
+        </MudItem>
+    </MudGrid>
+}
+
+@code {
+    private AppSettings _settings = new();
+    private string? _googleClientSecret;
+    private string? _gitHubClientSecret;
+    private bool _loading = true;
+    private bool _saving;
+
+    protected override async Task OnInitializedAsync()
+    {
+        _settings = await SettingsService.GetAsync();
+        _loading = false;
+    }
+
+    private async Task Save()
+    {
+        _saving = true;
+        try
+        {
+            if (!string.IsNullOrWhiteSpace(_googleClientSecret))
+                _settings.GoogleClientSecret = _googleClientSecret;
+            if (!string.IsNullOrWhiteSpace(_gitHubClientSecret))
+                _settings.GitHubClientSecret = _gitHubClientSecret;
+
+            await SettingsService.UpdateAsync(_settings);
+            _googleClientSecret = null;
+            _gitHubClientSecret = null;
+            Snackbar.Add("Settings saved.", Severity.Success);
+        }
+        catch (Exception ex)
+        {
+            Snackbar.Add($"Error: {ex.Message}", Severity.Error);
+        }
+        finally
+        {
+            _saving = false;
+        }
+    }
+}

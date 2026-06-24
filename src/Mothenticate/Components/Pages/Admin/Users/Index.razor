@@ -1,0 +1,115 @@
+@page "/admin/users"
+@attribute [Authorize(Policy = AuthDefaults.AppAdminUserPolicy)]
+@inject IUserService UserService
+@inject IDialogService DialogService
+@inject ISnackbar Snackbar
+@inject NavigationManager Navigation
+
+<PageTitle>Users — Mothenticate Admin</PageTitle>
+
+<MudStack Row="true" AlignItems="AlignItems.Center" Class="mb-4">
+    <MudText Typo="Typo.h4">Users</MudText>
+    <MudSpacer />
+    <MudTextField @bind-Value="_search" Placeholder="Search users…" Immediate="true"
+                  Adornment="Adornment.Start" AdornmentIcon="@Icons.Material.Filled.Search"
+                  Variant="Variant.Outlined" Margin="Margin.Dense" Style="max-width:300px" />
+    <MudTooltip Text="User Properties">
+        <MudIconButton Icon="@Icons.Material.Filled.Settings" Variant="Variant.Outlined"
+                       OnClick='() => Navigation.NavigateTo("/admin/users/properties")' />
+    </MudTooltip>
+    <MudButton Variant="Variant.Filled" Color="Color.Primary" StartIcon="@Icons.Material.Filled.PersonAdd"
+               OnClick='() => Navigation.NavigateTo("/admin/users/create")'>
+        New User
+    </MudButton>
+</MudStack>
+
+@if (_loading)
+{
+    <MudProgressLinear Indeterminate="true" />
+}
+else
+{
+    <MudDataGrid T="ApplicationUser" Items="@FilteredUsers" Hover="true" Striped="true"
+                 QuickFilter="@_quickFilter" Filterable="false">
+        <Columns>
+            <PropertyColumn Property="u => u.UserName" Title="Username" />
+            <PropertyColumn Property="u => u.Email" Title="Email" />
+            <TemplateColumn Title="Name">
+                <CellTemplate>
+                    @(string.Join(" ", new[] { context.Item.FirstName, context.Item.LastName }
+                        .Where(s => !string.IsNullOrWhiteSpace(s))))
+                </CellTemplate>
+            </TemplateColumn>
+            <TemplateColumn Title="Status">
+                <CellTemplate>
+                    @if (!context.Item.IsActive)
+                    {
+                        <MudChip T="string" Color="Color.Default" Size="Size.Small">Inactive</MudChip>
+                    }
+                    else if (context.Item.LockoutEnd.HasValue && context.Item.LockoutEnd > DateTimeOffset.UtcNow)
+                    {
+                        <MudChip T="string" Color="Color.Error" Size="Size.Small">Locked</MudChip>
+                    }
+                    else
+                    {
+                        <MudChip T="string" Color="Color.Success" Size="Size.Small">Active</MudChip>
+                    }
+                </CellTemplate>
+            </TemplateColumn>
+            <PropertyColumn Property="u => u.CreatedAt" Title="Created" Format="yyyy-MM-dd" />
+            <TemplateColumn Title="" StickyRight="true">
+                <CellTemplate>
+                    <MudIconButton Icon="@Icons.Material.Filled.Edit" Size="Size.Small"
+                                   OnClick='() => Navigation.NavigateTo("/admin/users/" + context.Item.Id)' />
+                    <MudIconButton Icon="@Icons.Material.Filled.Delete" Size="Size.Small" Color="Color.Error"
+                                   OnClick="() => ConfirmDelete(context.Item)" />
+                </CellTemplate>
+            </TemplateColumn>
+        </Columns>
+        <PagerContent>
+            <MudDataGridPager T="ApplicationUser" />
+        </PagerContent>
+    </MudDataGrid>
+}
+
+@code {
+    private List<ApplicationUser> _users = [];
+    private bool _loading = true;
+    private string _search = string.Empty;
+
+    private IEnumerable<ApplicationUser> FilteredUsers => _users;
+
+    private Func<ApplicationUser, bool> _quickFilter => u =>
+        string.IsNullOrWhiteSpace(_search)
+        || (u.UserName?.Contains(_search, StringComparison.OrdinalIgnoreCase) ?? false)
+        || (u.Email?.Contains(_search, StringComparison.OrdinalIgnoreCase) ?? false)
+        || (u.FirstName?.Contains(_search, StringComparison.OrdinalIgnoreCase) ?? false)
+        || (u.LastName?.Contains(_search, StringComparison.OrdinalIgnoreCase) ?? false);
+
+    protected override async Task OnInitializedAsync()
+    {
+        _users = [.. await UserService.GetAllAsync()];
+        _loading = false;
+    }
+
+    private async Task ConfirmDelete(ApplicationUser user)
+    {
+        var confirmed = await DialogService.ConfirmDeleteAsync(
+            "Delete User",
+            $"Are you sure you want to delete '{user.UserName}'? This cannot be undone.");
+
+        if (confirmed == true)
+        {
+            var result = await UserService.DeleteAsync(user.Id);
+            if (result.Succeeded)
+            {
+                _users.RemoveAll(u => u.Id == user.Id);
+                Snackbar.Add("User deleted.", Severity.Success);
+            }
+            else
+            {
+                Snackbar.Add(string.Join(", ", result.Errors.Select(e => e.Description)), Severity.Error);
+            }
+        }
+    }
+}

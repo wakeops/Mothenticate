@@ -1,0 +1,131 @@
+@page "/admin/roles"
+@attribute [Authorize(Policy = AuthDefaults.AppAdminUserPolicy)]
+@inject IRoleService RoleService
+@inject IDialogService DialogService
+@inject ISnackbar Snackbar
+
+<PageTitle>Roles — Mothenticate Admin</PageTitle>
+
+<MudStack Row="true" AlignItems="AlignItems.Center" Class="mb-4">
+    <MudText Typo="Typo.h4">Roles</MudText>
+    <MudSpacer />
+    <MudButton Variant="Variant.Filled" Color="Color.Primary" StartIcon="@Icons.Material.Filled.Add"
+               OnClick="OpenCreateDialog">
+        New Role
+    </MudButton>
+</MudStack>
+
+@if (_loading)
+{
+    <MudProgressLinear Indeterminate="true" />
+}
+else if (_roles.Count == 0)
+{
+    <MudAlert Severity="Severity.Info">No roles defined yet.</MudAlert>
+}
+else
+{
+    <MudPaper Elevation="2" Style="max-width:700px">
+        <MudTable Items="@_roles" Dense="true" Hover="true" Elevation="0">
+            <HeaderContent>
+                <MudTh>Name</MudTh>
+                <MudTh>Description</MudTh>
+                <MudTh Style="width:100px"></MudTh>
+            </HeaderContent>
+            <RowTemplate>
+                <MudTd>
+                    <MudStack Row="true" AlignItems="AlignItems.Center" Spacing="2">
+                        <MudIcon Icon="@Icons.Material.Filled.Shield" Size="Size.Small" Color="Color.Primary" />
+                        <MudText>@context.Name</MudText>
+                    </MudStack>
+                </MudTd>
+                <MudTd>
+                    <MudText Color="Color.Secondary">@(context.Description ?? "—")</MudText>
+                </MudTd>
+                <MudTd>
+                    <MudIconButton Icon="@Icons.Material.Filled.Edit" Size="Size.Small"
+                                   OnClick="() => OpenEditDialog(context)" />
+                    <MudIconButton Icon="@Icons.Material.Filled.Delete" Size="Size.Small" Color="Color.Error"
+                                   OnClick="() => ConfirmDelete(context)" />
+                </MudTd>
+            </RowTemplate>
+        </MudTable>
+    </MudPaper>
+}
+
+<MudDialog @bind-Visible="_dialogOpen" Options="new DialogOptions { MaxWidth = MaxWidth.Small, FullWidth = true }">
+    <TitleContent>@(_editingRole is null ? "New Role" : "Edit Role")</TitleContent>
+    <DialogContent>
+        <MudTextField @bind-Value="_roleName" Label="Name" Variant="Variant.Outlined"
+                      Required="true" Class="mb-3" />
+        <MudTextField @bind-Value="_roleDescription" Label="Description" Variant="Variant.Outlined" Lines="2" />
+    </DialogContent>
+    <DialogActions>
+        <MudButton OnClick="() => _dialogOpen = false">Cancel</MudButton>
+        <MudButton Variant="Variant.Filled" Color="Color.Primary" OnClick="SaveRole">Save</MudButton>
+    </DialogActions>
+</MudDialog>
+
+@code {
+    private List<AppRole> _roles = [];
+    private bool _loading = true;
+    private bool _dialogOpen;
+    private AppRole? _editingRole;
+    private string _roleName = string.Empty;
+    private string? _roleDescription;
+
+    protected override async Task OnInitializedAsync()
+    {
+        _roles = [.. await RoleService.GetAllAsync()];
+        _loading = false;
+    }
+
+    private void OpenCreateDialog()
+    {
+        _editingRole = null;
+        _roleName = string.Empty;
+        _roleDescription = null;
+        _dialogOpen = true;
+    }
+
+    private void OpenEditDialog(AppRole role)
+    {
+        _editingRole = role;
+        _roleName = role.Name;
+        _roleDescription = role.Description;
+        _dialogOpen = true;
+    }
+
+    private async Task SaveRole()
+    {
+        if (string.IsNullOrWhiteSpace(_roleName)) return;
+
+        if (_editingRole is null)
+        {
+            await RoleService.CreateAsync(_roleName, _roleDescription);
+            Snackbar.Add("Role created.", Severity.Success);
+        }
+        else
+        {
+            await RoleService.UpdateAsync(_editingRole.Id, _roleName, _roleDescription);
+            Snackbar.Add("Role updated.", Severity.Success);
+        }
+
+        _roles = [.. await RoleService.GetAllAsync()];
+        _dialogOpen = false;
+    }
+
+    private async Task ConfirmDelete(AppRole role)
+    {
+        var confirmed = await DialogService.ConfirmDeleteAsync(
+            "Delete Role",
+            $"Delete '{role.Name}'? This will remove the role from all groups that use it.");
+
+        if (confirmed == true)
+        {
+            await RoleService.DeleteAsync(role.Id);
+            _roles.RemoveAll(r => r.Id == role.Id);
+            Snackbar.Add("Role deleted.", Severity.Success);
+        }
+    }
+}

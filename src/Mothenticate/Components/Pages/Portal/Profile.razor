@@ -1,0 +1,536 @@
+@page "/portal/profile"
+@layout UserLayout
+@attribute [Authorize]
+@inject IUserService UserService
+@inject IUserPropertyService UserPropertyService
+@inject ISessionService SessionService
+@inject IConsentService ConsentService
+@inject IAppSettingsService AppSettingsService
+@inject ITwoFactorService TwoFactorService
+@inject ISsoService SsoService
+@inject AuthenticationStateProvider AuthState
+@inject ISnackbar Snackbar
+@inject NavigationManager Navigation
+
+<PageTitle>Profile — Mothenticate</PageTitle>
+
+<MudText Typo="Typo.h4" Class="mb-6">My Profile</MudText>
+
+@if (_loading)
+{
+    <MudProgressLinear Indeterminate="true" />
+}
+else
+{
+    <MudTabs Elevation="2" Rounded="true" ApplyEffectsToContainer="true" TabPanelsClass="pa-6">
+
+        <!-- Profile tab -->
+        <MudTabPanel Text="Profile" Icon="@Icons.Material.Filled.Person">
+            <MudGrid>
+                <MudItem xs="12" md="8">
+                    <MudStack Spacing="3">
+                        <MudTextField @bind-Value="_firstName" Label="First Name" Variant="Variant.Outlined" />
+                        <MudTextField @bind-Value="_lastName" Label="Last Name" Variant="Variant.Outlined" />
+                        <MudTextField @bind-Value="_displayName" Label="Display Name" Variant="Variant.Outlined" />
+                        <MudTextField Value="@_email" Label="Email" Variant="Variant.Outlined" ReadOnly="true"
+                                      HelperText="Email cannot be changed here." />
+                        <MudTextField Value="@_username" Label="Username" Variant="Variant.Outlined" ReadOnly="true"
+                                      HelperText="Username cannot be changed." />
+
+                        @foreach (var prop in _editableProperties)
+                        {
+                            var propId = prop.Id;
+                            <MudTextField Label="@prop.DisplayName"
+                                          Value="@GetPropertyValue(propId)"
+                                          ValueChanged="@((string v) => SetPropertyValue(propId, v))"
+                                          Variant="Variant.Outlined"
+                                          ReadOnly="@prop.IsReadOnly" />
+                        }
+
+                        <div>
+                            <MudButton Variant="Variant.Filled" Color="Color.Primary" OnClick="SaveProfile"
+                                       Disabled="@_savingProfile">
+                                @(_savingProfile ? "Saving…" : "Save Changes")
+                            </MudButton>
+                        </div>
+                    </MudStack>
+                </MudItem>
+
+                @if (_avatarsEnabled)
+                {
+                    <MudItem xs="12" md="4">
+                        <MudPaper Elevation="1" Class="pa-4 text-center">
+                            <MudText Typo="Typo.subtitle2" Class="mb-3">Avatar</MudText>
+                            @if (_user?.AvatarData is not null)
+                            {
+                                <MudAvatar Class="profile-avatar">
+                                    <MudImage Src="@($"data:{_user.AvatarContentType};base64,{Convert.ToBase64String(_user.AvatarData)}")"></MudImage>
+                                </MudAvatar>
+                            }
+                            else
+                            {
+                                <MudAvatar Color="Color.Primary" Class="profile-avatar">
+                                    @(_displayName.Length > 0 ? _displayName[0].ToString().ToUpper() : "?")
+                                </MudAvatar>
+                            }
+                            <MudFileUpload T="IBrowserFile" FilesChanged="UploadAvatar" Accept="image/*">
+                                <CustomContent>
+                                    <MudButton Variant="Variant.Outlined" StartIcon="@Icons.Material.Filled.Upload"
+                                               Size="Size.Small" Class="mb-2">
+                                        Upload Avatar
+                                    </MudButton>
+                                </CustomContent>
+                            </MudFileUpload>
+                            @if (_user?.AvatarData is not null)
+                            {
+                                <MudButton Variant="Variant.Text" Color="Color.Error" Size="Size.Small"
+                                           OnClick="RemoveAvatar">
+                                    Remove
+                                </MudButton>
+                            }
+                        </MudPaper>
+                    </MudItem>
+                }
+            </MudGrid>
+        </MudTabPanel>
+
+        <!-- Security tab -->
+        <MudTabPanel Text="Security" Icon="@Icons.Material.Filled.Security">
+            <MudGrid>
+                <MudItem xs="12" md="6">
+                    <!-- Change password -->
+                    <MudPaper Elevation="1" Class="pa-4 mb-4">
+                        <MudText Typo="Typo.h6" GutterBottom="true">Change Password</MudText>
+                        <MudStack Spacing="3">
+                            <MudTextField @bind-Value="_currentPassword" T="string" Label="Current Password"
+                                          InputType="InputType.Password" Variant="Variant.Outlined" />
+                            <MudTextField @bind-Value="_newPassword" T="string" Label="New Password"
+                                          InputType="InputType.Password" Variant="Variant.Outlined" />
+                            <MudTextField @bind-Value="_confirmPassword" T="string" Label="Confirm New Password"
+                                          InputType="InputType.Password" Variant="Variant.Outlined" />
+                            <div>
+                                <MudButton Variant="Variant.Filled" Color="Color.Primary" OnClick="ChangePassword"
+                                           Disabled="@_savingPassword">
+                                    @(_savingPassword ? "Updating…" : "Update Password")
+                                </MudButton>
+                            </div>
+                        </MudStack>
+                    </MudPaper>
+
+                    <!-- Two-factor authentication -->
+                    <MudPaper Elevation="1" Class="pa-4 mb-4">
+                        <MudStack Row="true" AlignItems="AlignItems.Center" Class="mb-3">
+                            <MudText Typo="Typo.h6">Authenticator App</MudText>
+                            <MudSpacer />
+                            @if (_twoFactorEnabled)
+                            {
+                                <MudChip T="string" Color="Color.Success" Size="Size.Small">Enabled</MudChip>
+                            }
+                            else
+                            {
+                                <MudChip T="string" Color="Color.Default" Size="Size.Small">Disabled</MudChip>
+                            }
+                        </MudStack>
+
+                        @if (_twoFactorEnabled)
+                        {
+                            <MudText Typo="Typo.body2" Color="Color.Secondary" Class="mb-3">
+                                Two-factor authentication is active. Recovery codes remaining: @_recoveryCodeCount
+                            </MudText>
+                            <MudStack Row="true" Spacing="2" Wrap="Wrap.Wrap">
+                                <MudButton Variant="Variant.Outlined" Size="Size.Small"
+                                           OnClick='() => Navigation.NavigateTo("/portal/2fa-setup")'>
+                                    Reset Authenticator
+                                </MudButton>
+                                <MudButton Variant="Variant.Outlined" Color="Color.Error" Size="Size.Small"
+                                           OnClick="DisableTwoFactor">
+                                    Disable 2FA
+                                </MudButton>
+                            </MudStack>
+                        }
+                        else
+                        {
+                            <MudText Typo="Typo.body2" Color="Color.Secondary" Class="mb-3">
+                                Add an extra layer of security by requiring a code from your authenticator app at sign in.
+                            </MudText>
+                            <MudButton Variant="Variant.Filled" Color="Color.Primary" Size="Size.Small"
+                                       OnClick='() => Navigation.NavigateTo("/portal/2fa-setup")'>
+                                Set Up Authenticator App
+                            </MudButton>
+                        }
+                    </MudPaper>
+                </MudItem>
+
+                <MudItem xs="12" md="6">
+                    <!-- Linked accounts -->
+                    <MudPaper Elevation="1" Class="pa-4">
+                        <MudText Typo="Typo.h6" GutterBottom="true">Linked Accounts</MudText>
+                        @if (_linkedLogins.Count == 0 && !_settings!.GoogleSsoEnabled && !_settings.GitHubSsoEnabled)
+                        {
+                            <MudText Typo="Typo.body2" Color="Color.Secondary">
+                                No external sign-in providers are configured.
+                            </MudText>
+                        }
+                        else
+                        {
+                            @if (_settings!.GoogleSsoEnabled)
+                            {
+                                var googleLinked = _linkedLogins.FirstOrDefault(l => l.LoginProvider == SsoDefaults.GoogleScheme);
+                                <MudStack Row="true" AlignItems="AlignItems.Center" Class="mb-3">
+                                    <MudIcon Icon="@Icons.Custom.Brands.Google" />
+                                    <MudText Class="flex-1">Google</MudText>
+                                    @if (googleLinked is not null)
+                                    {
+                                        <MudChip T="string" Color="Color.Success" Size="Size.Small" Class="mr-2">Linked</MudChip>
+                                        <MudButton Size="Size.Small" Color="Color.Error" Variant="Variant.Outlined"
+                                                   OnClick='() => UnlinkProvider(SsoDefaults.GoogleScheme, googleLinked.ProviderKey)'>
+                                            Unlink
+                                        </MudButton>
+                                    }
+                                    else
+                                    {
+                                        <MudButton Size="Size.Small" Variant="Variant.Outlined"
+                                                   Href='"/connect/external/google?linkUserId=" + _userId'>
+                                            Link
+                                        </MudButton>
+                                    }
+                                </MudStack>
+                            }
+
+                            @if (_settings!.GitHubSsoEnabled)
+                            {
+                                var githubLinked = _linkedLogins.FirstOrDefault(l => l.LoginProvider == SsoDefaults.GitHubScheme);
+                                <MudStack Row="true" AlignItems="AlignItems.Center" Class="mb-3">
+                                    <MudIcon Icon="@Icons.Custom.Brands.GitHub" />
+                                    <MudText Class="flex-1">GitHub</MudText>
+                                    @if (githubLinked is not null)
+                                    {
+                                        <MudChip T="string" Color="Color.Success" Size="Size.Small" Class="mr-2">Linked</MudChip>
+                                        <MudButton Size="Size.Small" Color="Color.Error" Variant="Variant.Outlined"
+                                                   OnClick='() => UnlinkProvider(SsoDefaults.GitHubScheme, githubLinked.ProviderKey)'>
+                                            Unlink
+                                        </MudButton>
+                                    }
+                                    else
+                                    {
+                                        <MudButton Size="Size.Small" Variant="Variant.Outlined"
+                                                   Href='"/connect/external/github?linkUserId=" + _userId'>
+                                            Link
+                                        </MudButton>
+                                    }
+                                </MudStack>
+                            }
+                        }
+                    </MudPaper>
+                </MudItem>
+            </MudGrid>
+        </MudTabPanel>
+
+        <!-- Sessions tab -->
+        <MudTabPanel Text="Sessions" Icon="@Icons.Material.Filled.Devices">
+            <MudStack Row="true" AlignItems="AlignItems.Center" Class="mb-4">
+                <MudText Typo="Typo.h6">Active Sessions</MudText>
+                <MudSpacer />
+                <MudButton Variant="Variant.Outlined" Color="Color.Error"
+                           StartIcon="@Icons.Material.Filled.Logout"
+                           OnClick="RevokeAllSessions">
+                    Sign Out All
+                </MudButton>
+            </MudStack>
+
+            @if (_sessions.Count == 0)
+            {
+                <MudAlert Severity="Severity.Info">No active sessions found.</MudAlert>
+            }
+            else
+            {
+                <MudStack Spacing="2">
+                    @foreach (var session in _sessions)
+                    {
+                        <MudPaper Outlined="true" Class="pa-3">
+                            <MudStack Row="true" AlignItems="AlignItems.Center">
+                                <MudIcon Icon="@Icons.Material.Filled.Computer" Color="Color.Secondary" />
+                                <MudStack Spacing="0" Class="flex-1">
+                                    <MudText Typo="Typo.body2">@(session.UserAgent ?? "Unknown device")</MudText>
+                                    <MudText Typo="Typo.caption" Color="Color.Secondary">
+                                        @session.IpAddress — Last active @session.LastActiveAt.ToString("MMM dd, yyyy HH:mm")
+                                    </MudText>
+                                    <MudText Typo="Typo.caption" Color="Color.Secondary">
+                                        Started @session.CreatedAt.ToString("MMM dd, yyyy HH:mm")
+                                    </MudText>
+                                </MudStack>
+                                <MudIconButton Icon="@Icons.Material.Filled.Logout" Color="Color.Error"
+                                               Size="Size.Small"
+                                               OnClick="() => RevokeSession(session.Id)" />
+                            </MudStack>
+                        </MudPaper>
+                    }
+                </MudStack>
+            }
+        </MudTabPanel>
+
+        <!-- Consents tab -->
+        <MudTabPanel Text="Consents" Icon="@Icons.Material.Filled.VerifiedUser">
+            <MudStack Row="true" AlignItems="AlignItems.Center" Class="mb-4">
+                <MudText Typo="Typo.h6">Authorized Applications</MudText>
+                <MudSpacer />
+                @if (_consents.Count > 0)
+                {
+                    <MudButton Variant="Variant.Outlined" Color="Color.Error"
+                               StartIcon="@Icons.Material.Filled.DeleteSweep"
+                               OnClick="RevokeAllConsents">
+                        Revoke All
+                    </MudButton>
+                }
+            </MudStack>
+
+            @if (_consents.Count == 0)
+            {
+                <MudAlert Severity="Severity.Info">No authorized applications.</MudAlert>
+            }
+            else
+            {
+                <MudStack Spacing="2">
+                    @foreach (var consent in _consents)
+                    {
+                        <MudPaper Outlined="true" Class="pa-3">
+                            <MudStack Row="true" AlignItems="AlignItems.Center">
+                                <MudAvatar Color="Color.Primary" Size="Size.Small">
+                                    @(consent.ApplicationName?.Length > 0 ? consent.ApplicationName[0].ToString().ToUpper() : "?")
+                                </MudAvatar>
+                                <MudStack Spacing="0" Class="flex-1 ml-2">
+                                    <MudText Typo="Typo.body2">@(consent.ApplicationName ?? "Unknown application")</MudText>
+                                    <MudStack Row="true" Wrap="Wrap.Wrap" Spacing="1" Class="mt-1">
+                                        @foreach (var scope in consent.Scopes)
+                                        {
+                                            <MudChip T="string" Size="Size.Small" Variant="Variant.Outlined">@scope</MudChip>
+                                        }
+                                    </MudStack>
+                                    @if (consent.CreationDate.HasValue)
+                                    {
+                                        <MudText Typo="Typo.caption" Color="Color.Secondary">
+                                            Authorized @consent.CreationDate.Value.ToString("MMM dd, yyyy")
+                                        </MudText>
+                                    }
+                                </MudStack>
+                                <MudIconButton Icon="@Icons.Material.Filled.Delete" Color="Color.Error"
+                                               Size="Size.Small"
+                                               OnClick="() => RevokeConsent(consent.Id!)" />
+                            </MudStack>
+                        </MudPaper>
+                    }
+                </MudStack>
+            }
+        </MudTabPanel>
+
+    </MudTabs>
+}
+
+@code {
+    private ApplicationUser? _user;
+    private string _userId = string.Empty;
+    private bool _loading = true;
+    private bool _avatarsEnabled;
+    private AppSettings? _settings;
+
+    // Profile
+    private string _firstName = string.Empty;
+    private string _lastName = string.Empty;
+    private string _displayName = string.Empty;
+    private string _email = string.Empty;
+    private string _username = string.Empty;
+    private List<UserProperty> _editableProperties = [];
+    private Dictionary<int, string?> _propertyValues = [];
+    private bool _savingProfile;
+
+    // Security
+    private string _currentPassword = string.Empty;
+    private string _newPassword = string.Empty;
+    private string _confirmPassword = string.Empty;
+    private bool _savingPassword;
+
+    // 2FA
+    private bool _twoFactorEnabled;
+    private int _recoveryCodeCount;
+
+    // SSO
+    private List<Microsoft.AspNetCore.Identity.UserLoginInfo> _linkedLogins = [];
+
+    // Sessions
+    private List<UserSession> _sessions = [];
+
+    // Consents
+    private List<ConsentInfo> _consents = [];
+
+    protected override async Task OnInitializedAsync()
+    {
+        var state = await AuthState.GetAuthenticationStateAsync();
+        _userId = state.User.GetUserId() ?? string.Empty;
+
+        if (string.IsNullOrEmpty(_userId))
+        {
+            _loading = false;
+            return;
+        }
+
+        _settings = await AppSettingsService.GetAsync();
+        _avatarsEnabled = _settings.AvatarsEnabled;
+
+        _user = await UserService.GetByIdAsync(_userId);
+        if (_user is not null)
+        {
+            _firstName = _user.FirstName ?? string.Empty;
+            _lastName = _user.LastName ?? string.Empty;
+            _displayName = _user.DisplayName ?? string.Empty;
+            _email = _user.Email ?? string.Empty;
+            _username = _user.UserName ?? string.Empty;
+        }
+
+        var allProps = await UserPropertyService.GetAllDefinitionsAsync();
+        _editableProperties = allProps.Where(p => !p.IsHidden).ToList();
+
+        var values = await UserPropertyService.GetUserValuesAsync(_userId);
+        _propertyValues = values.ToDictionary(v => v.PropertyId, v => v.Value);
+
+        _sessions = [.. await SessionService.GetActiveByUserIdAsync(_userId)];
+        _consents = [.. await ConsentService.GetBySubjectAsync(_userId)];
+
+        _twoFactorEnabled = await TwoFactorService.IsEnabledAsync(_userId);
+        if (_twoFactorEnabled)
+            _recoveryCodeCount = await TwoFactorService.CountRecoveryCodesAsync(_userId);
+
+        _linkedLogins = [.. await SsoService.GetLoginsAsync(_userId)];
+
+        _loading = false;
+    }
+
+    private string? GetPropertyValue(int propId)
+        => _propertyValues.TryGetValue(propId, out var v) ? v : null;
+
+    private void SetPropertyValue(int propId, string? value)
+        => _propertyValues[propId] = value;
+
+    private async Task SaveProfile()
+    {
+        _savingProfile = true;
+        try
+        {
+            var result = await UserService.UpdateProfileAsync(_userId, _firstName, _lastName, _displayName);
+            if (result.Succeeded)
+            {
+                foreach (var (propId, value) in _propertyValues)
+                    await UserPropertyService.SetUserValueAsync(_userId, propId, value);
+                Snackbar.Add("Profile saved.", Severity.Success);
+            }
+            else
+            {
+                Snackbar.Add(result.Errors.FirstOrDefault()?.Description ?? "Failed to save.", Severity.Error);
+            }
+        }
+        finally
+        {
+            _savingProfile = false;
+        }
+    }
+
+    private async Task UploadAvatar(IBrowserFile file)
+    {
+        const long maxSize = 5 * 1024 * 1024;
+        using var ms = new System.IO.MemoryStream();
+        await file.OpenReadStream(maxSize).CopyToAsync(ms);
+        var result = await UserService.SetAvatarAsync(_userId, ms.ToArray(), file.ContentType);
+        if (result.Succeeded)
+        {
+            _user = await UserService.GetByIdAsync(_userId);
+            Snackbar.Add("Avatar updated.", Severity.Success);
+        }
+        else
+        {
+            Snackbar.Add("Failed to upload avatar.", Severity.Error);
+        }
+    }
+
+    private async Task RemoveAvatar()
+    {
+        await UserService.RemoveAvatarAsync(_userId);
+        _user = await UserService.GetByIdAsync(_userId);
+        Snackbar.Add("Avatar removed.", Severity.Success);
+    }
+
+    private async Task ChangePassword()
+    {
+        if (_newPassword != _confirmPassword)
+        {
+            Snackbar.Add("Passwords do not match.", Severity.Warning);
+            return;
+        }
+        _savingPassword = true;
+        try
+        {
+            var result = await UserService.ChangePasswordAsync(_userId, _currentPassword, _newPassword);
+            if (result.Succeeded)
+            {
+                _currentPassword = _newPassword = _confirmPassword = string.Empty;
+                Snackbar.Add("Password updated.", Severity.Success);
+            }
+            else
+            {
+                Snackbar.Add(result.Errors.FirstOrDefault()?.Description ?? "Failed to change password.", Severity.Error);
+            }
+        }
+        finally
+        {
+            _savingPassword = false;
+        }
+    }
+
+    private async Task RevokeSession(Guid sessionId)
+    {
+        await SessionService.RevokeAsync(sessionId);
+        _sessions = [.. await SessionService.GetActiveByUserIdAsync(_userId)];
+        Snackbar.Add("Session revoked.", Severity.Success);
+    }
+
+    private async Task RevokeAllSessions()
+    {
+        await SessionService.RevokeAllForUserAsync(_userId);
+        _sessions = [];
+        Snackbar.Add("All sessions revoked. You will be signed out shortly.", Severity.Info);
+    }
+
+    private async Task RevokeConsent(string authId)
+    {
+        await ConsentService.RevokeAsync(authId);
+        _consents = [.. await ConsentService.GetBySubjectAsync(_userId)];
+        Snackbar.Add("Access revoked.", Severity.Success);
+    }
+
+    private async Task RevokeAllConsents()
+    {
+        await ConsentService.RevokeAllBySubjectAsync(_userId);
+        _consents = [];
+        Snackbar.Add("All access revoked.", Severity.Success);
+    }
+
+    private async Task DisableTwoFactor()
+    {
+        await TwoFactorService.DisableAsync(_userId);
+        _twoFactorEnabled = false;
+        _recoveryCodeCount = 0;
+        Snackbar.Add("Two-factor authentication disabled.", Severity.Success);
+    }
+
+    private async Task UnlinkProvider(string provider, string providerKey)
+    {
+        var result = await SsoService.UnlinkLoginAsync(_userId, provider, providerKey);
+        if (result.Succeeded)
+        {
+            _linkedLogins = [.. await SsoService.GetLoginsAsync(_userId)];
+            Snackbar.Add($"{provider} account unlinked.", Severity.Success);
+        }
+        else
+        {
+            Snackbar.Add(result.Errors.FirstOrDefault()?.Description ?? "Failed to unlink.", Severity.Error);
+        }
+    }
+}

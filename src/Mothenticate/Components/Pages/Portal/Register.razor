@@ -1,0 +1,89 @@
+@page "/register"
+@layout AuthLayout
+@inject IAppSettingsService AppSettingsService
+
+<PageTitle>Register — Mothenticate</PageTitle>
+
+@if (!_loaded)
+{
+    <MudProgressLinear Indeterminate="true" />
+}
+else if (!_registrationEnabled)
+{
+    <MudAlert Severity="Severity.Warning">Registration is currently disabled.</MudAlert>
+    <MudText Typo="Typo.body2" Align="Align.Center" Class="mt-4">
+        <MudLink Href="/login">Back to sign in</MudLink>
+    </MudText>
+}
+else
+{
+    @if (_error is not null)
+    {
+        <MudAlert Severity="Severity.Error" Class="mb-4" Dense="true">@_error</MudAlert>
+    }
+
+    <form method="post" action="/account/register">
+        @if (!_useEmailAsUsername)
+        {
+            <div class="mb-3">
+                <label class="mud-typography mud-typography-body2 mb-1 d-block">Username</label>
+                <input name="username" type="text" autocomplete="username" required
+                       class="auth-input" />
+            </div>
+        }
+
+        <div class="mb-3">
+            <label class="mud-typography mud-typography-body2 mb-1 d-block">Email</label>
+            <input name="email" type="email" autocomplete="email" required
+                   class="auth-input" />
+        </div>
+
+        <div class="d-flex gap-2 mb-3">
+            <div class="flex-1">
+                <label class="mud-typography mud-typography-body2 mb-1 d-block">First Name</label>
+                <input name="firstName" type="text" autocomplete="given-name"
+                       class="auth-input" />
+            </div>
+            <div class="flex-1">
+                <label class="mud-typography mud-typography-body2 mb-1 d-block">Last Name</label>
+                <input name="lastName" type="text" autocomplete="family-name"
+                       class="auth-input" />
+            </div>
+        </div>
+
+        <div class="mb-4">
+            <label class="mud-typography mud-typography-body2 mb-1 d-block">Password</label>
+            <input name="password" type="password" autocomplete="new-password" required
+                   class="auth-input" />
+        </div>
+
+        <MudButton ButtonType="ButtonType.Submit" Variant="Variant.Filled" Color="Color.Primary"
+                   FullWidth="true" Size="Size.Large" Class="mb-4">
+            Create Account
+        </MudButton>
+    </form>
+
+    <MudDivider Class="mb-4" />
+    <MudText Typo="Typo.body2" Align="Align.Center">
+        Already have an account? <MudLink Href="/login">Sign in</MudLink>
+    </MudText>
+}
+
+@code {
+    [SupplyParameterFromQuery] private string? Error { get; set; }
+
+    private string? _error;
+    private bool _registrationEnabled;
+    private bool _useEmailAsUsername;
+    private bool _loaded;
+
+    protected override async Task OnInitializedAsync()
+    {
+        _error = string.IsNullOrEmpty(Error) ? null : Uri.UnescapeDataString(Error);
+
+        var settings = await AppSettingsService.GetAsync();
+        _registrationEnabled = settings.RegistrationEnabled;
+        _useEmailAsUsername  = settings.UseEmailAsUsername;
+        _loaded = true;
+    }
+}

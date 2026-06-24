@@ -1,0 +1,39 @@
+@inherits LayoutComponentBase
+@using Microsoft.Extensions.DependencyInjection
+@inject IServiceScopeFactory ScopeFactory
+
+<MudThemeProvider Theme="_theme" IsDarkMode="true" />
+<MudPopoverProvider />
+<MudDialogProvider />
+<MudSnackbarProvider />
+
+<MudLayout>
+    <MudMainContent>
+        <div class="auth-backdrop">
+            <MudPaper Elevation="8" Class="pa-8 auth-card">
+                <MudStack AlignItems="AlignItems.Center" Class="mb-6">
+                    <MudImage Src="images/brand_logo.svg" Alt="Brand logo" />
+                    <MudText Typo="Typo.h5" Align="Align.Center">@(_settings?.BrandingTitle ?? "Mothenticate")</MudText>
+                    @if (!string.IsNullOrEmpty(_settings?.BrandingSubtitle))
+                    {
+                        <MudText Typo="Typo.body2" Color="Color.Secondary" Align="Align.Center">@_settings.BrandingSubtitle</MudText>
+                    }
+                </MudStack>
+                @Body
+            </MudPaper>
+        </div>
+    </MudMainContent>
+</MudLayout>
+
+@code {
+    private AppSettings? _settings;
+
+    private readonly MudTheme _theme = AppTheme.Default;
+
+    protected override async Task OnInitializedAsync()
+    {
+        await using var scope = ScopeFactory.CreateAsyncScope();
+        var settingsService = scope.ServiceProvider.GetRequiredService<IAppSettingsService>();
+        _settings = await settingsService.GetAsync();
+    }
+}

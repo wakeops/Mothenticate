@@ -1,0 +1,110 @@
+@page "/admin/clients"
+@attribute [Authorize(Policy = AuthDefaults.AppAdminUserPolicy)]
+@inject IClientService ClientService
+@inject IDialogService DialogService
+@inject ISnackbar Snackbar
+@inject NavigationManager Navigation
+
+<PageTitle>Clients — Mothenticate Admin</PageTitle>
+
+<MudStack Row="true" AlignItems="AlignItems.Center" Class="mb-4">
+    <MudText Typo="Typo.h4">Clients</MudText>
+    <MudSpacer />
+    <MudButton Variant="Variant.Filled" Color="Color.Primary" StartIcon="@Icons.Material.Filled.Add"
+               OnClick='() => Navigation.NavigateTo("/admin/clients/create")'>
+        New Client
+    </MudButton>
+</MudStack>
+
+@if (_loading)
+{
+    <MudProgressLinear Indeterminate="true" />
+}
+else if (_clients.Count == 0)
+{
+    <MudAlert Severity="Severity.Info">No clients configured yet.</MudAlert>
+}
+else
+{
+    <MudGrid>
+        @foreach (var client in _clients)
+        {
+            <MudItem xs="12" sm="6" md="4">
+                <MudCard Elevation="2">
+                    <MudCardHeader>
+                        <CardHeaderAvatar>
+                            <MudAvatar Color="Color.Primary">
+                                @(client.DisplayName?.Length > 0 ? client.DisplayName[0].ToString().ToUpper() : "A")
+                            </MudAvatar>
+                        </CardHeaderAvatar>
+                        <CardHeaderContent>
+                            <MudText Typo="Typo.h6">@client.DisplayName</MudText>
+                            <MudText Typo="Typo.caption" Color="Color.Secondary">@client.ClientId</MudText>
+                        </CardHeaderContent>
+                        <CardHeaderActions>
+                            <MudChip T="string" Color="@(client.IsEnabled ? Color.Success : Color.Default)" Size="Size.Small">
+                                @(client.IsEnabled ? "Enabled" : "Disabled")
+                            </MudChip>
+                        </CardHeaderActions>
+                    </MudCardHeader>
+                    <MudCardContent>
+                        <MudStack Row="true" Spacing="1" Wrap="Wrap.Wrap">
+                            <MudChip T="string" Size="Size.Small" Variant="Variant.Outlined">@client.ClientType</MudChip>
+                            <MudChip T="string" Size="Size.Small" Variant="Variant.Outlined">
+                                @client.RedirectUris.Count redirect URI@(client.RedirectUris.Count != 1 ? "s" : "")
+                            </MudChip>
+                        </MudStack>
+                    </MudCardContent>
+                    <MudCardActions>
+                        <MudButton Size="Size.Small" StartIcon="@Icons.Material.Filled.Edit"
+                                   OnClick='() => Navigation.NavigateTo("/admin/clients/" + client.Id)'>
+                            Edit
+                        </MudButton>
+                        <MudButton Size="Size.Small" Color="@(client.IsEnabled ? Color.Warning : Color.Success)"
+                                   StartIcon="@(client.IsEnabled ? Icons.Material.Filled.Block : Icons.Material.Filled.CheckCircle)"
+                                   OnClick="() => ToggleEnabled(client)">
+                            @(client.IsEnabled ? "Disable" : "Enable")
+                        </MudButton>
+                        <MudButton Size="Size.Small" Color="Color.Error"
+                                   StartIcon="@Icons.Material.Filled.Delete"
+                                   OnClick="() => ConfirmDelete(client)">
+                            Delete
+                        </MudButton>
+                    </MudCardActions>
+                </MudCard>
+            </MudItem>
+        }
+    </MudGrid>
+}
+
+@code {
+    private List<ClientInfo> _clients = [];
+    private bool _loading = true;
+
+    protected override async Task OnInitializedAsync()
+    {
+        _clients = [.. await ClientService.GetAllAsync()];
+        _loading = false;
+    }
+
+    private async Task ToggleEnabled(ClientInfo client)
+    {
+        await ClientService.SetEnabledAsync(client.Id!, !client.IsEnabled);
+        _clients = [.. await ClientService.GetAllAsync()];
+        Snackbar.Add($"{client.DisplayName} {(client.IsEnabled ? "disabled" : "enabled")}.", Severity.Success);
+    }
+
+    private async Task ConfirmDelete(ClientInfo client)
+    {
+        var confirmed = await DialogService.ConfirmDeleteAsync(
+            "Delete Client",
+            $"Are you sure you want to delete '{client.DisplayName}'? This cannot be undone.");
+
+        if (confirmed == true)
+        {
+            await ClientService.DeleteAsync(client.Id!);
+            _clients.RemoveAll(c => c.Id == client.Id);
+            Snackbar.Add($"'{client.DisplayName}' deleted.", Severity.Success);
+        }
+    }
+}

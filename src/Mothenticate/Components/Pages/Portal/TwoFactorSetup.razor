@@ -1,0 +1,199 @@
+@page "/portal/2fa-setup"
+@layout UserLayout
+@attribute [Authorize]
+@inject ITwoFactorService TwoFactorService
+@inject IAppSettingsService AppSettingsService
+@inject AuthenticationStateProvider AuthState
+@inject ISnackbar Snackbar
+@inject NavigationManager Navigation
+@using Net.Codecrete.QrCodeGenerator
+
+<PageTitle>Set Up Two-Factor Authentication — Mothenticate</PageTitle>
+
+<MudStack Row="true" AlignItems="AlignItems.Center" Class="mb-4">
+    <MudIconButton Icon="@Icons.Material.Filled.ArrowBack"
+                   OnClick='() => Navigation.NavigateTo("/portal/profile")' />
+    <MudText Typo="Typo.h4">Set Up Authenticator App</MudText>
+</MudStack>
+
+@if (_loading)
+{
+    <MudProgressLinear Indeterminate="true" />
+}
+else if (_showRecoveryCodes)
+{
+    <!-- Step 3: Save recovery codes -->
+    <MudAlert Severity="Severity.Warning" Class="mb-4">
+        Save these recovery codes in a safe place. Each code can only be used once.
+        If you lose access to your authenticator app, these are the only way to sign in.
+    </MudAlert>
+
+    <MudPaper Elevation="2" Class="pa-4 mb-4" Style="max-width:480px;">
+        <MudText Typo="Typo.subtitle2" Class="mb-2">Recovery Codes</MudText>
+        <MudGrid Spacing="1">
+            @foreach (var recoveryCode in _recoveryCodes)
+            {
+                <MudItem xs="6">
+                    <MudText Typo="Typo.body2" Style="font-family:monospace;">@recoveryCode</MudText>
+                </MudItem>
+            }
+        </MudGrid>
+    </MudPaper>
+
+    <MudButton Variant="Variant.Filled" Color="Color.Primary"
+               OnClick='() => Navigation.NavigateTo("/portal/profile")'>
+        I've saved my recovery codes
+    </MudButton>
+}
+else if (_step == 2)
+{
+    <!-- Step 2: Verify TOTP code -->
+    <MudText Typo="Typo.body1" Class="mb-4">
+        Scan the QR code below with your authenticator app (Google Authenticator, Authy, etc.),
+        then enter the 6-digit code to confirm setup.
+    </MudText>
+
+    <MudGrid>
+        <MudItem xs="12" md="6">
+            <MudPaper Elevation="1" Class="pa-4 mb-4 text-center">
+                @if (_qrSvg is not null)
+                {
+                    <div class="qr-container">
+                        @((MarkupString)_qrSvg)
+                    </div>
+                }
+                <MudText Typo="Typo.caption" Color="Color.Secondary" Class="mt-2 d-block">
+                    Can't scan? Enter this key manually:
+                </MudText>
+                <MudText Typo="Typo.body2" Style="font-family:monospace;word-break:break-all;">
+                    @_formattedKey
+                </MudText>
+            </MudPaper>
+        </MudItem>
+
+        <MudItem xs="12" md="6">
+            <MudPaper Elevation="1" Class="pa-4">
+                <MudText Typo="Typo.subtitle2" GutterBottom="true">Enter Verification Code</MudText>
+                <MudTextField @bind-Value="_verificationCode" T="string"
+                              Label="6-digit code" Variant="Variant.Outlined"
+                              InputType="InputType.Text" MaxLength="6"
+                              HelperText="Enter the code shown in your authenticator app." />
+                <MudStack Row="true" Class="mt-4">
+                    <MudButton Variant="Variant.Filled" Color="Color.Primary" OnClick="VerifyAndEnable"
+                               Disabled="@(_verificationCode?.Length != 6 || _verifying)">
+                        @(_verifying ? "Verifying…" : "Enable 2FA")
+                    </MudButton>
+                    <MudButton Variant="Variant.Text" OnClick="() => _step = 1">Back</MudButton>
+                </MudStack>
+            </MudPaper>
+        </MudItem>
+    </MudGrid>
+}
+else
+{
+    <!-- Step 1: Intro -->
+    <MudText Typo="Typo.body1" Class="mb-4">
+        Two-factor authentication adds an extra layer of security to your account.
+        After entering your password, you'll also need to provide a code from your authenticator app.
+    </MudText>
+
+    <MudStack Spacing="2" Class="mb-6">
+        <MudStack Row="true">
+            <MudIcon Icon="@Icons.Material.Filled.PhoneAndroid" Color="Color.Primary" />
+            <MudText>Install an authenticator app (Google Authenticator, Authy, 1Password, etc.)</MudText>
+        </MudStack>
+        <MudStack Row="true">
+            <MudIcon Icon="@Icons.Material.Filled.QrCode" Color="Color.Primary" />
+            <MudText>Scan a QR code to link your account</MudText>
+        </MudStack>
+        <MudStack Row="true">
+            <MudIcon Icon="@Icons.Material.Filled.Pin" Color="Color.Primary" />
+            <MudText>Enter the 6-digit code on sign in</MudText>
+        </MudStack>
+    </MudStack>
+
+    <MudButton Variant="Variant.Filled" Color="Color.Primary" OnClick="LoadQrCode">
+        Begin Setup
+    </MudButton>
+}
+
+@code {
+    private string _userId = string.Empty;
+    private bool _loading = true;
+    private int _step = 1;
+    private bool _verifying;
+    private bool _showRecoveryCodes;
+
+    private string? _qrSvg;
+    private string? _formattedKey;
+    private string? _verificationCode;
+    private List<string> _recoveryCodes = [];
+
+    protected override async Task OnInitializedAsync()
+    {
+        var state = await AuthState.GetAuthenticationStateAsync();
+        _userId = state.User.GetUserId() ?? string.Empty;
+        _loading = false;
+    }
+
+    private async Task LoadQrCode()
+    {
+        var key = await TwoFactorService.GetOrCreateKeyAsync(_userId);
+        _formattedKey = FormatKey(key);
+
+        var state = await AuthState.GetAuthenticationStateAsync();
+        var userIdentifier = state.User.FindFirst(System.Security.Claims.ClaimTypes.Email)?.Value
+                             ?? state.User.FindFirst(System.Security.Claims.ClaimTypes.Name)?.Value
+                             ?? _userId;
+
+        var settings = await AppSettingsService.GetAsync();
+        var issuer = settings.BrandingTitle ?? "Mothenticate";
+
+        var uri = TwoFactorService.BuildOtpAuthUri(key, userIdentifier, issuer);
+        _qrSvg = GenerateQrSvg(uri);
+        _step = 2;
+    }
+
+    private async Task VerifyAndEnable()
+    {
+        if (string.IsNullOrEmpty(_verificationCode)) return;
+
+        _verifying = true;
+        try
+        {
+            var valid = await TwoFactorService.VerifyTotpAsync(_userId, _verificationCode);
+            if (!valid)
+            {
+                Snackbar.Add("Invalid code. Please try again.", Severity.Error);
+                return;
+            }
+
+            await TwoFactorService.EnableAsync(_userId);
+            _recoveryCodes = [.. await TwoFactorService.GenerateRecoveryCodesAsync(_userId)];
+            _showRecoveryCodes = true;
+            Snackbar.Add("Two-factor authentication enabled.", Severity.Success);
+        }
+        finally
+        {
+            _verifying = false;
+        }
+    }
+
+    private static string GenerateQrSvg(string content)
+    {
+        var qr = QrCode.EncodeText(content, QrCode.Ecc.Medium);
+        return qr.ToSvgString(4);
+    }
+
+    private static string FormatKey(string key)
+    {
+        // Group into blocks of 4 for readability
+        var sb = new System.Text.StringBuilder();
+        for (int i = 0; i < key.Length; i++)
+        {
+            if (i > 0 && i % 4 == 0) sb.Append(' ');
+            sb.Append(key[i]);
+        }
+        return sb.ToString().ToUpperInvariant();
+    }
+}

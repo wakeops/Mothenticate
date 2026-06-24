@@ -1,0 +1,63 @@
+@inherits LayoutComponentBase
+@inject NavigationManager Navigation
+
+@inject AuthenticationStateProvider AuthState
+@inject IServiceScopeFactory ScopeFactory
+
+<MudThemeProvider Theme="_theme" IsDarkMode="true" />
+<MudPopoverProvider />
+<MudDialogProvider />
+<MudSnackbarProvider />
+
+<MudLayout>
+    <MudAppBar Elevation="1" Color="Color.Primary" Fixed="true">
+        <MudIconButton Icon="@Icons.Material.Filled.Menu" Color="Color.Inherit" Edge="Edge.Start" OnClick="ToggleDrawer" />
+        <MudStack Row="true" AlignItems="AlignItems.Center" Spacing="0" Class="h-full py-3">
+            <MudImage Src="images/brand_logo.svg" Alt="Brand logo" ObjectFit="ObjectFit.ScaleDown" Class="h-full w-auto" />
+            <MudText Typo="Typo.h6" Class="ml-2">@(_settings?.BrandingTitle ?? "Mothenticate")</MudText>
+        </MudStack>
+        <MudSpacer />
+        <MudButton Color="Color.Inherit" StartIcon="@Icons.Material.Filled.Apps" Href="/portal">Return to user</MudButton>
+        <MudDivider Vertical="true" FlexItem="true" Class="mx-2 appbar-divider" />
+        <MudText Class="mr-2" Typo="Typo.body2">@_displayName</MudText>
+        <MudIconButton Icon="@Icons.Material.Filled.Logout" Color="Color.Inherit" Href="/account/logout" />
+    </MudAppBar>
+
+    <MudDrawer @bind-Open="_drawerOpen" ClipMode="DrawerClipMode.Always" Elevation="2" Variant="DrawerVariant.Mini" MiniWidth="56px">
+        <MudNavMenu>
+            <MudNavLink Href="/admin" Match="NavLinkMatch.All" Icon="@Icons.Material.Filled.Dashboard">Dashboard</MudNavLink>
+            <MudNavLink Href="/admin/applications" Icon="@Icons.Material.Filled.Apps">Applications</MudNavLink>
+            <MudNavLink Href="/admin/clients" Icon="@Icons.Material.Filled.VpnKey">Clients</MudNavLink>
+            <MudNavLink Href="/admin/users" Icon="@Icons.Material.Filled.People">Users</MudNavLink>
+            <MudNavLink Href="/admin/groups" Icon="@Icons.Material.Filled.Group">Groups</MudNavLink>
+            <MudNavLink Href="/admin/roles" Icon="@Icons.Material.Filled.Shield">Roles</MudNavLink>
+            <MudNavLink Href="/admin/settings" Icon="@Icons.Material.Filled.Settings">Settings</MudNavLink>
+        </MudNavMenu>
+    </MudDrawer>
+
+    <MudMainContent>
+        <MudContainer MaxWidth="MaxWidth.ExtraLarge" Class="pt-8 pb-4">
+            @Body
+        </MudContainer>
+    </MudMainContent>
+</MudLayout>
+
+@code {
+    private bool _drawerOpen = true;
+    private string _displayName = string.Empty;
+    private AppSettings? _settings;
+
+    private readonly MudTheme _theme = AppTheme.Default;
+
+    protected override async Task OnInitializedAsync()
+    {
+        var state = await AuthState.GetAuthenticationStateAsync();
+        _displayName = state.User.GetDisplayName() ?? string.Empty;
+
+        await using var scope = ScopeFactory.CreateAsyncScope();
+        var settingsService = scope.ServiceProvider.GetRequiredService<IAppSettingsService>();
+        _settings = await settingsService.GetAsync();
+    }
+
+    private void ToggleDrawer() => _drawerOpen = !_drawerOpen;
+}

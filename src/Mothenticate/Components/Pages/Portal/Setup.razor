@@ -1,0 +1,95 @@
+@page "/setup"
+@layout AuthLayout
+@inject ISeedService SeedService
+@inject NavigationManager Navigation
+
+<PageTitle>Setup — Mothenticate</PageTitle>
+
+<MudText Typo="Typo.h5" Class="mb-1">Welcome to Mothenticate</MudText>
+<MudText Typo="Typo.body2" Color="Color.Secondary" Class="mb-6">
+    Create your administrator account to get started.
+</MudText>
+
+@if (_error is not null)
+{
+    <MudAlert Severity="Severity.Error" Class="mb-4" Dense="true">@_error</MudAlert>
+}
+
+<form method="post" action="/account/setup">
+    <div class="mb-3">
+        <label class="mud-typography mud-typography-body2 mb-1 d-block">Username</label>
+        <input name="username" type="text" autocomplete="username" required class="auth-input" />
+    </div>
+
+    <div class="mb-3">
+        <label class="mud-typography mud-typography-body2 mb-1 d-block">Email</label>
+        <input name="email" type="email" autocomplete="email" required class="auth-input" />
+    </div>
+
+    <div class="mb-4">
+        <label class="mud-typography mud-typography-body2 mb-1 d-block">Password</label>
+        <input name="password" type="password" autocomplete="new-password" required class="auth-input"
+               @oninput="OnPasswordInput" />
+        <div class="password-rules mt-2">
+            <PasswordRule Met="_hasMinLength" Label="At least 6 characters" />
+            <PasswordRule Met="_hasUpper"     Label="Uppercase letter" />
+            <PasswordRule Met="_hasLower"     Label="Lowercase letter" />
+            <PasswordRule Met="_hasDigit"     Label="Number" />
+            <PasswordRule Met="_hasSpecial"   Label="Special character" />
+        </div>
+    </div>
+
+    <div class="mb-4">
+        <label class="mud-typography mud-typography-body2 mb-1 d-block">Confirm password</label>
+        <input name="confirm_password" type="password" autocomplete="new-password" required class="auth-input"
+               @oninput="OnConfirmInput" />
+        @if (_confirm.Length > 0 && !_passwordsMatch)
+        {
+            <MudText Typo="Typo.caption" Color="Color.Error" Class="mt-1">Passwords do not match</MudText>
+        }
+    </div>
+
+    <MudButton ButtonType="ButtonType.Submit" Variant="Variant.Filled" Color="Color.Primary"
+               FullWidth="true" Size="Size.Large" Disabled="_submitDisabled">
+        Create Admin Account
+    </MudButton>
+</form>
+
+@code {
+    [SupplyParameterFromQuery] private string? Error { get; set; }
+
+    private string? _error;
+    private string _password = string.Empty;
+    private string _confirm = string.Empty;
+    private bool _hasMinLength;
+    private bool _hasUpper;
+    private bool _hasLower;
+    private bool _hasDigit;
+    private bool _hasSpecial;
+
+    private bool _passwordsMatch => _confirm.Length == 0 || _password == _confirm;
+    private bool _submitDisabled => !(_hasMinLength && _hasUpper && _hasLower && _hasDigit && _hasSpecial && _password == _confirm);
+
+    protected override async Task OnInitializedAsync()
+    {
+        _error = string.IsNullOrEmpty(Error) ? null : Uri.UnescapeDataString(Error);
+
+        if (!await SeedService.IsFirstRunAsync())
+            Navigation.NavigateTo("/login", replace: true);
+    }
+
+    private void OnPasswordInput(ChangeEventArgs e)
+    {
+        _password     = e.Value?.ToString() ?? string.Empty;
+        _hasMinLength = _password.Length >= 6;
+        _hasUpper     = _password.Any(char.IsUpper);
+        _hasLower     = _password.Any(char.IsLower);
+        _hasDigit     = _password.Any(char.IsDigit);
+        _hasSpecial   = _password.Any(c => !char.IsLetterOrDigit(c));
+    }
+
+    private void OnConfirmInput(ChangeEventArgs e)
+    {
+        _confirm = e.Value?.ToString() ?? string.Empty;
+    }
+}
