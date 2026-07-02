@@ -13,6 +13,7 @@ jobs:
       packages: write
       id-token: write
       attestations: write
+      artifact-metadata: write
     with:
       image_name: "ghcr.io/wakeops/mothenticate,mothenticate/mothenticate"
       release: true
