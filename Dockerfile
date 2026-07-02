@@ -10,6 +10,8 @@ RUN apt-get update && \
 
 COPY . ./
 
+RUN npm install --prefix src/Mothenticate
+
 RUN dotnet restore
 
 RUN dotnet publish -c Release -o /app/publish --nologo --no-restore ./src/Mothenticate/Mothenticate.csproj

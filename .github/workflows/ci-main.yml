@@ -21,6 +21,10 @@ jobs:
         with:
           dotnet-version: "10.x"
 
+      - name: Install npm dependencies
+        run: npm install
+        working-directory: src/Mothenticate
+
       - name: Restore
         run: dotnet restore
 
