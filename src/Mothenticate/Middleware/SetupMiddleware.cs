@@ -7,7 +7,7 @@ namespace Mothenticate.Middleware;
 public class SetupMiddleware(RequestDelegate next)
 {
     private static readonly string[] BypassPrefixes =
-        ["/setup", "/account/setup", "/_blazor", "/_framework", "/_content", "/connect"];
+        ["/setup", "/account/setup", "/_blazor", "/_framework", "/_content", "/connect", "/.well-known"];
 
     public async Task InvokeAsync(HttpContext context, SetupState state, IServiceScopeFactory scopeFactory)
     {
