@@ -3,6 +3,7 @@
 @inject NavigationManager Navigation
 @inject AuthenticationStateProvider AuthState
 @inject IServiceScopeFactory ScopeFactory
+@inject IStringLocalizer<SharedResource> L
 
 <MudThemeProvider Theme="_theme" IsDarkMode="true" />
 <MudPopoverProvider />
@@ -13,17 +14,17 @@
     <MudAppBar Elevation="1" Color="Color.Primary" Fixed="true">
         <MudStack Row="true" AlignItems="AlignItems.Center" Spacing="0" Class="h-full py-3">
             <MudImage Src="images/brand_logo.svg" Alt="Brand logo" ObjectFit="ObjectFit.ScaleDown" Class="h-full w-auto" />
-            <MudText Typo="Typo.h6" Class="ml-2">@(_settings?.BrandingTitle ?? "Mothenticate")</MudText>
+            <MudText Typo="Typo.h6" Class="ml-2">@(_settings?.BrandingTitle ?? L["Layout_DefaultTitle"])</MudText>
         </MudStack>
         <MudSpacer />
         <MudButton Color="Color.Inherit" StartIcon="@Icons.Material.Filled.Apps"
-                   Href="/portal">Apps</MudButton>
+                   Href="/portal">@L["Layout_Apps"]</MudButton>
         <MudButton Color="Color.Inherit" StartIcon="@Icons.Material.Filled.Person"
-                   Href="/portal/profile">Profile</MudButton>
+                   Href="/portal/profile">@L["Layout_Profile"]</MudButton>
         @if (_isAdmin)
         {
             <MudButton Color="Color.Inherit" StartIcon="@Icons.Material.Filled.AdminPanelSettings"
-                       Href="/admin">Admin</MudButton>
+                       Href="/admin">@L["Layout_Admin"]</MudButton>
         }
         <MudDivider Vertical="true" FlexItem="true" Class="mx-2 appbar-divider" />
         <MudText Class="mr-2" Typo="Typo.body2">@_displayName</MudText>
@@ -36,6 +37,10 @@
         </MudContainer>
     </MudMainContent>
 </MudLayout>
+
+<div class="language-switcher-fixed">
+    <LanguageSwitcher />
+</div>
 
 @code {
     private string _displayName = string.Empty;

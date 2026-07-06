@@ -2,6 +2,9 @@
 
   <PropertyGroup>
     <OutputType>Exe</OutputType>
+    <!-- CS8669: Razor source generator emits nullable annotations in generated .g.cs files
+         without a #nullable context header. Suppress until the toolchain is fixed. -->
+    <NoWarn>$(NoWarn);CS8669</NoWarn>
   </PropertyGroup>
 
   <ItemGroup>

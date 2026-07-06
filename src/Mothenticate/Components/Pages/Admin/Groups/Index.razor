@@ -4,15 +4,16 @@
 @inject IDialogService DialogService
 @inject ISnackbar Snackbar
 @inject NavigationManager Navigation
+@inject IStringLocalizer<SharedResource> L
 
 <PageTitle>Groups — Mothenticate Admin</PageTitle>
 
 <MudStack Row="true" AlignItems="AlignItems.Center" Class="mb-4">
-    <MudText Typo="Typo.h4">Groups</MudText>
+    <MudText Typo="Typo.h4">@L["Admin_Groups_Title"]</MudText>
     <MudSpacer />
     <MudButton Variant="Variant.Filled" Color="Color.Primary" StartIcon="@Icons.Material.Filled.GroupAdd"
                OnClick='() => Navigation.NavigateTo("/admin/groups/create")'>
-        New Group
+        @L["Admin_Groups_NewGroup"]
     </MudButton>
 </MudStack>
 
@@ -22,20 +23,20 @@
 }
 else if (_groups.Count == 0)
 {
-    <MudAlert Severity="Severity.Info">No groups created yet.</MudAlert>
+    <MudAlert Severity="Severity.Info">@L["Admin_Groups_NoGroups"]</MudAlert>
 }
 else
 {
     <MudDataGrid T="Group" Items="@_groups" Hover="true" Striped="true" Filterable="false">
         <Columns>
-            <PropertyColumn Property="g => g.Name" Title="Group" />
-            <PropertyColumn Property="g => g.Description" Title="Description" />
-            <TemplateColumn Title="Roles">
+            <PropertyColumn Property="g => g.Name" Title="@L["Admin_Groups_ColGroup"]" />
+            <PropertyColumn Property="g => g.Description" Title="@L["Admin_Groups_ColDescription"]" />
+            <TemplateColumn Title="@L["Admin_Groups_ColRoles"]">
                 <CellTemplate>
                     @context.Item.GroupRoles.Count
                 </CellTemplate>
             </TemplateColumn>
-            <TemplateColumn Title="Members">
+            <TemplateColumn Title="@L["Admin_Groups_ColMembers"]">
                 <CellTemplate>
                     @context.Item.UserGroups.Count
                 </CellTemplate>
@@ -68,14 +69,14 @@ else
     private async Task ConfirmDelete(Group group)
     {
         var confirmed = await DialogService.ConfirmDeleteAsync(
-            "Delete Group",
-            $"Delete '{group.Name}'? Members will lose any roles assigned via this group.");
+            L["Admin_Groups_DeleteTitle"],
+            string.Format(L["Admin_Groups_DeleteConfirm"], group.Name));
 
         if (confirmed == true)
         {
             await GroupService.DeleteAsync(group.Id);
             _groups.RemoveAll(g => g.Id == group.Id);
-            Snackbar.Add("Group deleted.", Severity.Success);
+            Snackbar.Add(L["Admin_Groups_Deleted"], Severity.Success);
         }
     }
 }

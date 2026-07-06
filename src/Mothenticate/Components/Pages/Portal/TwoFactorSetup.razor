@@ -6,6 +6,7 @@
 @inject AuthenticationStateProvider AuthState
 @inject ISnackbar Snackbar
 @inject NavigationManager Navigation
+@inject IStringLocalizer<SharedResource> L
 @using Net.Codecrete.QrCodeGenerator
 
 <PageTitle>Set Up Two-Factor Authentication — Mothenticate</PageTitle>
@@ -13,7 +14,7 @@
 <MudStack Row="true" AlignItems="AlignItems.Center" Class="mb-4">
     <MudIconButton Icon="@Icons.Material.Filled.ArrowBack"
                    OnClick='() => Navigation.NavigateTo("/portal/profile")' />
-    <MudText Typo="Typo.h4">Set Up Authenticator App</MudText>
+    <MudText Typo="Typo.h4">@L["TwoFactorSetup_Title"]</MudText>
 </MudStack>
 
 @if (_loading)
@@ -22,14 +23,12 @@
 }
 else if (_showRecoveryCodes)
 {
-    <!-- Step 3: Save recovery codes -->
     <MudAlert Severity="Severity.Warning" Class="mb-4">
-        Save these recovery codes in a safe place. Each code can only be used once.
-        If you lose access to your authenticator app, these are the only way to sign in.
+        @L["TwoFactorSetup_SaveWarning"]
     </MudAlert>
 
     <MudPaper Elevation="2" Class="pa-4 mb-4" Style="max-width:480px;">
-        <MudText Typo="Typo.subtitle2" Class="mb-2">Recovery Codes</MudText>
+        <MudText Typo="Typo.subtitle2" Class="mb-2">@L["TwoFactorSetup_RecoveryCodes"]</MudText>
         <MudGrid Spacing="1">
             @foreach (var recoveryCode in _recoveryCodes)
             {
@@ -42,16 +41,12 @@ else if (_showRecoveryCodes)
 
     <MudButton Variant="Variant.Filled" Color="Color.Primary"
                OnClick='() => Navigation.NavigateTo("/portal/profile")'>
-        I've saved my recovery codes
+        @L["TwoFactorSetup_Saved"]
     </MudButton>
 }
 else if (_step == 2)
 {
-    <!-- Step 2: Verify TOTP code -->
-    <MudText Typo="Typo.body1" Class="mb-4">
-        Scan the QR code below with your authenticator app (Google Authenticator, Authy, etc.),
-        then enter the 6-digit code to confirm setup.
-    </MudText>
+    <MudText Typo="Typo.body1" Class="mb-4">@L["TwoFactorSetup_ScanDesc"]</MudText>
 
     <MudGrid>
         <MudItem xs="12" md="6">
@@ -63,7 +58,7 @@ else if (_step == 2)
                     </div>
                 }
                 <MudText Typo="Typo.caption" Color="Color.Secondary" Class="mt-2 d-block">
-                    Can't scan? Enter this key manually:
+                    @L["TwoFactorSetup_CantScan"]
                 </MudText>
                 <MudText Typo="Typo.body2" Style="font-family:monospace;word-break:break-all;">
                     @_formattedKey
@@ -73,17 +68,17 @@ else if (_step == 2)
 
         <MudItem xs="12" md="6">
             <MudPaper Elevation="1" Class="pa-4">
-                <MudText Typo="Typo.subtitle2" GutterBottom="true">Enter Verification Code</MudText>
+                <MudText Typo="Typo.subtitle2" GutterBottom="true">@L["TwoFactorSetup_EnterCode"]</MudText>
                 <MudTextField @bind-Value="_verificationCode" T="string"
-                              Label="6-digit code" Variant="Variant.Outlined"
+                              Label="@L["TwoFactorSetup_CodeLabel"]" Variant="Variant.Outlined"
                               InputType="InputType.Text" MaxLength="6"
-                              HelperText="Enter the code shown in your authenticator app." />
+                              HelperText="@L["TwoFactorSetup_CodeHelper"]" />
                 <MudStack Row="true" Class="mt-4">
                     <MudButton Variant="Variant.Filled" Color="Color.Primary" OnClick="VerifyAndEnable"
                                Disabled="@(_verificationCode?.Length != 6 || _verifying)">
-                        @(_verifying ? "Verifying…" : "Enable 2FA")
+                        @(_verifying ? L["TwoFactorSetup_Verifying"] : L["TwoFactorSetup_Enable"])
                     </MudButton>
-                    <MudButton Variant="Variant.Text" OnClick="() => _step = 1">Back</MudButton>
+                    <MudButton Variant="Variant.Text" OnClick="() => _step = 1">@L["TwoFactorSetup_Back"]</MudButton>
                 </MudStack>
             </MudPaper>
         </MudItem>
@@ -91,29 +86,25 @@ else if (_step == 2)
 }
 else
 {
-    <!-- Step 1: Intro -->
-    <MudText Typo="Typo.body1" Class="mb-4">
-        Two-factor authentication adds an extra layer of security to your account.
-        After entering your password, you'll also need to provide a code from your authenticator app.
-    </MudText>
+    <MudText Typo="Typo.body1" Class="mb-4">@L["TwoFactorSetup_Intro"]</MudText>
 
     <MudStack Spacing="2" Class="mb-6">
         <MudStack Row="true">
             <MudIcon Icon="@Icons.Material.Filled.PhoneAndroid" Color="Color.Primary" />
-            <MudText>Install an authenticator app (Google Authenticator, Authy, 1Password, etc.)</MudText>
+            <MudText>@L["TwoFactorSetup_Step_Install"]</MudText>
         </MudStack>
         <MudStack Row="true">
             <MudIcon Icon="@Icons.Material.Filled.QrCode" Color="Color.Primary" />
-            <MudText>Scan a QR code to link your account</MudText>
+            <MudText>@L["TwoFactorSetup_Step_Scan"]</MudText>
         </MudStack>
         <MudStack Row="true">
             <MudIcon Icon="@Icons.Material.Filled.Pin" Color="Color.Primary" />
-            <MudText>Enter the 6-digit code on sign in</MudText>
+            <MudText>@L["TwoFactorSetup_Step_Code"]</MudText>
         </MudStack>
     </MudStack>
 
     <MudButton Variant="Variant.Filled" Color="Color.Primary" OnClick="LoadQrCode">
-        Begin Setup
+        @L["TwoFactorSetup_Begin"]
     </MudButton>
 }
 
@@ -164,14 +155,14 @@ else
             var valid = await TwoFactorService.VerifyTotpAsync(_userId, _verificationCode);
             if (!valid)
             {
-                Snackbar.Add("Invalid code. Please try again.", Severity.Error);
+                Snackbar.Add(L["TwoFactorSetup_InvalidCode"], Severity.Error);
                 return;
             }
 
             await TwoFactorService.EnableAsync(_userId);
             _recoveryCodes = [.. await TwoFactorService.GenerateRecoveryCodesAsync(_userId)];
             _showRecoveryCodes = true;
-            Snackbar.Add("Two-factor authentication enabled.", Severity.Success);
+            Snackbar.Add(L["TwoFactorSetup_EnabledMsg"], Severity.Success);
         }
         finally
         {
@@ -187,7 +178,6 @@ else
 
     private static string FormatKey(string key)
     {
-        // Group into blocks of 4 for readability
         var sb = new System.Text.StringBuilder();
         for (int i = 0; i < key.Length; i++)
         {

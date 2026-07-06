@@ -1,6 +1,7 @@
 @page "/register"
 @layout AuthLayout
 @inject IAppSettingsService AppSettingsService
+@inject IStringLocalizer<SharedResource> L
 
 <PageTitle>Register — Mothenticate</PageTitle>
 
@@ -10,9 +11,9 @@
 }
 else if (!_registrationEnabled)
 {
-    <MudAlert Severity="Severity.Warning">Registration is currently disabled.</MudAlert>
+    <MudAlert Severity="Severity.Warning">@L["Register_RegistrationDisabled"]</MudAlert>
     <MudText Typo="Typo.body2" Align="Align.Center" Class="mt-4">
-        <MudLink Href="/login">Back to sign in</MudLink>
+        <MudLink Href="/login">@L["Register_BackToSignIn"]</MudLink>
     </MudText>
 }
 else
@@ -26,46 +27,46 @@ else
         @if (!_useEmailAsUsername)
         {
             <div class="mb-3">
-                <label class="mud-typography mud-typography-body2 mb-1 d-block">Username</label>
+                <label class="mud-typography mud-typography-body2 mb-1 d-block">@L["Register_UsernameLbl"]</label>
                 <input name="username" type="text" autocomplete="username" required
                        class="auth-input" />
             </div>
         }
 
         <div class="mb-3">
-            <label class="mud-typography mud-typography-body2 mb-1 d-block">Email</label>
+            <label class="mud-typography mud-typography-body2 mb-1 d-block">@L["Register_EmailLbl"]</label>
             <input name="email" type="email" autocomplete="email" required
                    class="auth-input" />
         </div>
 
         <div class="d-flex gap-2 mb-3">
             <div class="flex-1">
-                <label class="mud-typography mud-typography-body2 mb-1 d-block">First Name</label>
+                <label class="mud-typography mud-typography-body2 mb-1 d-block">@L["Register_FirstName"]</label>
                 <input name="firstName" type="text" autocomplete="given-name"
                        class="auth-input" />
             </div>
             <div class="flex-1">
-                <label class="mud-typography mud-typography-body2 mb-1 d-block">Last Name</label>
+                <label class="mud-typography mud-typography-body2 mb-1 d-block">@L["Register_LastName"]</label>
                 <input name="lastName" type="text" autocomplete="family-name"
                        class="auth-input" />
             </div>
         </div>
 
         <div class="mb-4">
-            <label class="mud-typography mud-typography-body2 mb-1 d-block">Password</label>
+            <label class="mud-typography mud-typography-body2 mb-1 d-block">@L["Register_PasswordLbl"]</label>
             <input name="password" type="password" autocomplete="new-password" required
                    class="auth-input" />
         </div>
 
         <MudButton ButtonType="ButtonType.Submit" Variant="Variant.Filled" Color="Color.Primary"
                    FullWidth="true" Size="Size.Large" Class="mb-4">
-            Create Account
+            @L["Register_CreateAccount"]
         </MudButton>
     </form>
 
     <MudDivider Class="mb-4" />
     <MudText Typo="Typo.body2" Align="Align.Center">
-        Already have an account? <MudLink Href="/login">Sign in</MudLink>
+        @L["Register_AlreadyHaveAccount"] <MudLink Href="/login">@L["Register_SignIn"]</MudLink>
     </MudText>
 }
 

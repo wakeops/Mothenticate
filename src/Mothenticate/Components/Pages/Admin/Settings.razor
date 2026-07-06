@@ -1,11 +1,14 @@
 @page "/admin/settings"
 @attribute [Authorize(Policy = AuthDefaults.AppAdminUserPolicy)]
 @inject IAppSettingsService SettingsService
+@inject IUserPropertyService PropertyService
+@inject IDialogService DialogService
 @inject ISnackbar Snackbar
+@inject IStringLocalizer<SharedResource> L
 
 <PageTitle>Settings — Mothenticate Admin</PageTitle>
 
-<MudText Typo="Typo.h4" GutterBottom="true">Settings</MudText>
+<MudText Typo="Typo.h4" GutterBottom="true">@L["Admin_Settings_Title"]</MudText>
 
 @if (_loading)
 {
@@ -13,103 +16,264 @@
 }
 else
 {
-    <MudGrid>
-        <!-- Branding -->
-        <MudItem xs="12" md="6">
-            <MudPaper Elevation="2" Class="pa-4 mb-4">
-                <MudText Typo="Typo.h6" GutterBottom="true">Branding</MudText>
-                <MudTextField @bind-Value="_settings.BrandingTitle" Label="Title" Variant="Variant.Outlined"
-                              Class="mb-3" HelperText="Shown on login and registration pages." />
-                <MudTextField @bind-Value="_settings.BrandingSubtitle" Label="Subtitle" Variant="Variant.Outlined"
-                              Lines="2" HelperText="Supporting text below the title." />
-            </MudPaper>
-        </MudItem>
+    <MudTabs Elevation="2" Rounded="true" ApplyEffectsToContainer="true" TabPanelsClass="pa-6">
 
-        <!-- User Management -->
-        <MudItem xs="12" md="6">
-            <MudPaper Elevation="2" Class="pa-4 mb-4">
-                <MudText Typo="Typo.h6" GutterBottom="true">User Management</MudText>
+        <!-- General -->
+        <MudTabPanel Text="@L["Admin_Settings_TabGeneral"]">
+            <MudGrid>
+                <MudItem xs="12" md="6">
+                    <MudPaper Elevation="2" Class="pa-4 mb-4">
+                        <MudText Typo="Typo.h6" GutterBottom="true">@L["Admin_Settings_Branding"]</MudText>
+                        <MudTextField @bind-Value="_settings.BrandingTitle" Label="@L["Admin_Settings_BrandingTitle"]"
+                                      Variant="Variant.Outlined" Class="mb-3"
+                                      HelperText="@L["Admin_Settings_BrandingTitle_Helper"]" />
+                        <MudTextField @bind-Value="_settings.BrandingSubtitle" Label="@L["Admin_Settings_BrandingSubtitle"]"
+                                      Variant="Variant.Outlined" Lines="2"
+                                      HelperText="@L["Admin_Settings_BrandingSubtitle_Helper"]" />
+                    </MudPaper>
+                </MudItem>
 
-                <MudStack Row="true" AlignItems="AlignItems.Center" Class="mb-3">
-                    <MudStack Spacing="0">
-                        <MudText Typo="Typo.subtitle2">Enable Registration</MudText>
-                        <MudText Typo="Typo.caption" Color="Color.Secondary">Allow new users to self-register.</MudText>
-                    </MudStack>
-                    <MudSpacer />
-                    <MudSwitch @bind-Value="_settings.RegistrationEnabled" Color="Color.Primary" />
-                </MudStack>
+                <MudItem xs="12" md="6">
+                    <MudPaper Elevation="2" Class="pa-4 mb-4">
+                        <MudText Typo="Typo.h6" GutterBottom="true">@L["Admin_Settings_UserMgmt"]</MudText>
 
-                <MudStack Row="true" AlignItems="AlignItems.Center" Class="mb-3">
-                    <MudStack Spacing="0">
-                        <MudText Typo="Typo.subtitle2">Use Email as Username</MudText>
-                        <MudText Typo="Typo.caption" Color="Color.Secondary">
-                            Hide the username field and use email for login.
-                        </MudText>
-                    </MudStack>
-                    <MudSpacer />
-                    <MudSwitch @bind-Value="_settings.UseEmailAsUsername" Color="Color.Primary" />
-                </MudStack>
+                        <MudStack Row="true" AlignItems="AlignItems.Center" Class="mb-3">
+                            <MudStack Spacing="0">
+                                <MudText Typo="Typo.subtitle2">@L["Admin_Settings_EnableRegistration"]</MudText>
+                                <MudText Typo="Typo.caption" Color="Color.Secondary">@L["Admin_Settings_EnableRegistration_Desc"]</MudText>
+                            </MudStack>
+                            <MudSpacer />
+                            <MudSwitch @bind-Value="_settings.RegistrationEnabled" Color="Color.Primary" />
+                        </MudStack>
 
-                <MudStack Row="true" AlignItems="AlignItems.Center">
-                    <MudStack Spacing="0">
-                        <MudText Typo="Typo.subtitle2">Enable Avatars</MudText>
-                        <MudText Typo="Typo.caption" Color="Color.Secondary">
-                            Allow users to upload profile avatars (max 512×512 px).
-                        </MudText>
-                    </MudStack>
-                    <MudSpacer />
-                    <MudSwitch @bind-Value="_settings.AvatarsEnabled" Color="Color.Primary" />
-                </MudStack>
-            </MudPaper>
-        </MudItem>
+                        <MudStack Row="true" AlignItems="AlignItems.Center" Class="mb-3">
+                            <MudStack Spacing="0">
+                                <MudText Typo="Typo.subtitle2">@L["Admin_Settings_UseEmailAsUsername"]</MudText>
+                                <MudText Typo="Typo.caption" Color="Color.Secondary">@L["Admin_Settings_UseEmailAsUsername_Desc"]</MudText>
+                            </MudStack>
+                            <MudSpacer />
+                            <MudSwitch @bind-Value="_settings.UseEmailAsUsername" Color="Color.Primary" />
+                        </MudStack>
 
-        <!-- Google SSO -->
-        <MudItem xs="12" md="6">
-            <MudPaper Elevation="2" Class="pa-4 mb-4">
-                <MudStack Row="true" AlignItems="AlignItems.Center" Class="mb-3">
-                    <MudText Typo="Typo.h6">Google SSO</MudText>
-                    <MudSpacer />
-                    <MudSwitch @bind-Value="_settings.GoogleSsoEnabled" Color="Color.Primary" />
-                </MudStack>
+                        <MudStack Row="true" AlignItems="AlignItems.Center">
+                            <MudStack Spacing="0">
+                                <MudText Typo="Typo.subtitle2">@L["Admin_Settings_AllowEmailLogin"]</MudText>
+                                <MudText Typo="Typo.caption" Color="Color.Secondary">@L["Admin_Settings_AllowEmailLogin_Desc"]</MudText>
+                            </MudStack>
+                            <MudSpacer />
+                            <MudSwitch @bind-Value="_settings.AllowEmailLogin" Color="Color.Primary"
+                                       Disabled="@_settings.UseEmailAsUsername" />
+                        </MudStack>
+                    </MudPaper>
+                </MudItem>
 
-                @if (_settings.GoogleSsoEnabled)
-                {
-                    <MudTextField @bind-Value="_settings.GoogleClientId" Label="Client ID"
-                                  Variant="Variant.Outlined" Class="mb-3" />
-                    <MudTextField @bind-Value="_googleClientSecret" Label="Client Secret"
-                                  Variant="Variant.Outlined" InputType="InputType.Password"
-                                  HelperText="Leave blank to keep existing secret." />
-                }
-            </MudPaper>
-        </MudItem>
+                <MudItem xs="12">
+                    <MudButton Variant="Variant.Filled" Color="Color.Primary" OnClick="Save" Disabled="@_saving">
+                        @(_saving ? L["Admin_Settings_Saving"] : L["Admin_Settings_Save"])
+                    </MudButton>
+                </MudItem>
+            </MudGrid>
+        </MudTabPanel>
 
-        <!-- GitHub SSO -->
-        <MudItem xs="12" md="6">
-            <MudPaper Elevation="2" Class="pa-4 mb-4">
-                <MudStack Row="true" AlignItems="AlignItems.Center" Class="mb-3">
-                    <MudText Typo="Typo.h6">GitHub SSO</MudText>
-                    <MudSpacer />
-                    <MudSwitch @bind-Value="_settings.GitHubSsoEnabled" Color="Color.Primary" />
-                </MudStack>
+        <!-- Localization -->
+        <MudTabPanel Text="@L["Admin_Settings_TabLocalization"]">
+            <MudGrid>
+                <MudItem xs="12" md="6">
+                    <MudPaper Elevation="2" Class="pa-4 mb-4">
+                        <MudText Typo="Typo.h6" GutterBottom="true">@L["Admin_Settings_Localization"]</MudText>
+                        <MudSelect @bind-Value="_settings.DefaultLanguage" Label="@L["Admin_Settings_DefaultLanguage"]"
+                                   Variant="Variant.Outlined"
+                                   HelperText="@L["Admin_Settings_DefaultLanguage_Helper"]">
+                            @foreach (var lang in LocalizationDefaults.SupportedLanguages)
+                            {
+                                <MudSelectItem Value="@lang.Code">@lang.DisplayName</MudSelectItem>
+                            }
+                        </MudSelect>
+                    </MudPaper>
+                </MudItem>
 
-                @if (_settings.GitHubSsoEnabled)
-                {
-                    <MudTextField @bind-Value="_settings.GitHubClientId" Label="Client ID"
-                                  Variant="Variant.Outlined" Class="mb-3" />
-                    <MudTextField @bind-Value="_gitHubClientSecret" Label="Client Secret"
-                                  Variant="Variant.Outlined" InputType="InputType.Password"
-                                  HelperText="Leave blank to keep existing secret." />
-                }
-            </MudPaper>
-        </MudItem>
+                <MudItem xs="12">
+                    <MudButton Variant="Variant.Filled" Color="Color.Primary" OnClick="Save" Disabled="@_saving">
+                        @(_saving ? L["Admin_Settings_Saving"] : L["Admin_Settings_Save"])
+                    </MudButton>
+                </MudItem>
+            </MudGrid>
+        </MudTabPanel>
 
-        <MudItem xs="12">
-            <MudButton Variant="Variant.Filled" Color="Color.Primary" OnClick="Save" Disabled="@_saving">
-                @(_saving ? "Saving…" : "Save Settings")
-            </MudButton>
-        </MudItem>
-    </MudGrid>
+        <!-- Identity Providers -->
+        <MudTabPanel Text="@L["Admin_Settings_TabIdentityProviders"]">
+            <MudGrid>
+                <MudItem xs="12">
+                    <MudPaper Elevation="2" Class="pa-4 mb-4">
+                        <MudStack Row="true" AlignItems="AlignItems.Center" Class="mb-3">
+                            <MudText Typo="Typo.h6">@L["Admin_Settings_GoogleSso"]</MudText>
+                            <MudSpacer />
+                            <MudSwitch @bind-Value="_settings.GoogleSsoEnabled" Color="Color.Primary" />
+                        </MudStack>
+                        @if (_settings.GoogleSsoEnabled)
+                        {
+                            <MudTextField @bind-Value="_settings.GoogleClientId" Label="@L["Admin_Settings_ClientId"]"
+                                          Variant="Variant.Outlined" Class="mb-3" />
+                            <MudTextField @bind-Value="_googleClientSecret" Label="@L["Admin_Settings_ClientSecret"]"
+                                          Variant="Variant.Outlined" InputType="InputType.Password"
+                                          HelperText="@L["Admin_Settings_ClientSecret_Helper"]" />
+                        }
+                    </MudPaper>
+                </MudItem>
+
+                <MudItem xs="12">
+                    <MudPaper Elevation="2" Class="pa-4 mb-4">
+                        <MudStack Row="true" AlignItems="AlignItems.Center" Class="mb-3">
+                            <MudText Typo="Typo.h6">@L["Admin_Settings_GitHubSso"]</MudText>
+                            <MudSpacer />
+                            <MudSwitch @bind-Value="_settings.GitHubSsoEnabled" Color="Color.Primary" />
+                        </MudStack>
+                        @if (_settings.GitHubSsoEnabled)
+                        {
+                            <MudTextField @bind-Value="_settings.GitHubClientId" Label="@L["Admin_Settings_ClientId"]"
+                                          Variant="Variant.Outlined" Class="mb-3" />
+                            <MudTextField @bind-Value="_gitHubClientSecret" Label="@L["Admin_Settings_ClientSecret"]"
+                                          Variant="Variant.Outlined" InputType="InputType.Password"
+                                          HelperText="@L["Admin_Settings_ClientSecret_Helper"]" />
+                        }
+                    </MudPaper>
+                </MudItem>
+
+                <MudItem xs="12">
+                    <MudButton Variant="Variant.Filled" Color="Color.Primary" OnClick="Save" Disabled="@_saving">
+                        @(_saving ? L["Admin_Settings_Saving"] : L["Admin_Settings_Save"])
+                    </MudButton>
+                </MudItem>
+            </MudGrid>
+        </MudTabPanel>
+
+        <!-- User Profile -->
+        <MudTabPanel Text="@L["Admin_Settings_TabUserProfile"]">
+            <MudGrid>
+                <MudItem xs="12" md="8">
+                    <!-- Avatars -->
+                    <MudPaper Elevation="2" Class="pa-4 mb-4">
+                        <MudStack Row="true" AlignItems="AlignItems.Center">
+                            <MudStack Spacing="0">
+                                <MudText Typo="Typo.subtitle2">@L["Admin_Settings_EnableAvatars"]</MudText>
+                                <MudText Typo="Typo.caption" Color="Color.Secondary">@L["Admin_Settings_EnableAvatars_Desc"]</MudText>
+                            </MudStack>
+                            <MudSpacer />
+                            <MudSwitch @bind-Value="_settings.AvatarsEnabled" Color="Color.Primary" />
+                        </MudStack>
+                    </MudPaper>
+
+                    <!-- Built-in properties -->
+                    <MudPaper Elevation="2" Class="pa-4 mb-4">
+                        <MudText Typo="Typo.h6" GutterBottom="true">@L["Admin_UserProps_BuiltIn"]</MudText>
+                        <MudText Typo="Typo.caption" Color="Color.Secondary" Class="mb-3">@L["Admin_UserProps_BuiltIn_Desc"]</MudText>
+                        <MudTable Items="@_builtinProperties" Dense="true" Hover="true">
+                            <HeaderContent>
+                                <MudTh>@L["Admin_UserProps_ColName"]</MudTh>
+                                <MudTh>@L["Admin_UserProps_ColDisplayName"]</MudTh>
+                                <MudTh>@L["Admin_UserProps_ColType"]</MudTh>
+                                <MudTh>@L["Admin_UserProps_ColRequired"]</MudTh>
+                                <MudTh>@L["Admin_UserProps_ColNotes"]</MudTh>
+                            </HeaderContent>
+                            <RowTemplate>
+                                <MudTd>@context.Name</MudTd>
+                                <MudTd>@context.DisplayName</MudTd>
+                                <MudTd>@context.Type</MudTd>
+                                <MudTd><MudIcon Icon="@(context.Required ? Icons.Material.Filled.Check : Icons.Material.Filled.Close)" Size="Size.Small" /></MudTd>
+                                <MudTd>
+                                    @if (context.Name == "avatar")
+                                    {
+                                        <MudText Color="Color.Secondary" Typo="Typo.caption">@L["Admin_UserProps_AvatarNote"]</MudText>
+                                    }
+                                </MudTd>
+                            </RowTemplate>
+                        </MudTable>
+                    </MudPaper>
+
+                    <!-- Custom properties -->
+                    <MudPaper Elevation="2" Class="pa-4">
+                        <MudStack Row="true" AlignItems="AlignItems.Center" Class="mb-3">
+                            <MudText Typo="Typo.h6">@L["Admin_UserProps_CustomProps"]</MudText>
+                            <MudSpacer />
+                            <MudButton Variant="Variant.Filled" Color="Color.Primary"
+                                       StartIcon="@Icons.Material.Filled.Add" OnClick="OpenCreateDialog">
+                                @L["Admin_UserProps_AddProperty"]
+                            </MudButton>
+                        </MudStack>
+
+                        @if (_properties.Count == 0)
+                        {
+                            <MudText Color="Color.Secondary">@L["Admin_UserProps_NoCustomProps"]</MudText>
+                        }
+                        else
+                        {
+                            <MudTable Items="@_properties" Dense="true" Hover="true">
+                                <HeaderContent>
+                                    <MudTh>@L["Admin_UserProps_ColName"]</MudTh>
+                                    <MudTh>@L["Admin_UserProps_ColDisplayName"]</MudTh>
+                                    <MudTh>@L["Admin_UserProps_ColType"]</MudTh>
+                                    <MudTh>@L["Admin_UserProps_ColRequired"]</MudTh>
+                                    <MudTh>@L["Admin_UserProps_ColHidden"]</MudTh>
+                                    <MudTh>@L["Admin_UserProps_ColReadOnly"]</MudTh>
+                                    <MudTh></MudTh>
+                                </HeaderContent>
+                                <RowTemplate>
+                                    <MudTd>@context.Name</MudTd>
+                                    <MudTd>@context.DisplayName</MudTd>
+                                    <MudTd>@context.Type</MudTd>
+                                    <MudTd><MudIcon Icon="@(context.IsRequired ? Icons.Material.Filled.Check : Icons.Material.Filled.Close)" Size="Size.Small" /></MudTd>
+                                    <MudTd><MudIcon Icon="@(context.IsHidden ? Icons.Material.Filled.Check : Icons.Material.Filled.Close)" Size="Size.Small" /></MudTd>
+                                    <MudTd><MudIcon Icon="@(context.IsReadOnly ? Icons.Material.Filled.Check : Icons.Material.Filled.Close)" Size="Size.Small" /></MudTd>
+                                    <MudTd>
+                                        <MudIconButton Icon="@Icons.Material.Filled.Edit" Size="Size.Small"
+                                                       OnClick="() => OpenEditDialog(context)" />
+                                        <MudIconButton Icon="@Icons.Material.Filled.Delete" Size="Size.Small"
+                                                       Color="Color.Error" OnClick="() => DeleteProperty(context)" />
+                                    </MudTd>
+                                </RowTemplate>
+                            </MudTable>
+                        }
+                    </MudPaper>
+                </MudItem>
+
+                <MudItem xs="12">
+                    <MudButton Variant="Variant.Filled" Color="Color.Primary" OnClick="Save" Disabled="@_saving">
+                        @(_saving ? L["Admin_Settings_Saving"] : L["Admin_Settings_Save"])
+                    </MudButton>
+                </MudItem>
+            </MudGrid>
+        </MudTabPanel>
+
+    </MudTabs>
 }
+
+<!-- Property add/edit dialog -->
+<MudDialog @bind-Visible="_dialogOpen" Options="new DialogOptions { MaxWidth = MaxWidth.Small, FullWidth = true }">
+    <TitleContent>@(_editingProperty is null ? L["Admin_UserProps_AddPropTitle"] : L["Admin_UserProps_EditPropTitle"])</TitleContent>
+    <DialogContent>
+        <MudForm @ref="_propForm">
+            <MudTextField @bind-Value="_dialogModel.Name" Label="@L["Admin_UserProps_PropName"]" Variant="Variant.Outlined"
+                          Required="true" Disabled="@(_editingProperty is not null)" Class="mb-3"
+                          HelperText="@L["Admin_UserProps_PropName_Helper"]" />
+            <MudTextField @bind-Value="_dialogModel.DisplayName" Label="@L["Admin_UserProps_PropDisplayName"]"
+                          Variant="Variant.Outlined" Required="true" Class="mb-3" />
+            <MudSelect @bind-Value="_dialogModel.Type" Label="@L["Admin_UserProps_PropType"]"
+                       Variant="Variant.Outlined" Class="mb-3">
+                <MudSelectItem Value="PropertyType.Text">@L["Admin_UserProps_TypeText"]</MudSelectItem>
+                <MudSelectItem Value="PropertyType.Date">@L["Admin_UserProps_TypeDate"]</MudSelectItem>
+                <MudSelectItem Value="PropertyType.Boolean">@L["Admin_UserProps_TypeBoolean"]</MudSelectItem>
+                <MudSelectItem Value="PropertyType.Avatar">@L["Admin_UserProps_TypeAvatar"]</MudSelectItem>
+            </MudSelect>
+            <MudCheckBox @bind-Value="_dialogModel.IsRequired" Label="@L["Admin_UserProps_IsRequired"]" Color="Color.Primary" />
+            <MudCheckBox @bind-Value="_dialogModel.IsHidden" Label="@L["Admin_UserProps_IsHidden"]" Color="Color.Primary" />
+            <MudCheckBox @bind-Value="_dialogModel.IsReadOnly" Label="@L["Admin_UserProps_IsReadOnly"]" Color="Color.Primary" />
+        </MudForm>
+    </DialogContent>
+    <DialogActions>
+        <MudButton OnClick="() => _dialogOpen = false">@L["Admin_UserProps_Cancel"]</MudButton>
+        <MudButton Variant="Variant.Filled" Color="Color.Primary" OnClick="SaveProperty">@L["Admin_UserProps_Save"]</MudButton>
+    </DialogActions>
+</MudDialog>
 
 @code {
     private AppSettings _settings = new();
@@ -118,9 +282,28 @@ else
     private bool _loading = true;
     private bool _saving;
 
+    private List<UserProperty> _properties = [];
+    private bool _dialogOpen;
+    private UserProperty? _editingProperty;
+    private PropertyDialogModel _dialogModel = new();
+    private MudForm _propForm = default!;
+
+    private static readonly (string Name, string DisplayName, string Type, bool Required)[] _builtinProperties =
+    [
+        ("username",    "Username",     "Text",   true),
+        ("email",       "Email",        "Text",   true),
+        ("firstname",   "First Name",   "Text",   false),
+        ("lastname",    "Last Name",    "Text",   false),
+        ("displayname", "Display Name", "Text",   false),
+        ("avatar",      "Avatar",       "Avatar", false),
+    ];
+
     protected override async Task OnInitializedAsync()
     {
-        _settings = await SettingsService.GetAsync();
+        (_settings, _properties) = (
+            await SettingsService.GetAsync(),
+            [.. await PropertyService.GetAllDefinitionsAsync()]
+        );
         _loading = false;
     }
 
@@ -137,7 +320,7 @@ else
             await SettingsService.UpdateAsync(_settings);
             _googleClientSecret = null;
             _gitHubClientSecret = null;
-            Snackbar.Add("Settings saved.", Severity.Success);
+            Snackbar.Add(L["Admin_Settings_Saved"], Severity.Success);
         }
         catch (Exception ex)
         {
@@ -147,5 +330,72 @@ else
         {
             _saving = false;
         }
+    }
+
+    private void OpenCreateDialog()
+    {
+        _editingProperty = null;
+        _dialogModel = new PropertyDialogModel();
+        _dialogOpen = true;
+    }
+
+    private void OpenEditDialog(UserProperty property)
+    {
+        _editingProperty = property;
+        _dialogModel = new PropertyDialogModel
+        {
+            Name        = property.Name,
+            DisplayName = property.DisplayName,
+            Type        = property.Type,
+            IsRequired  = property.IsRequired,
+            IsHidden    = property.IsHidden,
+            IsReadOnly  = property.IsReadOnly
+        };
+        _dialogOpen = true;
+    }
+
+    private async Task SaveProperty()
+    {
+        if (_editingProperty is null)
+        {
+            await PropertyService.CreateDefinitionAsync(
+                _dialogModel.Name, _dialogModel.DisplayName, _dialogModel.Type,
+                _dialogModel.IsRequired, _dialogModel.IsHidden, _dialogModel.IsReadOnly);
+            Snackbar.Add(L["Admin_UserProps_PropCreated"], Severity.Success);
+        }
+        else
+        {
+            await PropertyService.UpdateDefinitionAsync(
+                _editingProperty.Id, _dialogModel.DisplayName, _dialogModel.Type,
+                _dialogModel.IsRequired, _dialogModel.IsHidden, _dialogModel.IsReadOnly);
+            Snackbar.Add(L["Admin_UserProps_PropUpdated"], Severity.Success);
+        }
+
+        _properties = [.. await PropertyService.GetAllDefinitionsAsync()];
+        _dialogOpen = false;
+    }
+
+    private async Task DeleteProperty(UserProperty property)
+    {
+        var confirmed = await DialogService.ConfirmDeleteAsync(
+            L["Admin_UserProps_DeleteTitle"],
+            string.Format(L["Admin_UserProps_DeleteConfirm"], property.DisplayName));
+
+        if (confirmed == true)
+        {
+            await PropertyService.DeleteDefinitionAsync(property.Id);
+            _properties = [.. await PropertyService.GetAllDefinitionsAsync()];
+            Snackbar.Add(L["Admin_UserProps_PropDeleted"], Severity.Success);
+        }
+    }
+
+    private sealed class PropertyDialogModel
+    {
+        public string Name        { get; set; } = string.Empty;
+        public string DisplayName { get; set; } = string.Empty;
+        public PropertyType Type  { get; set; } = PropertyType.Text;
+        public bool IsRequired    { get; set; }
+        public bool IsHidden      { get; set; }
+        public bool IsReadOnly    { get; set; }
     }
 }

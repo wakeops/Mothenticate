@@ -1,13 +1,14 @@
 @page "/login/2fa"
 @layout AuthLayout
+@inject IStringLocalizer<SharedResource> L
 
 <PageTitle>Two-Factor Authentication — Mothenticate</PageTitle>
 
 @if (_useRecovery)
 {
-    <MudText Typo="Typo.h6" GutterBottom="true">Enter Recovery Code</MudText>
+    <MudText Typo="Typo.h6" GutterBottom="true">@L["TwoFactor_RecoveryTitle"]</MudText>
     <MudText Typo="Typo.body2" Color="Color.Secondary" Class="mb-4">
-        Enter one of your recovery codes to sign in.
+        @L["TwoFactor_RecoverySubtitle"]
     </MudText>
 
     @if (_error is not null)
@@ -18,24 +19,24 @@
     <form method="post" action="/account/verify2fa">
         <input type="hidden" name="isRecoveryCode" value="true" />
         <div class="mb-4">
-            <label class="mud-typography mud-typography-body2 mb-1 d-block">Recovery Code</label>
+            <label class="mud-typography mud-typography-body2 mb-1 d-block">@L["TwoFactor_RecoveryCodeLabel"]</label>
             <input name="code" type="text" autocomplete="off" required
                    class="auth-input font-family-mono" />
         </div>
         <MudButton ButtonType="ButtonType.Submit" Variant="Variant.Filled" Color="Color.Primary"
                    FullWidth="true" Size="Size.Large" Class="mb-3">
-            Verify
+            @L["TwoFactor_Verify"]
         </MudButton>
     </form>
     <MudButton Variant="Variant.Text" FullWidth="true" OnClick='() => _useRecovery = false'>
-        Use authenticator app instead
+        @L["TwoFactor_UseAuthenticatorInstead"]
     </MudButton>
 }
 else
 {
-    <MudText Typo="Typo.h6" GutterBottom="true">Two-Factor Authentication</MudText>
+    <MudText Typo="Typo.h6" GutterBottom="true">@L["TwoFactor_AuthTitle"]</MudText>
     <MudText Typo="Typo.body2" Color="Color.Secondary" Class="mb-4">
-        Open your authenticator app and enter the current code.
+        @L["TwoFactor_AuthSubtitle"]
     </MudText>
 
     @if (_error is not null)
@@ -46,24 +47,24 @@ else
     <form method="post" action="/account/verify2fa">
         <input type="hidden" name="isRecoveryCode" value="false" />
         <div class="mb-4">
-            <label class="mud-typography mud-typography-body2 mb-1 d-block">Authenticator Code</label>
+            <label class="mud-typography mud-typography-body2 mb-1 d-block">@L["TwoFactor_AuthCodeLabel"]</label>
             <input name="code" type="text" autocomplete="one-time-code" inputmode="numeric"
                    maxlength="6" required
                    class="auth-input auth-input-code" />
         </div>
         <MudButton ButtonType="ButtonType.Submit" Variant="Variant.Filled" Color="Color.Primary"
                    FullWidth="true" Size="Size.Large" Class="mb-3">
-            Verify
+            @L["TwoFactor_Verify"]
         </MudButton>
     </form>
     <MudButton Variant="Variant.Text" FullWidth="true" OnClick='() => _useRecovery = true'>
-        Use a recovery code instead
+        @L["TwoFactor_UseRecoveryInstead"]
     </MudButton>
 }
 
 <MudDivider Class="my-4" />
 <MudText Typo="Typo.body2" Align="Align.Center">
-    <MudLink Href="/login">Cancel and return to sign in</MudLink>
+    <MudLink Href="/login">@L["TwoFactor_CancelReturn"]</MudLink>
 </MudText>
 
 @code {
@@ -76,7 +77,7 @@ else
     {
         _error = Error switch
         {
-            AuthErrorCodes.InvalidCredentials => "Invalid code. Please try again.",
+            AuthErrorCodes.InvalidCredentials => L["TwoFactor_InvalidCode"],
             _                                 => Error
         };
     }

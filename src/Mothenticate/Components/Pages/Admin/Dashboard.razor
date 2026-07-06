@@ -3,10 +3,11 @@
 @inject IUserService UserService
 @inject IAppLauncherService AppLauncherService
 @inject IClientService ClientService
+@inject IStringLocalizer<SharedResource> L
 
 <PageTitle>Dashboard — Mothenticate Admin</PageTitle>
 
-<MudText Typo="Typo.h4" GutterBottom="true">Dashboard</MudText>
+<MudText Typo="Typo.h4" GutterBottom="true">@L["Admin_Dashboard_Title"]</MudText>
 
 <MudGrid Class="mb-6">
     <MudItem xs="12" sm="6" md="3">
@@ -15,7 +16,7 @@
                 <MudIcon Icon="@Icons.Material.Filled.People" Color="Color.Primary" Size="Size.Large" />
                 <MudStack Spacing="0">
                     <MudText Typo="Typo.h4">@_userCount</MudText>
-                    <MudText Typo="Typo.body2" Color="Color.Secondary">Total Users</MudText>
+                    <MudText Typo="Typo.body2" Color="Color.Secondary">@L["Admin_Dashboard_TotalUsers"]</MudText>
                 </MudStack>
             </MudStack>
         </MudPaper>
@@ -26,7 +27,7 @@
                 <MudIcon Icon="@Icons.Material.Filled.VpnKey" Color="Color.Secondary" Size="Size.Large" />
                 <MudStack Spacing="0">
                     <MudText Typo="Typo.h4">@_activeClientCount</MudText>
-                    <MudText Typo="Typo.body2" Color="Color.Secondary">Clients</MudText>
+                    <MudText Typo="Typo.body2" Color="Color.Secondary">@L["Admin_Dashboard_Clients"]</MudText>
                 </MudStack>
             </MudStack>
         </MudPaper>
@@ -37,7 +38,7 @@
                 <MudIcon Icon="@Icons.Material.Filled.Apps" Color="Color.Secondary" Size="Size.Large" />
                 <MudStack Spacing="0">
                     <MudText Typo="Typo.h4">@_activeApplicationCount</MudText>
-                    <MudText Typo="Typo.body2" Color="Color.Secondary">Applications</MudText>
+                    <MudText Typo="Typo.body2" Color="Color.Secondary">@L["Admin_Dashboard_Applications"]</MudText>
                 </MudStack>
             </MudStack>
         </MudPaper>
@@ -48,7 +49,7 @@
                 <MudIcon Icon="@Icons.Material.Filled.PersonOff" Color="Color.Warning" Size="Size.Large" />
                 <MudStack Spacing="0">
                     <MudText Typo="Typo.h4">@_inactiveUserCount</MudText>
-                    <MudText Typo="Typo.body2" Color="Color.Secondary">Inactive Users</MudText>
+                    <MudText Typo="Typo.body2" Color="Color.Secondary">@L["Admin_Dashboard_InactiveUsers"]</MudText>
                 </MudStack>
             </MudStack>
         </MudPaper>
@@ -58,12 +59,12 @@
 <MudGrid>
     <MudItem xs="12" md="6">
         <MudPaper Elevation="2" Class="pa-4">
-            <MudText Typo="Typo.h6" GutterBottom="true">Quick Links</MudText>
+            <MudText Typo="Typo.h6" GutterBottom="true">@L["Admin_Dashboard_QuickLinks"]</MudText>
             <MudList T="string">
-                <MudListItem Icon="@Icons.Material.Filled.PersonAdd" Href="/admin/users/create">Create User</MudListItem>
-                <MudListItem Icon="@Icons.Material.Filled.AddCircle" Href="/admin/applications/create">Create Application</MudListItem>
-                <MudListItem Icon="@Icons.Material.Filled.GroupAdd" Href="/admin/groups/create">Create Group</MudListItem>
-                <MudListItem Icon="@Icons.Material.Filled.Settings" Href="/admin/settings">Application Settings</MudListItem>
+                <MudListItem Icon="@Icons.Material.Filled.PersonAdd" Href="/admin/users/create">@L["Admin_Dashboard_CreateUser"]</MudListItem>
+                <MudListItem Icon="@Icons.Material.Filled.AddCircle" Href="/admin/applications/create">@L["Admin_Dashboard_CreateApplication"]</MudListItem>
+                <MudListItem Icon="@Icons.Material.Filled.GroupAdd" Href="/admin/groups/create">@L["Admin_Dashboard_CreateGroup"]</MudListItem>
+                <MudListItem Icon="@Icons.Material.Filled.Settings" Href="/admin/settings">@L["Admin_Dashboard_AppSettings"]</MudListItem>
             </MudList>
         </MudPaper>
     </MudItem>
