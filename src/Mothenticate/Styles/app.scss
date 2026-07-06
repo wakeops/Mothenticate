@@ -87,3 +87,57 @@
 .appbar-divider {
   background: rgba(255, 255, 255, 0.3) !important;
 }
+
+.language-switcher-fixed {
+  position: fixed;
+  bottom: 1rem;
+  right: 1rem;
+  z-index: 9999;
+}
+
+.image-crop-container {
+  display: flex;
+  justify-content: center;
+}
+
+.image-crop-canvas {
+  cursor: grab;
+  border-radius: 4px;
+  max-width: 100%;
+  display: block;
+  user-select: none;
+
+  &:active {
+    cursor: grabbing;
+  }
+}
+
+.image-crop-slider {
+  flex: 0 0 10rem;
+}
+
+.language-switcher {
+  display: flex;
+  align-items: center;
+
+  &__select {
+    background: var(--mud-palette-surface);
+    border: 1px solid var(--mud-palette-lines-inputs);
+    border-radius: 4px;
+    color: var(--mud-palette-text-primary);
+    padding: 4px 8px;
+    cursor: pointer;
+    outline: none;
+    box-shadow: var(--mud-elevation-2);
+    font-size: 0.75rem;
+
+    option {
+      background: var(--mud-palette-surface);
+      color: var(--mud-palette-text-primary);
+    }
+
+    &:hover {
+      border-color: var(--mud-palette-primary);
+    }
+  }
+}

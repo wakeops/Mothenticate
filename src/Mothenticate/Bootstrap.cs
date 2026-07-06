@@ -3,6 +3,7 @@ using System.Threading.RateLimiting;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.HttpOverrides;
+using Microsoft.AspNetCore.Localization;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
@@ -42,7 +43,7 @@ public static class Bootstrap
 
         if (hostEnvironment.IsDevelopment())
         {
-            loggerConfig.WriteTo.Console(outputTemplate: "[{Timestamp:HH:mm:ss} {Level:u3}][{SourceContext}]{NewLine}{Message:lj}{NewLine}{Exception}");
+            loggerConfig.WriteTo.Console(outputTemplate: "[{Level:u3}][{SourceContext}] {Message:lj}{NewLine}{Exception}");
         }
         else
         {
@@ -108,6 +109,8 @@ public static class Bootstrap
             {
                 options.SlidingExpiration = false;
                 options.ExpireTimeSpan = TimeSpan.FromHours(10);
+                options.LoginPath = "/login";
+                options.AccessDeniedPath = "/login";
                 options.Cookie = new CookieBuilder
                 {
                     Name = Constants.AppName,
@@ -122,8 +125,11 @@ public static class Bootstrap
                 options.SaveToken = true;
             });
 
+        services.AddLocalization(o => o.ResourcesPath = "Resources");
+
         services.AddRazorComponents()
-            .AddInteractiveServerComponents();
+            .AddInteractiveServerComponents()
+            .AddHubOptions(o => o.MaximumReceiveMessageSize = 512 * 1024);
 
         services.AddMudServices();
         services.AddCascadingAuthenticationState();
@@ -163,6 +169,19 @@ public static class Bootstrap
         app
             .UseForwardedHeaders(forwardedHeaderOptions)
             .UseMiddleware<SetupMiddleware>();
+
+        var supportedCultures = LocalizationDefaults.SupportedLanguages.Select(l => l.Code).ToArray();
+        app.UseRequestLocalization(options =>
+        {
+            options.SetDefaultCulture(LocalizationDefaults.DefaultCulture)
+                   .AddSupportedCultures(supportedCultures)
+                   .AddSupportedUICultures(supportedCultures);
+            options.RequestCultureProviders =
+            [
+                new CookieRequestCultureProvider(),
+                new DbDefaultCultureProvider(),
+            ];
+        });
 
         app.MapStaticAssets().ShortCircuit();
 

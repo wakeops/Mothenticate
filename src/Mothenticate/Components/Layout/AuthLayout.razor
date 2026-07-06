@@ -1,6 +1,7 @@
 @inherits LayoutComponentBase
 @using Microsoft.Extensions.DependencyInjection
 @inject IServiceScopeFactory ScopeFactory
+@inject IStringLocalizer<SharedResource> L
 
 <MudThemeProvider Theme="_theme" IsDarkMode="true" />
 <MudPopoverProvider />
@@ -13,7 +14,7 @@
             <MudPaper Elevation="8" Class="pa-8 auth-card">
                 <MudStack AlignItems="AlignItems.Center" Class="mb-6">
                     <MudImage Src="images/brand_logo.svg" Alt="Brand logo" />
-                    <MudText Typo="Typo.h5" Align="Align.Center">@(_settings?.BrandingTitle ?? "Mothenticate")</MudText>
+                    <MudText Typo="Typo.h5" Align="Align.Center">@(_settings?.BrandingTitle ?? L["Layout_DefaultTitle"])</MudText>
                     @if (!string.IsNullOrEmpty(_settings?.BrandingSubtitle))
                     {
                         <MudText Typo="Typo.body2" Color="Color.Secondary" Align="Align.Center">@_settings.BrandingSubtitle</MudText>
@@ -24,6 +25,10 @@
         </div>
     </MudMainContent>
 </MudLayout>
+
+<div class="language-switcher-fixed">
+    <LanguageSwitcher />
+</div>
 
 @code {
     private AppSettings? _settings;

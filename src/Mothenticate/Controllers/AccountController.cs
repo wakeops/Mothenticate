@@ -35,8 +35,9 @@ public class AccountController(
 
         var user = settings.UseEmailAsUsername
             ? await userManager.FindByEmailAsync(username)
-            : await userManager.FindByNameAsync(username)
-              ?? await userManager.FindByEmailAsync(username);
+            : settings.AllowEmailLogin
+                ? await userManager.FindByNameAsync(username) ?? await userManager.FindByEmailAsync(username)
+                : await userManager.FindByNameAsync(username);
 
         if (user is null)
         {

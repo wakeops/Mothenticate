@@ -7,8 +7,12 @@ public class AppSettings
 
     // User management
     public bool UseEmailAsUsername { get; set; } = false;
+    public bool AllowEmailLogin { get; set; } = false;
     public bool AvatarsEnabled { get; set; } = false;
     public bool RegistrationEnabled { get; set; } = true;
+
+    // Localization
+    public string DefaultLanguage { get; set; } = "en";
 
     // Branding
     public string? BrandingTitle { get; set; }

@@ -1,6 +1,7 @@
 @page "/login"
 @layout AuthLayout
 @inject IAppSettingsService AppSettingsService
+@inject IStringLocalizer<SharedResource> L
 
 <PageTitle>Sign In — Mothenticate</PageTitle>
 
@@ -14,26 +15,26 @@
 
     <div class="mb-4">
         <label class="mud-typography mud-typography-body2 mb-1 d-block">
-            @(_useEmailAsUsername ? "Email" : "Username")
+            @(_useEmailAsUsername ? L["Login_EmailLabel"] : _allowEmailLogin ? L["Login_UsernameOrEmailLabel"] : L["Login_UsernameLabel"])
         </label>
         <input name="username" type="text" autocomplete="username" required class="auth-input" />
     </div>
 
     <div class="mb-4">
-        <label class="mud-typography mud-typography-body2 mb-1 d-block">Password</label>
+        <label class="mud-typography mud-typography-body2 mb-1 d-block">@L["Login_PasswordLabel"]</label>
         <input name="password" type="password" autocomplete="current-password" required class="auth-input" />
     </div>
 
     <div class="d-flex align-center mb-4">
         <input type="checkbox" id="rememberMe" name="rememberMe" value="true" class="auth-checkbox" />
         <label for="rememberMe" class="mud-typography mud-typography-body2 cursor-pointer">
-            Remember me
+            @L["Login_RememberMe"]
         </label>
     </div>
 
     <MudButton ButtonType="ButtonType.Submit" Variant="Variant.Filled" Color="Color.Primary"
                FullWidth="true" Size="Size.Large" Class="mb-4">
-        Sign In
+        @L["Login_SignIn"]
     </MudButton>
 </form>
 
@@ -45,14 +46,14 @@
         {
             <MudButton Variant="Variant.Outlined" FullWidth="true" StartIcon="@Icons.Custom.Brands.Google"
                        Href="/connect/external/google">
-                Continue with Google
+                @L["Login_ContinueWithGoogle"]
             </MudButton>
         }
         @if (_githubEnabled)
         {
             <MudButton Variant="Variant.Outlined" FullWidth="true" StartIcon="@Icons.Custom.Brands.GitHub"
                        Href="/connect/external/github">
-                Continue with GitHub
+                @L["Login_ContinueWithGitHub"]
             </MudButton>
         }
     </MudStack>
@@ -62,7 +63,7 @@
 {
     <MudDivider Class="my-4" />
     <MudText Typo="Typo.body2" Align="Align.Center">
-        Don't have an account? <MudLink Href="/register">Register</MudLink>
+        @L["Login_NoAccount"] <MudLink Href="/register">@L["Login_Register"]</MudLink>
     </MudText>
 }
 
@@ -73,6 +74,7 @@
     private string? _returnUrl;
     private string? _error;
     private bool _useEmailAsUsername;
+    private bool _allowEmailLogin;
     private bool _registrationEnabled;
     private bool _googleEnabled;
     private bool _githubEnabled;
@@ -82,18 +84,19 @@
         _returnUrl = ReturnUrl;
         _error = Error switch
         {
-            AuthErrorCodes.InvalidCredentials      => "Invalid username or password.",
-            AuthErrorCodes.AccountLocked           => "This account has been locked. Please try again later.",
-            AuthErrorCodes.AccountInactive         => "This account is inactive. Please contact an administrator.",
-            AuthErrorCodes.SessionExpired          => "Your session expired. Please sign in again.",
-            AuthErrorCodes.AccountDisabled         => "This account has been disabled.",
-            AuthErrorCodes.RegistrationDisabledSso => "Registration is currently disabled.",
-            AuthErrorCodes.SsoFailed               => "Single sign-on failed. Please try again.",
+            AuthErrorCodes.InvalidCredentials      => L["Error_InvalidCredentials"],
+            AuthErrorCodes.AccountLocked           => L["Error_AccountLocked"],
+            AuthErrorCodes.AccountInactive         => L["Error_AccountInactive"],
+            AuthErrorCodes.SessionExpired          => L["Error_SessionExpired"],
+            AuthErrorCodes.AccountDisabled         => L["Error_AccountDisabled"],
+            AuthErrorCodes.RegistrationDisabledSso => L["Error_RegistrationDisabledSso"],
+            AuthErrorCodes.SsoFailed               => L["Error_SsoFailed"],
             _ => Error
         };
 
         var settings = await AppSettingsService.GetAsync();
         _useEmailAsUsername  = settings.UseEmailAsUsername;
+        _allowEmailLogin     = settings.AllowEmailLogin;
         _registrationEnabled = settings.RegistrationEnabled;
         _googleEnabled       = settings.GoogleSsoEnabled;
         _githubEnabled       = settings.GitHubSsoEnabled;

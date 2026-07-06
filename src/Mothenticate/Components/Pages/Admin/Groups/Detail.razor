@@ -6,12 +6,13 @@
 @inject IUserService UserService
 @inject ISnackbar Snackbar
 @inject NavigationManager Navigation
+@inject IStringLocalizer<SharedResource> L
 
-<PageTitle>@(_isCreate ? "New Group" : _group?.Name ?? "Group") — Mothenticate Admin</PageTitle>
+<PageTitle>@(_isCreate ? L["Admin_GroupDetail_NewGroup"] : _group?.Name ?? L["Admin_GroupDetail_NewGroup"]) — Mothenticate Admin</PageTitle>
 
 <MudStack Row="true" AlignItems="AlignItems.Center" Class="mb-4">
     <MudIconButton Icon="@Icons.Material.Filled.ArrowBack" OnClick='() => Navigation.NavigateTo("/admin/groups")' />
-    <MudText Typo="Typo.h4">@(_isCreate ? "New Group" : _group?.Name ?? "Group")</MudText>
+    <MudText Typo="Typo.h4">@(_isCreate ? L["Admin_GroupDetail_NewGroup"] : _group?.Name ?? L["Admin_GroupDetail_NewGroup"])</MudText>
 </MudStack>
 
 @if (_loading)
@@ -24,14 +25,14 @@ else
         <!-- Group info -->
         <MudItem xs="12" md="5">
             <MudPaper Elevation="2" Class="pa-4 mb-4">
-                <MudText Typo="Typo.h6" GutterBottom="true">Group Details</MudText>
+                <MudText Typo="Typo.h6" GutterBottom="true">@L["Admin_GroupDetail_GroupDetails"]</MudText>
                 <MudForm @ref="_form">
-                    <MudTextField @bind-Value="_name" Label="Name" Variant="Variant.Outlined"
+                    <MudTextField @bind-Value="_name" Label="@L["Admin_GroupDetail_Name"]" Variant="Variant.Outlined"
                                   Required="true" Class="mb-3" />
-                    <MudTextField @bind-Value="_description" Label="Description" Variant="Variant.Outlined"
+                    <MudTextField @bind-Value="_description" Label="@L["Admin_GroupDetail_Description"]" Variant="Variant.Outlined"
                                   Lines="2" Class="mb-3" />
                     <MudButton Variant="Variant.Filled" Color="Color.Primary" OnClick="Save">
-                        @(_isCreate ? "Create Group" : "Save")
+                        @(_isCreate ? L["Admin_GroupDetail_CreateGroup"] : L["Admin_GroupDetail_Save"])
                     </MudButton>
                 </MudForm>
             </MudPaper>
@@ -42,7 +43,7 @@ else
             <!-- Members -->
             <MudItem xs="12" md="7">
                 <MudPaper Elevation="2" Class="pa-4 mb-4">
-                    <MudText Typo="Typo.h6" GutterBottom="true">Members (@_members.Count)</MudText>
+                    <MudText Typo="Typo.h6" GutterBottom="true">@string.Format(L["Admin_GroupDetail_Members"], _members.Count)</MudText>
 
                     @foreach (var member in _members)
                     {
@@ -63,7 +64,7 @@ else
                     @if (_nonMembers.Count > 0)
                     {
                         <MudDivider Class="my-3" />
-                        <MudSelect T="string?" Placeholder="Add member…" ValueChanged="AddMember"
+                        <MudSelect T="string?" Placeholder="@L["Admin_GroupDetail_AddMember"]" ValueChanged="AddMember"
                                    Variant="Variant.Outlined" Margin="Margin.Dense">
                             @foreach (var user in _nonMembers)
                             {
@@ -77,9 +78,9 @@ else
 
                 <!-- Roles -->
                 <MudPaper Elevation="2" Class="pa-4">
-                    <MudText Typo="Typo.h6" GutterBottom="true">Roles</MudText>
+                    <MudText Typo="Typo.h6" GutterBottom="true">@L["Admin_GroupDetail_Roles"]</MudText>
                     <MudText Typo="Typo.caption" Color="Color.Secondary" Class="mb-3">
-                        Roles assigned here are automatically granted to all group members.
+                        @L["Admin_GroupDetail_RolesDesc"]
                     </MudText>
 
                     @foreach (var role in _groupRoles)
@@ -93,7 +94,7 @@ else
 
                     @if (_availableRoles.Count > 0)
                     {
-                        <MudSelect T="int?" Placeholder="Add role…" ValueChanged="AddRole"
+                        <MudSelect T="int?" Placeholder="@L["Admin_GroupDetail_AddRole"]" ValueChanged="AddRole"
                                    Variant="Variant.Outlined" Margin="Margin.Dense" Class="mt-2">
                             @foreach (var role in _availableRoles)
                             {
@@ -109,7 +110,7 @@ else
                     }
                     else
                     {
-                        <MudText Typo="Typo.body2" Color="Color.Secondary" Class="mt-2">All available roles are assigned.</MudText>
+                        <MudText Typo="Typo.body2" Color="Color.Secondary" Class="mt-2">@L["Admin_GroupDetail_AllRolesAssigned"]</MudText>
                     }
                 </MudPaper>
             </MudItem>
@@ -170,13 +171,13 @@ else
         if (_isCreate)
         {
             var group = await GroupService.CreateAsync(_name, _description);
-            Snackbar.Add("Group created.", Severity.Success);
+            Snackbar.Add(L["Admin_GroupDetail_Created"], Severity.Success);
             Navigation.NavigateTo($"/admin/groups/{group.Id}");
         }
         else
         {
             await GroupService.UpdateAsync(Id!.Value, _name, _description);
-            Snackbar.Add("Group saved.", Severity.Success);
+            Snackbar.Add(L["Admin_GroupDetail_Saved"], Severity.Success);
         }
     }
 
@@ -185,14 +186,14 @@ else
         if (userId is null) return;
         await GroupService.AddMemberAsync(Id!.Value, userId);
         await RefreshMembers();
-        Snackbar.Add("Member added.", Severity.Success);
+        Snackbar.Add(L["Admin_GroupDetail_MemberAdded"], Severity.Success);
     }
 
     private async Task RemoveMember(string userId)
     {
         await GroupService.RemoveMemberAsync(Id!.Value, userId);
         await RefreshMembers();
-        Snackbar.Add("Member removed.", Severity.Success);
+        Snackbar.Add(L["Admin_GroupDetail_MemberRemoved"], Severity.Success);
     }
 
     private async Task AddRole(int? roleId)
@@ -200,14 +201,14 @@ else
         if (roleId is null) return;
         await GroupService.AddRoleAsync(Id!.Value, roleId.Value);
         await RefreshRoles();
-        Snackbar.Add("Role added.", Severity.Success);
+        Snackbar.Add(L["Admin_GroupDetail_RoleAdded"], Severity.Success);
     }
 
     private async Task RemoveRole(int roleId)
     {
         await GroupService.RemoveRoleAsync(Id!.Value, roleId);
         await RefreshRoles();
-        Snackbar.Add("Role removed.", Severity.Success);
+        Snackbar.Add(L["Admin_GroupDetail_RoleRemoved"], Severity.Success);
     }
 
     private async Task RefreshMembers()

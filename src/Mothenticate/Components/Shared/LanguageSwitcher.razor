@@ -1,0 +1,23 @@
+@using System.Globalization
+@inject NavigationManager Navigation
+
+<form method="post" action="/culture/set" class="language-switcher">
+    <input type="hidden" name="returnUrl" value="@Navigation.Uri" />
+    <select name="culture" onchange="this.form.submit()" class="language-switcher__select mud-typography mud-typography-body2">
+        @foreach (var lang in LocalizationDefaults.SupportedLanguages)
+        {
+            if (lang.Code == _currentCulture)
+            {
+                <option value="@lang.Code" selected>@lang.DisplayName</option>
+            }
+            else
+            {
+                <option value="@lang.Code">@lang.DisplayName</option>
+            }
+        }
+    </select>
+</form>
+
+@code {
+    private string _currentCulture = CultureInfo.CurrentUICulture.TwoLetterISOLanguageName;
+}

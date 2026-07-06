@@ -1,6 +1,7 @@
 using Microsoft.AspNetCore.Identity;
 using Microsoft.Extensions.Logging;
 using Mothenticate.Data.Entities;
+using Mothenticate.Data.Repositories;
 using Mothenticate.Domain.Config;
 
 namespace Mothenticate.Data.Services;
@@ -8,11 +9,15 @@ namespace Mothenticate.Data.Services;
 public class SeedService(
     UserManager<ApplicationUser> userManager,
     RoleManager<IdentityRole> roleManager,
+    IAppSettingsRepository appSettingsRepository,
     ILogger<SeedService> logger) : ISeedService
 {
     public async Task SeedAsync(CancellationToken cancellationToken = default)
     {
         await EnsureAdminRoleAsync();
+        await appSettingsRepository.GetAsync(cancellationToken); // ensures singleton row exists
+
+        logger.LogInformation("Seeded initial data successfully.");
     }
 
     public async Task<bool> IsFirstRunAsync(CancellationToken cancellationToken = default)

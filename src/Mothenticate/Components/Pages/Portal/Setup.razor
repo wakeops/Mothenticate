@@ -2,12 +2,13 @@
 @layout AuthLayout
 @inject ISeedService SeedService
 @inject NavigationManager Navigation
+@inject IStringLocalizer<SharedResource> L
 
 <PageTitle>Setup — Mothenticate</PageTitle>
 
-<MudText Typo="Typo.h5" Class="mb-1">Welcome to Mothenticate</MudText>
+<MudText Typo="Typo.h5" Class="mb-1">@L["Setup_Welcome"]</MudText>
 <MudText Typo="Typo.body2" Color="Color.Secondary" Class="mb-6">
-    Create your administrator account to get started.
+    @L["Setup_Subtitle"]
 </MudText>
 
 @if (_error is not null)
@@ -17,41 +18,41 @@
 
 <form method="post" action="/account/setup">
     <div class="mb-3">
-        <label class="mud-typography mud-typography-body2 mb-1 d-block">Username</label>
+        <label class="mud-typography mud-typography-body2 mb-1 d-block">@L["Setup_UsernameLbl"]</label>
         <input name="username" type="text" autocomplete="username" required class="auth-input" />
     </div>
 
     <div class="mb-3">
-        <label class="mud-typography mud-typography-body2 mb-1 d-block">Email</label>
+        <label class="mud-typography mud-typography-body2 mb-1 d-block">@L["Setup_EmailLbl"]</label>
         <input name="email" type="email" autocomplete="email" required class="auth-input" />
     </div>
 
     <div class="mb-4">
-        <label class="mud-typography mud-typography-body2 mb-1 d-block">Password</label>
+        <label class="mud-typography mud-typography-body2 mb-1 d-block">@L["Setup_PasswordLbl"]</label>
         <input name="password" type="password" autocomplete="new-password" required class="auth-input"
                @oninput="OnPasswordInput" />
         <div class="password-rules mt-2">
-            <PasswordRule Met="_hasMinLength" Label="At least 6 characters" />
-            <PasswordRule Met="_hasUpper"     Label="Uppercase letter" />
-            <PasswordRule Met="_hasLower"     Label="Lowercase letter" />
-            <PasswordRule Met="_hasDigit"     Label="Number" />
-            <PasswordRule Met="_hasSpecial"   Label="Special character" />
+            <PasswordRule Met="_hasMinLength" Label="@L["Setup_PasswordRule_MinLength"]" />
+            <PasswordRule Met="_hasUpper"     Label="@L["Setup_PasswordRule_Upper"]" />
+            <PasswordRule Met="_hasLower"     Label="@L["Setup_PasswordRule_Lower"]" />
+            <PasswordRule Met="_hasDigit"     Label="@L["Setup_PasswordRule_Digit"]" />
+            <PasswordRule Met="_hasSpecial"   Label="@L["Setup_PasswordRule_Special"]" />
         </div>
     </div>
 
     <div class="mb-4">
-        <label class="mud-typography mud-typography-body2 mb-1 d-block">Confirm password</label>
+        <label class="mud-typography mud-typography-body2 mb-1 d-block">@L["Setup_ConfirmPassword"]</label>
         <input name="confirm_password" type="password" autocomplete="new-password" required class="auth-input"
                @oninput="OnConfirmInput" />
         @if (_confirm.Length > 0 && !_passwordsMatch)
         {
-            <MudText Typo="Typo.caption" Color="Color.Error" Class="mt-1">Passwords do not match</MudText>
+            <MudText Typo="Typo.caption" Color="Color.Error" Class="mt-1">@L["Setup_PasswordsDoNotMatch"]</MudText>
         }
     </div>
 
     <MudButton ButtonType="ButtonType.Submit" Variant="Variant.Filled" Color="Color.Primary"
                FullWidth="true" Size="Size.Large" Disabled="_submitDisabled">
-        Create Admin Account
+        @L["Setup_CreateAdmin"]
     </MudButton>
 </form>
 

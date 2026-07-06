@@ -1,0 +1,61 @@
+@implements IAsyncDisposable
+@inject IJSRuntime JS
+@inject IStringLocalizer<SharedResource> L
+
+<MudDialog>
+    <DialogContent>
+        <div class="image-crop-container">
+            <canvas @ref="_canvas" class="image-crop-canvas"></canvas>
+        </div>
+        <MudStack Row="true" AlignItems="AlignItems.Center" Justify="Justify.Center" Spacing="2" Class="mt-3">
+            <MudIcon Icon="@Icons.Material.Filled.ZoomOut" Size="Size.Small" Color="Color.Secondary" />
+            <MudSlider T="double" Value="_scale" Min="1.0" Max="2.0" Step="0.01"
+                       ValueChanged="OnScaleChanged" Class="image-crop-slider" />
+            <MudIcon Icon="@Icons.Material.Filled.ZoomIn" Size="Size.Small" Color="Color.Secondary" />
+        </MudStack>
+    </DialogContent>
+    <DialogActions>
+        <MudButton OnClick="Cancel">@L["ImageCrop_Cancel"]</MudButton>
+        <MudButton Variant="Variant.Filled" Color="Color.Primary" OnClick="Confirm">
+            @L["ImageCrop_Confirm"]
+        </MudButton>
+    </DialogActions>
+</MudDialog>
+
+@code {
+    [CascadingParameter] private IMudDialogInstance MudDialog { get; set; } = null!;
+    [Parameter] public string ImageDataUrl { get; set; } = string.Empty;
+
+    private ElementReference _canvas;
+    private IJSObjectReference? _module;
+    private double _scale = 1.0;
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (!firstRender) return;
+        _module = await JS.InvokeAsync<IJSObjectReference>("import", "./js/imageCropper.js");
+        await _module.InvokeVoidAsync("init", _canvas, ImageDataUrl);
+    }
+
+    private async Task OnScaleChanged(double value)
+    {
+        _scale = value;
+        if (_module is not null)
+            await _module.InvokeVoidAsync("setScale", value);
+    }
+
+    private async Task Confirm()
+    {
+        if (_module is null) return;
+        var base64 = await _module.InvokeAsync<string>("getCroppedImage", 256);
+        MudDialog.Close(DialogResult.Ok(base64));
+    }
+
+    private void Cancel() => MudDialog.Cancel();
+
+    public async ValueTask DisposeAsync()
+    {
+        if (_module is not null)
+            await _module.DisposeAsync();
+    }
+}

@@ -5,14 +5,15 @@
 @inject IDialogService DialogService
 @inject ISnackbar Snackbar
 @inject NavigationManager Navigation
+@inject IStringLocalizer<SharedResource> L
 @using OpenIddict.Abstractions
 @using Mothenticate.IdentityProvider.Services
 
-<PageTitle>@(_isCreate ? "New Client" : _model.DisplayName) — Mothenticate Admin</PageTitle>
+<PageTitle>@(_isCreate ? L["Admin_ClientDetail_NewClient"] : _model.DisplayName) — Mothenticate Admin</PageTitle>
 
 <MudStack Row="true" AlignItems="AlignItems.Center" Class="mb-4">
     <MudIconButton Icon="@Icons.Material.Filled.ArrowBack" OnClick='() => Navigation.NavigateTo("/admin/clients")' />
-    <MudText Typo="Typo.h4">@(_isCreate ? "New Client" : "Edit Client")</MudText>
+    <MudText Typo="Typo.h4">@(_isCreate ? L["Admin_ClientDetail_NewClient"] : L["Admin_ClientDetail_EditClient"])</MudText>
 </MudStack>
 
 <MudGrid>
@@ -21,32 +22,32 @@
 
             <!-- Basic Info -->
             <MudPaper Elevation="2" Class="pa-4 mb-4">
-                <MudText Typo="Typo.h6" GutterBottom="true">Basic Information</MudText>
+                <MudText Typo="Typo.h6" GutterBottom="true">@L["Admin_ClientDetail_BasicInfo"]</MudText>
                 <MudGrid>
                     <MudItem xs="12" sm="6">
-                        <MudTextField @bind-Value="_model.DisplayName" Label="Display Name" Required="true"
-                                      RequiredError="Display name is required." Variant="Variant.Outlined" />
+                        <MudTextField @bind-Value="_model.DisplayName" Label="@L["Admin_ClientDetail_DisplayName"]" Required="true"
+                                      RequiredError="@L["Admin_ClientDetail_DisplayName_Required"]" Variant="Variant.Outlined" />
                     </MudItem>
                     <MudItem xs="12" sm="6">
-                        <MudTextField @bind-Value="_model.ClientId" Label="Client ID" Required="true"
-                                      RequiredError="Client ID is required." Variant="Variant.Outlined"
-                                      Disabled="@(!_isCreate)" HelperText="Unique identifier for this application." />
+                        <MudTextField @bind-Value="_model.ClientId" Label="@L["Admin_ClientDetail_ClientId"]" Required="true"
+                                      RequiredError="@L["Admin_ClientDetail_ClientId_Required"]" Variant="Variant.Outlined"
+                                      Disabled="@(!_isCreate)" HelperText="@L["Admin_ClientDetail_ClientId_Helper"]" />
                     </MudItem>
                     <MudItem xs="12" sm="6">
-                        <MudSelect @bind-Value="_model.ClientType" Label="Client Type" Variant="Variant.Outlined">
-                            <MudSelectItem Value="@OpenIddictConstants.ClientTypes.Public">Public</MudSelectItem>
-                            <MudSelectItem Value="@OpenIddictConstants.ClientTypes.Confidential">Confidential</MudSelectItem>
+                        <MudSelect @bind-Value="_model.ClientType" Label="@L["Admin_ClientDetail_ClientType"]" Variant="Variant.Outlined">
+                            <MudSelectItem Value="@OpenIddictConstants.ClientTypes.Public">@L["Admin_ClientDetail_PublicType"]</MudSelectItem>
+                            <MudSelectItem Value="@OpenIddictConstants.ClientTypes.Confidential">@L["Admin_ClientDetail_ConfidentialType"]</MudSelectItem>
                         </MudSelect>
                     </MudItem>
                     <MudItem xs="12" sm="6">
-                        <MudSwitch @bind-Value="_model.IsEnabled" Label="Enabled" Color="Color.Primary" />
+                        <MudSwitch @bind-Value="_model.IsEnabled" Label="@L["Admin_ClientDetail_Enabled"]" Color="Color.Primary" />
                     </MudItem>
                 </MudGrid>
             </MudPaper>
 
             <!-- Redirect URIs -->
             <MudPaper Elevation="2" Class="pa-4 mb-4">
-                <MudText Typo="Typo.h6" GutterBottom="true">Redirect URIs</MudText>
+                <MudText Typo="Typo.h6" GutterBottom="true">@L["Admin_ClientDetail_RedirectUris"]</MudText>
                 @for (int i = 0; i < _model.RedirectUris.Count; i++)
                 {
                     var idx = i;
@@ -59,13 +60,13 @@
                 }
                 <MudButton StartIcon="@Icons.Material.Filled.Add" Variant="Variant.Text"
                            OnClick='() => _model.RedirectUris.Add(string.Empty)'>
-                    Add Redirect URI
+                    @L["Admin_ClientDetail_AddRedirectUri"]
                 </MudButton>
             </MudPaper>
 
             <!-- Post-Logout Redirect URIs -->
             <MudPaper Elevation="2" Class="pa-4 mb-4">
-                <MudText Typo="Typo.h6" GutterBottom="true">Post-Logout Redirect URIs</MudText>
+                <MudText Typo="Typo.h6" GutterBottom="true">@L["Admin_ClientDetail_PostLogoutUris"]</MudText>
                 @for (int i = 0; i < _model.PostLogoutRedirectUris.Count; i++)
                 {
                     var idx = i;
@@ -78,13 +79,13 @@
                 }
                 <MudButton StartIcon="@Icons.Material.Filled.Add" Variant="Variant.Text"
                            OnClick='() => _model.PostLogoutRedirectUris.Add(string.Empty)'>
-                    Add Post-Logout URI
+                    @L["Admin_ClientDetail_AddPostLogoutUri"]
                 </MudButton>
             </MudPaper>
 
             <!-- Permissions -->
             <MudPaper Elevation="2" Class="pa-4 mb-4">
-                <MudText Typo="Typo.h6" GutterBottom="true">Permissions</MudText>
+                <MudText Typo="Typo.h6" GutterBottom="true">@L["Admin_ClientDetail_Permissions"]</MudText>
                 @foreach (var group in _permissionGroups)
                 {
                     <MudText Typo="Typo.subtitle2" Class="mt-3 mb-1">@group.Key</MudText>
@@ -105,24 +106,24 @@
             @if (!_isCreate)
             {
                 <MudPaper Elevation="2" Class="pa-4 mb-4">
-                    <MudText Typo="Typo.h6" GutterBottom="true">Token Lifetimes</MudText>
+                    <MudText Typo="Typo.h6" GutterBottom="true">@L["Admin_ClientDetail_TokenLifetimes"]</MudText>
                     <MudText Typo="Typo.caption" Color="Color.Secondary" Class="mb-3">
-                        Leave blank to use the server defaults.
+                        @L["Admin_ClientDetail_TokenLifetimes_Helper"]
                     </MudText>
                     <MudGrid>
                         <MudItem xs="12" sm="4">
                             <MudNumericField T="int?" @bind-Value="_model.AccessTokenLifetimeMinutes"
-                                             Label="Access Token (minutes)" Variant="Variant.Outlined"
+                                             Label="@L["Admin_ClientDetail_AccessToken"]" Variant="Variant.Outlined"
                                              Placeholder="Default (60)" Min="1" />
                         </MudItem>
                         <MudItem xs="12" sm="4">
                             <MudNumericField T="int?" @bind-Value="_model.IdentityTokenLifetimeMinutes"
-                                             Label="Identity Token (minutes)" Variant="Variant.Outlined"
+                                             Label="@L["Admin_ClientDetail_IdentityToken"]" Variant="Variant.Outlined"
                                              Placeholder="Default (60)" Min="1" />
                         </MudItem>
                         <MudItem xs="12" sm="4">
                             <MudNumericField T="int?" @bind-Value="_model.RefreshTokenLifetimeMinutes"
-                                             Label="Refresh Token (minutes)" Variant="Variant.Outlined"
+                                             Label="@L["Admin_ClientDetail_RefreshToken"]" Variant="Variant.Outlined"
                                              Placeholder="Default (20160)" Min="1" />
                         </MudItem>
                     </MudGrid>
@@ -131,10 +132,10 @@
 
             <MudStack Row="true">
                 <MudButton Variant="Variant.Filled" Color="Color.Primary" OnClick="Save" Disabled="@_saving">
-                    @(_saving ? "Saving…" : (_isCreate ? "Create Client" : "Save Changes"))
+                    @(_saving ? L["Admin_ClientDetail_Saving"] : (_isCreate ? L["Admin_ClientDetail_CreateClient"] : L["Admin_ClientDetail_SaveChanges"]))
                 </MudButton>
                 <MudButton Variant="Variant.Text" OnClick='() => Navigation.NavigateTo("/admin/clients")'>
-                    Cancel
+                    @L["Admin_ClientDetail_Cancel"]
                 </MudButton>
             </MudStack>
         </MudForm>
@@ -144,9 +145,9 @@
     {
         <MudItem xs="12" md="4">
             <MudPaper Elevation="2" Class="pa-4">
-                <MudText Typo="Typo.h6" GutterBottom="true">Client Secrets</MudText>
+                <MudText Typo="Typo.h6" GutterBottom="true">@L["Admin_ClientDetail_Secrets"]</MudText>
                 <MudText Typo="Typo.caption" Color="Color.Secondary" Class="mb-3">
-                    Secrets are used to authenticate confidential clients.
+                    @L["Admin_ClientDetail_Secrets_Desc"]
                 </MudText>
 
                 @foreach (var secret in _secrets)
@@ -154,11 +155,17 @@
                     <MudPaper Outlined="true" Class="pa-3 mb-2">
                         <MudStack Row="true" AlignItems="AlignItems.Center">
                             <MudStack Spacing="0">
-                                <MudText Typo="Typo.body2">@(secret.Description ?? "No description")</MudText>
+                                <MudText Typo="Typo.body2">@(secret.Description ?? L["Admin_ClientDetail_NoDescription"])</MudText>
                                 <MudText Typo="Typo.caption" Color="@(secret.IsExpired ? Color.Error : Color.Secondary)">
-                                    @(secret.IsExpired ? "Expired" : secret.ExpiresAt.HasValue ? $"Expires {secret.ExpiresAt:yyyy-MM-dd}" : "No expiry")
+                                    @(secret.IsExpired
+                                        ? L["Admin_ClientDetail_Expired"]
+                                        : secret.ExpiresAt.HasValue
+                                            ? string.Format(L["Admin_ClientDetail_ExpiresOn"], secret.ExpiresAt.Value.ToString("yyyy-MM-dd"))
+                                            : L["Admin_ClientDetail_NoExpiry"])
                                 </MudText>
-                                <MudText Typo="Typo.caption" Color="Color.Secondary">Created @secret.CreatedAt.ToString("yyyy-MM-dd")</MudText>
+                                <MudText Typo="Typo.caption" Color="Color.Secondary">
+                                    @string.Format(L["Admin_ClientDetail_CreatedOn"], secret.CreatedAt.ToString("yyyy-MM-dd"))
+                                </MudText>
                             </MudStack>
                             <MudSpacer />
                             <MudIconButton Icon="@Icons.Material.Filled.Delete" Size="Size.Small" Color="Color.Error"
@@ -168,13 +175,13 @@
                 }
 
                 <MudDivider Class="my-3" />
-                <MudText Typo="Typo.subtitle2" Class="mb-2">Add Secret</MudText>
-                <MudTextField @bind-Value="_newSecretDescription" Label="Description (optional)"
+                <MudText Typo="Typo.subtitle2" Class="mb-2">@L["Admin_ClientDetail_AddSecret"]</MudText>
+                <MudTextField @bind-Value="_newSecretDescription" Label="@L["Admin_ClientDetail_SecretDesc"]"
                               Variant="Variant.Outlined" Margin="Margin.Dense" Class="mb-2" />
-                <MudDatePicker @bind-Date="_newSecretExpiry" Label="Expiry date (optional)"
+                <MudDatePicker @bind-Date="_newSecretExpiry" Label="@L["Admin_ClientDetail_SecretExpiry"]"
                                Variant="Variant.Outlined" Margin="Margin.Dense" Class="mb-2" />
                 <MudButton Variant="Variant.Filled" Color="Color.Primary" FullWidth="true" OnClick="AddSecret">
-                    Generate Secret
+                    @L["Admin_ClientDetail_GenerateSecret"]
                 </MudButton>
             </MudPaper>
         </MudItem>
@@ -297,14 +304,14 @@
                 var newId = await ClientService.CreateAsync(descriptor);
                 if (!_model.IsEnabled && newId is not null)
                     await ClientService.SetEnabledAsync(newId, false);
-                Snackbar.Add("Client created.", Severity.Success);
+                Snackbar.Add(L["Admin_ClientDetail_ClientCreated"], Severity.Success);
                 Navigation.NavigateTo("/admin/clients");
             }
             else
             {
                 await ClientService.UpdateAsync(Id!, descriptor);
                 await ClientService.SetEnabledAsync(Id!, _model.IsEnabled);
-                Snackbar.Add("Client saved.", Severity.Success);
+                Snackbar.Add(L["Admin_ClientDetail_ClientSaved"], Severity.Success);
             }
         }
         catch (Exception ex)
@@ -332,17 +339,19 @@
 
         var parameters = new DialogParameters<SecretRevealDialog> { { d => d.Secret, plaintext } };
         var options = new DialogOptions { MaxWidth = MaxWidth.Small, FullWidth = true, CloseOnEscapeKey = false, BackdropClick = false };
-        await DialogService.ShowAsync<SecretRevealDialog>("Secret Generated", parameters, options);
+        await DialogService.ShowAsync<SecretRevealDialog>(L["Admin_ClientDetail_SecretGeneratedTitle"], parameters, options);
     }
 
     private async Task DeleteSecret(int secretId)
     {
-        var confirmed = await DialogService.ConfirmDeleteAsync("Delete Secret", "Delete this secret? Any clients using it will immediately lose access.");
+        var confirmed = await DialogService.ConfirmDeleteAsync(
+            L["Admin_ClientDetail_DeleteSecretTitle"],
+            L["Admin_ClientDetail_DeleteSecretConfirm"]);
         if (confirmed != true) return;
 
         await ClientService.RemoveSecretAsync(secretId);
         _secrets = [.. await ClientService.GetSecretsAsync(Id!)];
-        Snackbar.Add("Secret deleted.", Severity.Success);
+        Snackbar.Add(L["Admin_ClientDetail_SecretDeleted"], Severity.Success);
     }
 
     private static string GenerateSecret()

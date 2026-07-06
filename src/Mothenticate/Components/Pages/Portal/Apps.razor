@@ -4,10 +4,11 @@
 @inject IAppLauncherService ApplicationService
 @inject AuthenticationStateProvider AuthState
 @inject NavigationManager Navigation
+@inject IStringLocalizer<SharedResource> L
 
 <PageTitle>Applications — Mothenticate</PageTitle>
 
-<MudText Typo="Typo.h4" Class="mb-6">Applications</MudText>
+<MudText Typo="Typo.h4" Class="mb-6">@L["Apps_Title"]</MudText>
 
 @if (_loading)
 {
@@ -24,9 +25,9 @@ else if (_apps.Count == 0)
 {
     <MudPaper Elevation="0" Class="pa-8 text-center">
         <MudIcon Icon="@Icons.Material.Filled.Apps" Size="Size.Large" Color="Color.Secondary" Class="mb-3" />
-        <MudText Typo="Typo.h6" Color="Color.Secondary">No applications available</MudText>
+        <MudText Typo="Typo.h6" Color="Color.Secondary">@L["Apps_NoApps"]</MudText>
         <MudText Typo="Typo.body2" Color="Color.Secondary">
-            No applications have been configured or you don't have access to any.
+            @L["Apps_NoAppsDesc"]
         </MudText>
     </MudPaper>
 }

@@ -4,15 +4,16 @@
 @inject IDialogService DialogService
 @inject ISnackbar Snackbar
 @inject NavigationManager Navigation
+@inject IStringLocalizer<SharedResource> L
 
 <PageTitle>Clients — Mothenticate Admin</PageTitle>
 
 <MudStack Row="true" AlignItems="AlignItems.Center" Class="mb-4">
-    <MudText Typo="Typo.h4">Clients</MudText>
+    <MudText Typo="Typo.h4">@L["Admin_Clients_Title"]</MudText>
     <MudSpacer />
     <MudButton Variant="Variant.Filled" Color="Color.Primary" StartIcon="@Icons.Material.Filled.Add"
                OnClick='() => Navigation.NavigateTo("/admin/clients/create")'>
-        New Client
+        @L["Admin_Clients_NewClient"]
     </MudButton>
 </MudStack>
 
@@ -22,7 +23,7 @@
 }
 else if (_clients.Count == 0)
 {
-    <MudAlert Severity="Severity.Info">No clients configured yet.</MudAlert>
+    <MudAlert Severity="Severity.Info">@L["Admin_Clients_NoClients"]</MudAlert>
 }
 else
 {
@@ -43,7 +44,7 @@ else
                         </CardHeaderContent>
                         <CardHeaderActions>
                             <MudChip T="string" Color="@(client.IsEnabled ? Color.Success : Color.Default)" Size="Size.Small">
-                                @(client.IsEnabled ? "Enabled" : "Disabled")
+                                @(client.IsEnabled ? L["Admin_Clients_Enabled"] : L["Admin_Clients_Disabled"])
                             </MudChip>
                         </CardHeaderActions>
                     </MudCardHeader>
@@ -58,17 +59,17 @@ else
                     <MudCardActions>
                         <MudButton Size="Size.Small" StartIcon="@Icons.Material.Filled.Edit"
                                    OnClick='() => Navigation.NavigateTo("/admin/clients/" + client.Id)'>
-                            Edit
+                            @L["Admin_Clients_Edit"]
                         </MudButton>
                         <MudButton Size="Size.Small" Color="@(client.IsEnabled ? Color.Warning : Color.Success)"
                                    StartIcon="@(client.IsEnabled ? Icons.Material.Filled.Block : Icons.Material.Filled.CheckCircle)"
                                    OnClick="() => ToggleEnabled(client)">
-                            @(client.IsEnabled ? "Disable" : "Enable")
+                            @(client.IsEnabled ? L["Admin_Clients_Disable"] : L["Admin_Clients_Enable"])
                         </MudButton>
                         <MudButton Size="Size.Small" Color="Color.Error"
                                    StartIcon="@Icons.Material.Filled.Delete"
                                    OnClick="() => ConfirmDelete(client)">
-                            Delete
+                            @L["Admin_Clients_Delete"]
                         </MudButton>
                     </MudCardActions>
                 </MudCard>
@@ -91,20 +92,22 @@ else
     {
         await ClientService.SetEnabledAsync(client.Id!, !client.IsEnabled);
         _clients = [.. await ClientService.GetAllAsync()];
-        Snackbar.Add($"{client.DisplayName} {(client.IsEnabled ? "disabled" : "enabled")}.", Severity.Success);
+        Snackbar.Add(client.IsEnabled
+            ? string.Format(L["Admin_Clients_DisabledMsg"], client.DisplayName)
+            : string.Format(L["Admin_Clients_EnabledMsg"], client.DisplayName), Severity.Success);
     }
 
     private async Task ConfirmDelete(ClientInfo client)
     {
         var confirmed = await DialogService.ConfirmDeleteAsync(
-            "Delete Client",
-            $"Are you sure you want to delete '{client.DisplayName}'? This cannot be undone.");
+            L["Admin_Clients_DeleteTitle"],
+            string.Format(L["Admin_Clients_DeleteConfirm"], client.DisplayName));
 
         if (confirmed == true)
         {
             await ClientService.DeleteAsync(client.Id!);
             _clients.RemoveAll(c => c.Id == client.Id);
-            Snackbar.Add($"'{client.DisplayName}' deleted.", Severity.Success);
+            Snackbar.Add(string.Format(L["Admin_Clients_Deleted"], client.DisplayName), Severity.Success);
         }
     }
 }

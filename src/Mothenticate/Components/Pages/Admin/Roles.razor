@@ -3,15 +3,16 @@
 @inject IRoleService RoleService
 @inject IDialogService DialogService
 @inject ISnackbar Snackbar
+@inject IStringLocalizer<SharedResource> L
 
 <PageTitle>Roles — Mothenticate Admin</PageTitle>
 
 <MudStack Row="true" AlignItems="AlignItems.Center" Class="mb-4">
-    <MudText Typo="Typo.h4">Roles</MudText>
+    <MudText Typo="Typo.h4">@L["Admin_Roles_Title"]</MudText>
     <MudSpacer />
     <MudButton Variant="Variant.Filled" Color="Color.Primary" StartIcon="@Icons.Material.Filled.Add"
                OnClick="OpenCreateDialog">
-        New Role
+        @L["Admin_Roles_NewRole"]
     </MudButton>
 </MudStack>
 
@@ -21,15 +22,15 @@
 }
 else if (_roles.Count == 0)
 {
-    <MudAlert Severity="Severity.Info">No roles defined yet.</MudAlert>
+    <MudAlert Severity="Severity.Info">@L["Admin_Roles_NoRoles"]</MudAlert>
 }
 else
 {
     <MudPaper Elevation="2" Style="max-width:700px">
         <MudTable Items="@_roles" Dense="true" Hover="true" Elevation="0">
             <HeaderContent>
-                <MudTh>Name</MudTh>
-                <MudTh>Description</MudTh>
+                <MudTh>@L["Admin_Roles_ColName"]</MudTh>
+                <MudTh>@L["Admin_Roles_ColDescription"]</MudTh>
                 <MudTh Style="width:100px"></MudTh>
             </HeaderContent>
             <RowTemplate>
@@ -54,15 +55,15 @@ else
 }
 
 <MudDialog @bind-Visible="_dialogOpen" Options="new DialogOptions { MaxWidth = MaxWidth.Small, FullWidth = true }">
-    <TitleContent>@(_editingRole is null ? "New Role" : "Edit Role")</TitleContent>
+    <TitleContent>@(_editingRole is null ? L["Admin_Roles_NewRoleTitle"] : L["Admin_Roles_EditRoleTitle"])</TitleContent>
     <DialogContent>
-        <MudTextField @bind-Value="_roleName" Label="Name" Variant="Variant.Outlined"
+        <MudTextField @bind-Value="_roleName" Label="@L["Admin_Roles_RoleName"]" Variant="Variant.Outlined"
                       Required="true" Class="mb-3" />
-        <MudTextField @bind-Value="_roleDescription" Label="Description" Variant="Variant.Outlined" Lines="2" />
+        <MudTextField @bind-Value="_roleDescription" Label="@L["Admin_Roles_RoleDesc"]" Variant="Variant.Outlined" Lines="2" />
     </DialogContent>
     <DialogActions>
-        <MudButton OnClick="() => _dialogOpen = false">Cancel</MudButton>
-        <MudButton Variant="Variant.Filled" Color="Color.Primary" OnClick="SaveRole">Save</MudButton>
+        <MudButton OnClick="() => _dialogOpen = false">@L["Admin_Roles_Cancel"]</MudButton>
+        <MudButton Variant="Variant.Filled" Color="Color.Primary" OnClick="SaveRole">@L["Admin_Roles_Save"]</MudButton>
     </DialogActions>
 </MudDialog>
 
@@ -103,12 +104,12 @@ else
         if (_editingRole is null)
         {
             await RoleService.CreateAsync(_roleName, _roleDescription);
-            Snackbar.Add("Role created.", Severity.Success);
+            Snackbar.Add(L["Admin_Roles_Created"], Severity.Success);
         }
         else
         {
             await RoleService.UpdateAsync(_editingRole.Id, _roleName, _roleDescription);
-            Snackbar.Add("Role updated.", Severity.Success);
+            Snackbar.Add(L["Admin_Roles_Updated"], Severity.Success);
         }
 
         _roles = [.. await RoleService.GetAllAsync()];
@@ -118,14 +119,14 @@ else
     private async Task ConfirmDelete(AppRole role)
     {
         var confirmed = await DialogService.ConfirmDeleteAsync(
-            "Delete Role",
-            $"Delete '{role.Name}'? This will remove the role from all groups that use it.");
+            L["Admin_Roles_DeleteTitle"],
+            string.Format(L["Admin_Roles_DeleteConfirm"], role.Name));
 
         if (confirmed == true)
         {
             await RoleService.DeleteAsync(role.Id);
             _roles.RemoveAll(r => r.Id == role.Id);
-            Snackbar.Add("Role deleted.", Severity.Success);
+            Snackbar.Add(L["Admin_Roles_Deleted"], Severity.Success);
         }
     }
 }

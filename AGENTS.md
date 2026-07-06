@@ -134,6 +134,33 @@ Migrations live in `src/Mothenticate.Data/Migrations/`. Always commit generated 
 | CI | GitHub Actions |
 | Container | Docker — `dotnet/aspnet:10.0` runtime image |
 | Package versions | Central management via `Directory.Packages.props` |
+| Localization | ASP.NET Core `IStringLocalizer<SharedResource>` + `.resx` files |
+
+## Localization
+
+All user-facing strings go through `IStringLocalizer<SharedResource> L` — inject it with `@inject IStringLocalizer<SharedResource> L` in Razor files and use `L["KeyName"]` for plain strings or `L["KeyName", arg]` / `string.Format(L["KeyName"], arg)` for format strings.
+
+String keys live in `src/Mothenticate/Resources/SharedResource.resx` (the neutral/English fallback). Culture-specific translations go in `SharedResource.<culture>.resx` (e.g. `SharedResource.es.resx`). Missing keys fall back to `SharedResource.resx` automatically.
+
+**Key naming conventions:**
+
+| Page area | Prefix |
+|---|---|
+| Portal pages (Login, Register, etc.) | `Login_`, `Register_`, `Setup_`, `Apps_`, `Profile_` |
+| Admin Dashboard | `Admin_Dashboard_` |
+| Admin Settings | `Admin_Settings_` |
+| Admin Users list / detail / properties | `Admin_Users_`, `Admin_UserDetail_`, `Admin_UserProps_` |
+| Admin Groups list / detail | `Admin_Groups_`, `Admin_GroupDetail_` |
+| Admin Roles | `Admin_Roles_` |
+| Admin Applications list / detail | `Admin_Apps_`, `Admin_AppDetail_` |
+| Admin Clients list / detail | `Admin_Clients_`, `Admin_ClientDetail_` |
+| Shared / layout strings | `Nav_`, `LanguageSwitcher_` |
+
+**Adding a new language:**
+
+1. Create `src/Mothenticate/Resources/SharedResource.<culture>.resx`.
+2. Add the culture to `AddSupportedCultures` / `AddSupportedUICultures` in `src/Mothenticate/Bootstrap.cs`.
+3. Add the culture to the language list in `src/Mothenticate/Components/Shared/LanguageSwitcher.razor` and the default-language dropdown in `src/Mothenticate/Components/Pages/Admin/Settings.razor`.
 
 ## Issue and PR Guidelines
 

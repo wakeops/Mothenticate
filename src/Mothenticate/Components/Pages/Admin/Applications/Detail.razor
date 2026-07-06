@@ -7,12 +7,13 @@
 @inject IGroupService GroupService
 @inject ISnackbar Snackbar
 @inject NavigationManager Navigation
+@inject IStringLocalizer<SharedResource> L
 
-<PageTitle>@(_isCreate ? "New Application" : _model.Name) — Mothenticate Admin</PageTitle>
+<PageTitle>@(_isCreate ? L["Admin_AppDetail_NewApp"] : _model.Name) — Mothenticate Admin</PageTitle>
 
 <MudStack Row="true" AlignItems="AlignItems.Center" Class="mb-4">
     <MudIconButton Icon="@Icons.Material.Filled.ArrowBack" OnClick='() => Navigation.NavigateTo("/admin/applications")' />
-    <MudText Typo="Typo.h4">@(_isCreate ? "New Application" : "Edit Application")</MudText>
+    <MudText Typo="Typo.h4">@(_isCreate ? L["Admin_AppDetail_NewApp"] : L["Admin_AppDetail_EditApp"])</MudText>
 </MudStack>
 
 @if (_loading)
@@ -27,33 +28,33 @@ else
 
                 <!-- Basic Info -->
                 <MudPaper Elevation="2" Class="pa-4 mb-4">
-                    <MudText Typo="Typo.h6" GutterBottom="true">Basic Information</MudText>
+                    <MudText Typo="Typo.h6" GutterBottom="true">@L["Admin_AppDetail_BasicInfo"]</MudText>
                     <MudGrid>
                         <MudItem xs="12" sm="6">
-                            <MudTextField @bind-Value="_model.Name" Label="Name" Required="true"
-                                          RequiredError="Name is required." Variant="Variant.Outlined" />
+                            <MudTextField @bind-Value="_model.Name" Label="@L["Admin_AppDetail_Name"]" Required="true"
+                                          RequiredError="@L["Admin_AppDetail_Name_Required"]" Variant="Variant.Outlined" />
                         </MudItem>
                         <MudItem xs="12" sm="6">
-                            <MudTextField @bind-Value="_model.Slug" Label="Slug" Required="true"
-                                          RequiredError="Slug is required." Variant="Variant.Outlined"
-                                          HelperText="Unique URL-safe identifier." />
+                            <MudTextField @bind-Value="_model.Slug" Label="@L["Admin_AppDetail_Slug"]" Required="true"
+                                          RequiredError="@L["Admin_AppDetail_Slug_Required"]" Variant="Variant.Outlined"
+                                          HelperText="@L["Admin_AppDetail_Slug_Helper"]" />
                         </MudItem>
                         <MudItem xs="12">
-                            <MudTextField @bind-Value="_model.Description" Label="Description" Variant="Variant.Outlined"
+                            <MudTextField @bind-Value="_model.Description" Label="@L["Admin_AppDetail_Description"]" Variant="Variant.Outlined"
                                           Lines="2" />
                         </MudItem>
                         <MudItem xs="12" sm="6">
-                            <MudTextField @bind-Value="_model.IconUrl" Label="Icon URL" Variant="Variant.Outlined"
-                                          HelperText="URL to application icon image." />
+                            <MudTextField @bind-Value="_model.IconUrl" Label="@L["Admin_AppDetail_IconUrl"]" Variant="Variant.Outlined"
+                                          HelperText="@L["Admin_AppDetail_IconUrl_Helper"]" />
                         </MudItem>
                         <MudItem xs="12" sm="6">
-                            <MudTextField @bind-Value="_model.LaunchUrl" Label="Launch URL" Variant="Variant.Outlined"
-                                          HelperText="URL users are directed to when launching." />
+                            <MudTextField @bind-Value="_model.LaunchUrl" Label="@L["Admin_AppDetail_LaunchUrl"]" Variant="Variant.Outlined"
+                                          HelperText="@L["Admin_AppDetail_LaunchUrl_Helper"]" />
                         </MudItem>
                         <MudItem xs="12">
-                            <MudSelect @bind-Value="_model.LinkedClientId" Label="Linked OIDC Client (optional)"
+                            <MudSelect @bind-Value="_model.LinkedClientId" Label="@L["Admin_AppDetail_LinkedClient"]"
                                        Variant="Variant.Outlined" Clearable="true"
-                                       HelperText="Associate this launcher with an OIDC client.">
+                                       HelperText="@L["Admin_AppDetail_LinkedClient_Helper"]">
                                 @foreach (var client in _clients)
                                 {
                                     <MudSelectItem Value="@client.Id">@client.DisplayName (@client.ClientId)</MudSelectItem>
@@ -61,10 +62,10 @@ else
                             </MudSelect>
                         </MudItem>
                         <MudItem xs="12" sm="6">
-                            <MudSwitch @bind-Value="_model.IsEnabled" Label="Enabled" Color="Color.Primary" />
+                            <MudSwitch @bind-Value="_model.IsEnabled" Label="@L["Admin_AppDetail_Enabled"]" Color="Color.Primary" />
                         </MudItem>
                         <MudItem xs="12" sm="6">
-                            <MudSwitch @bind-Value="_model.IsPublic" Label="Public (visible to all users)"
+                            <MudSwitch @bind-Value="_model.IsPublic" Label="@L["Admin_AppDetail_Public"]"
                                        Color="Color.Primary" />
                         </MudItem>
                     </MudGrid>
@@ -72,10 +73,10 @@ else
 
                 <MudStack Row="true">
                     <MudButton Variant="Variant.Filled" Color="Color.Primary" OnClick="Save" Disabled="@_saving">
-                        @(_saving ? "Saving…" : (_isCreate ? "Create Application" : "Save Changes"))
+                        @(_saving ? L["Admin_AppDetail_Saving"] : (_isCreate ? L["Admin_AppDetail_CreateApp"] : L["Admin_AppDetail_SaveChanges"]))
                     </MudButton>
                     <MudButton Variant="Variant.Text" OnClick='() => Navigation.NavigateTo("/admin/applications")'>
-                        Cancel
+                        @L["Admin_AppDetail_Cancel"]
                     </MudButton>
                 </MudStack>
             </MudForm>
@@ -86,29 +87,29 @@ else
             <MudItem xs="12" md="4">
                 <!-- Access Control -->
                 <MudPaper Elevation="2" Class="pa-4 mb-4">
-                    <MudText Typo="Typo.h6" GutterBottom="true">Access Control</MudText>
+                    <MudText Typo="Typo.h6" GutterBottom="true">@L["Admin_AppDetail_AccessControl"]</MudText>
                     @if (_model.IsPublic)
                     {
                         <MudAlert Severity="Severity.Info" Dense="true">
-                            This application is public — all users can see it. Disable public access to restrict by group or user.
+                            @L["Admin_AppDetail_PublicAlert"]
                         </MudAlert>
                     }
                     else
                     {
                         <!-- Group Access -->
-                        <MudText Typo="Typo.subtitle2" Class="mt-3 mb-1">Group Access</MudText>
+                        <MudText Typo="Typo.subtitle2" Class="mt-3 mb-1">@L["Admin_AppDetail_GroupAccess"]</MudText>
                         @foreach (var entry in _accessEntries.Where(e => e.GroupId.HasValue))
                         {
                             var g = _groups.FirstOrDefault(x => x.Id == entry.GroupId);
                             <MudStack Row="true" AlignItems="AlignItems.Center" Class="mb-1">
                                 <MudIcon Icon="@Icons.Material.Filled.Group" Size="Size.Small" />
-                                <MudText Typo="Typo.body2" Class="flex-1">@(g?.Name ?? "Unknown group")</MudText>
+                                <MudText Typo="Typo.body2" Class="flex-1">@(g?.Name ?? L["Admin_AppDetail_UnknownGroup"])</MudText>
                                 <MudIconButton Icon="@Icons.Material.Filled.Close" Size="Size.Small"
                                                OnClick="() => RemoveAccess(entry.Id)" />
                             </MudStack>
                         }
                         <MudStack Row="true" Class="mt-2">
-                            <MudSelect @bind-Value="_addGroupId" Label="Add group" Variant="Variant.Outlined"
+                            <MudSelect @bind-Value="_addGroupId" Label="@L["Admin_AppDetail_AddGroup"]" Variant="Variant.Outlined"
                                        Margin="Margin.Dense" Class="flex-1">
                                 @foreach (var g in _groups.Where(g => !_accessEntries.Any(e => e.GroupId == g.Id)))
                                 {
@@ -122,19 +123,19 @@ else
 
                         <!-- User Access -->
                         <MudDivider Class="my-3" />
-                        <MudText Typo="Typo.subtitle2" Class="mb-1">User Access</MudText>
+                        <MudText Typo="Typo.subtitle2" Class="mb-1">@L["Admin_AppDetail_UserAccess"]</MudText>
                         @foreach (var entry in _accessEntries.Where(e => e.UserId is not null))
                         {
                             var u = _users.FirstOrDefault(x => x.Id == entry.UserId);
                             <MudStack Row="true" AlignItems="AlignItems.Center" Class="mb-1">
                                 <MudIcon Icon="@Icons.Material.Filled.Person" Size="Size.Small" />
-                                <MudText Typo="Typo.body2" Class="flex-1">@(u?.DisplayName ?? u?.UserName ?? "Unknown user")</MudText>
+                                <MudText Typo="Typo.body2" Class="flex-1">@(u?.DisplayName ?? u?.UserName ?? L["Admin_AppDetail_UnknownUser"])</MudText>
                                 <MudIconButton Icon="@Icons.Material.Filled.Close" Size="Size.Small"
                                                OnClick="() => RemoveAccess(entry.Id)" />
                             </MudStack>
                         }
                         <MudStack Row="true" Class="mt-2">
-                            <MudSelect @bind-Value="_addUserId" Label="Add user" Variant="Variant.Outlined"
+                            <MudSelect @bind-Value="_addUserId" Label="@L["Admin_AppDetail_AddUser"]" Variant="Variant.Outlined"
                                        Margin="Margin.Dense" Class="flex-1">
                                 @foreach (var u in _users.Where(u => !_accessEntries.Any(e => e.UserId == u.Id)))
                                 {
@@ -215,7 +216,7 @@ else
                 await ApplicationService.CreateAsync(
                     _model.Name, _model.Slug, _model.Description, _model.IconUrl,
                     _model.LaunchUrl, _model.LinkedClientId, _model.IsEnabled, _model.IsPublic);
-                Snackbar.Add("Application created.", Severity.Success);
+                Snackbar.Add(L["Admin_AppDetail_Created"], Severity.Success);
                 Navigation.NavigateTo("/admin/applications");
             }
             else
@@ -223,7 +224,7 @@ else
                 await ApplicationService.UpdateAsync(
                     Id!.Value, _model.Name, _model.Slug, _model.Description, _model.IconUrl,
                     _model.LaunchUrl, _model.LinkedClientId, _model.IsEnabled, _model.IsPublic);
-                Snackbar.Add("Application saved.", Severity.Success);
+                Snackbar.Add(L["Admin_AppDetail_Saved"], Severity.Success);
             }
         }
         catch (Exception ex)

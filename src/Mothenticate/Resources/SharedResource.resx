@@ -1,0 +1,504 @@
+<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <xsd:schema id="root" xmlns="" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:msdata="urn:schemas-microsoft-com:xml-msdata">
+    <xsd:element name="root" msdata:IsDataSet="true">
+      <xsd:complexType>
+        <xsd:choice maxOccurs="unbounded">
+          <xsd:element name="data">
+            <xsd:complexType>
+              <xsd:sequence>
+                <xsd:element name="value" type="xsd:string" minOccurs="0" msdata:Ordinal="1" />
+              </xsd:sequence>
+              <xsd:attribute name="name" type="xsd:string" use="required" />
+              <xsd:attribute name="xml:space" default="preserve" />
+            </xsd:complexType>
+          </xsd:element>
+        </xsd:choice>
+      </xsd:complexType>
+    </xsd:element>
+  </xsd:schema>
+  <resheader name="resmimetype">
+    <value>text/microsoft-resx</value>
+  </resheader>
+  <resheader name="version">
+    <value>2.0</value>
+  </resheader>
+
+  <!-- Layout -->
+  <data name="Layout_Apps" xml:space="preserve"><value>Apps</value></data>
+  <data name="Layout_Profile" xml:space="preserve"><value>Profile</value></data>
+  <data name="Layout_Admin" xml:space="preserve"><value>Admin</value></data>
+  <data name="Layout_ReturnToUser" xml:space="preserve"><value>Return to user</value></data>
+  <data name="Layout_DefaultTitle" xml:space="preserve"><value>Mothenticate</value></data>
+
+  <!-- Admin navigation -->
+  <data name="Admin_Nav_Dashboard" xml:space="preserve"><value>Dashboard</value></data>
+  <data name="Admin_Nav_Applications" xml:space="preserve"><value>Applications</value></data>
+  <data name="Admin_Nav_Clients" xml:space="preserve"><value>Clients</value></data>
+  <data name="Admin_Nav_Users" xml:space="preserve"><value>Users</value></data>
+  <data name="Admin_Nav_Groups" xml:space="preserve"><value>Groups</value></data>
+  <data name="Admin_Nav_Roles" xml:space="preserve"><value>Roles</value></data>
+  <data name="Admin_Nav_Settings" xml:space="preserve"><value>Settings</value></data>
+
+  <!-- Login errors -->
+  <data name="Error_InvalidCredentials" xml:space="preserve"><value>Invalid username or password.</value></data>
+  <data name="Error_AccountLocked" xml:space="preserve"><value>This account has been locked. Please try again later.</value></data>
+  <data name="Error_AccountInactive" xml:space="preserve"><value>This account is inactive. Please contact an administrator.</value></data>
+  <data name="Error_SessionExpired" xml:space="preserve"><value>Your session expired. Please sign in again.</value></data>
+  <data name="Error_AccountDisabled" xml:space="preserve"><value>This account has been disabled.</value></data>
+  <data name="Error_RegistrationDisabledSso" xml:space="preserve"><value>Registration is currently disabled.</value></data>
+  <data name="Error_SsoFailed" xml:space="preserve"><value>Single sign-on failed. Please try again.</value></data>
+
+  <!-- Login page -->
+  <data name="Login_UsernameLabel" xml:space="preserve"><value>Username</value></data>
+  <data name="Login_EmailLabel" xml:space="preserve"><value>Email</value></data>
+  <data name="Login_UsernameOrEmailLabel" xml:space="preserve"><value>Username or email</value></data>
+  <data name="Login_PasswordLabel" xml:space="preserve"><value>Password</value></data>
+  <data name="Login_RememberMe" xml:space="preserve"><value>Remember me</value></data>
+  <data name="Login_SignIn" xml:space="preserve"><value>Sign In</value></data>
+  <data name="Login_ContinueWithGoogle" xml:space="preserve"><value>Continue with Google</value></data>
+  <data name="Login_ContinueWithGitHub" xml:space="preserve"><value>Continue with GitHub</value></data>
+  <data name="Login_NoAccount" xml:space="preserve"><value>Don't have an account?</value></data>
+  <data name="Login_Register" xml:space="preserve"><value>Register</value></data>
+
+  <!-- Register page -->
+  <data name="Register_RegistrationDisabled" xml:space="preserve"><value>Registration is currently disabled.</value></data>
+  <data name="Register_BackToSignIn" xml:space="preserve"><value>Back to sign in</value></data>
+  <data name="Register_UsernameLbl" xml:space="preserve"><value>Username</value></data>
+  <data name="Register_EmailLbl" xml:space="preserve"><value>Email</value></data>
+  <data name="Register_FirstName" xml:space="preserve"><value>First Name</value></data>
+  <data name="Register_LastName" xml:space="preserve"><value>Last Name</value></data>
+  <data name="Register_PasswordLbl" xml:space="preserve"><value>Password</value></data>
+  <data name="Register_CreateAccount" xml:space="preserve"><value>Create Account</value></data>
+  <data name="Register_AlreadyHaveAccount" xml:space="preserve"><value>Already have an account?</value></data>
+  <data name="Register_SignIn" xml:space="preserve"><value>Sign in</value></data>
+
+  <!-- Two-factor login -->
+  <data name="TwoFactor_RecoveryTitle" xml:space="preserve"><value>Enter Recovery Code</value></data>
+  <data name="TwoFactor_RecoverySubtitle" xml:space="preserve"><value>Enter one of your recovery codes to sign in.</value></data>
+  <data name="TwoFactor_RecoveryCodeLabel" xml:space="preserve"><value>Recovery Code</value></data>
+  <data name="TwoFactor_Verify" xml:space="preserve"><value>Verify</value></data>
+  <data name="TwoFactor_UseAuthenticatorInstead" xml:space="preserve"><value>Use authenticator app instead</value></data>
+  <data name="TwoFactor_AuthTitle" xml:space="preserve"><value>Two-Factor Authentication</value></data>
+  <data name="TwoFactor_AuthSubtitle" xml:space="preserve"><value>Open your authenticator app and enter the current code.</value></data>
+  <data name="TwoFactor_AuthCodeLabel" xml:space="preserve"><value>Authenticator Code</value></data>
+  <data name="TwoFactor_UseRecoveryInstead" xml:space="preserve"><value>Use a recovery code instead</value></data>
+  <data name="TwoFactor_CancelReturn" xml:space="preserve"><value>Cancel and return to sign in</value></data>
+  <data name="TwoFactor_InvalidCode" xml:space="preserve"><value>Invalid code. Please try again.</value></data>
+
+  <!-- Two-factor setup -->
+  <data name="TwoFactorSetup_Title" xml:space="preserve"><value>Set Up Authenticator App</value></data>
+  <data name="TwoFactorSetup_SaveWarning" xml:space="preserve"><value>Save these recovery codes in a safe place. Each code can only be used once. If you lose access to your authenticator app, these are the only way to sign in.</value></data>
+  <data name="TwoFactorSetup_RecoveryCodes" xml:space="preserve"><value>Recovery Codes</value></data>
+  <data name="TwoFactorSetup_Saved" xml:space="preserve"><value>I've saved my recovery codes</value></data>
+  <data name="TwoFactorSetup_ScanDesc" xml:space="preserve"><value>Scan the QR code below with your authenticator app (Google Authenticator, Authy, etc.), then enter the 6-digit code to confirm setup.</value></data>
+  <data name="TwoFactorSetup_CantScan" xml:space="preserve"><value>Can't scan? Enter this key manually:</value></data>
+  <data name="TwoFactorSetup_EnterCode" xml:space="preserve"><value>Enter Verification Code</value></data>
+  <data name="TwoFactorSetup_CodeLabel" xml:space="preserve"><value>6-digit code</value></data>
+  <data name="TwoFactorSetup_CodeHelper" xml:space="preserve"><value>Enter the code shown in your authenticator app.</value></data>
+  <data name="TwoFactorSetup_Enable" xml:space="preserve"><value>Enable 2FA</value></data>
+  <data name="TwoFactorSetup_Verifying" xml:space="preserve"><value>Verifying…</value></data>
+  <data name="TwoFactorSetup_Back" xml:space="preserve"><value>Back</value></data>
+  <data name="TwoFactorSetup_Intro" xml:space="preserve"><value>Two-factor authentication adds an extra layer of security to your account. After entering your password, you'll also need to provide a code from your authenticator app.</value></data>
+  <data name="TwoFactorSetup_Step_Install" xml:space="preserve"><value>Install an authenticator app (Google Authenticator, Authy, 1Password, etc.)</value></data>
+  <data name="TwoFactorSetup_Step_Scan" xml:space="preserve"><value>Scan a QR code to link your account</value></data>
+  <data name="TwoFactorSetup_Step_Code" xml:space="preserve"><value>Enter the 6-digit code on sign in</value></data>
+  <data name="TwoFactorSetup_Begin" xml:space="preserve"><value>Begin Setup</value></data>
+  <data name="TwoFactorSetup_InvalidCode" xml:space="preserve"><value>Invalid code. Please try again.</value></data>
+  <data name="TwoFactorSetup_EnabledMsg" xml:space="preserve"><value>Two-factor authentication enabled.</value></data>
+
+  <!-- Setup (first-run admin) -->
+  <data name="Setup_Welcome" xml:space="preserve"><value>Welcome to Mothenticate</value></data>
+  <data name="Setup_Subtitle" xml:space="preserve"><value>Create your administrator account to get started.</value></data>
+  <data name="Setup_UsernameLbl" xml:space="preserve"><value>Username</value></data>
+  <data name="Setup_EmailLbl" xml:space="preserve"><value>Email</value></data>
+  <data name="Setup_PasswordLbl" xml:space="preserve"><value>Password</value></data>
+  <data name="Setup_ConfirmPassword" xml:space="preserve"><value>Confirm password</value></data>
+  <data name="Setup_PasswordRule_MinLength" xml:space="preserve"><value>At least 6 characters</value></data>
+  <data name="Setup_PasswordRule_Upper" xml:space="preserve"><value>Uppercase letter</value></data>
+  <data name="Setup_PasswordRule_Lower" xml:space="preserve"><value>Lowercase letter</value></data>
+  <data name="Setup_PasswordRule_Digit" xml:space="preserve"><value>Number</value></data>
+  <data name="Setup_PasswordRule_Special" xml:space="preserve"><value>Special character</value></data>
+  <data name="Setup_PasswordsDoNotMatch" xml:space="preserve"><value>Passwords do not match</value></data>
+  <data name="Setup_CreateAdmin" xml:space="preserve"><value>Create Admin Account</value></data>
+
+  <!-- Apps portal -->
+  <data name="Apps_Title" xml:space="preserve"><value>Applications</value></data>
+  <data name="Apps_NoApps" xml:space="preserve"><value>No applications available</value></data>
+  <data name="Apps_NoAppsDesc" xml:space="preserve"><value>No applications have been configured or you don't have access to any.</value></data>
+
+  <!-- Profile -->
+  <data name="Profile_Title" xml:space="preserve"><value>My Profile</value></data>
+  <data name="Profile_Tab_Profile" xml:space="preserve"><value>Profile</value></data>
+  <data name="Profile_Tab_Security" xml:space="preserve"><value>Security</value></data>
+  <data name="Profile_Tab_Sessions" xml:space="preserve"><value>Sessions</value></data>
+  <data name="Profile_Tab_Consents" xml:space="preserve"><value>Consents</value></data>
+  <data name="Profile_FirstName" xml:space="preserve"><value>First Name</value></data>
+  <data name="Profile_LastName" xml:space="preserve"><value>Last Name</value></data>
+  <data name="Profile_DisplayName" xml:space="preserve"><value>Display Name</value></data>
+  <data name="Profile_Email" xml:space="preserve"><value>Email</value></data>
+  <data name="Profile_EmailHelper" xml:space="preserve"><value>Email cannot be changed here.</value></data>
+  <data name="Profile_Username" xml:space="preserve"><value>Username</value></data>
+  <data name="Profile_UsernameHelper" xml:space="preserve"><value>Username cannot be changed.</value></data>
+  <data name="Profile_SaveChanges" xml:space="preserve"><value>Save Changes</value></data>
+  <data name="Profile_Saving" xml:space="preserve"><value>Saving…</value></data>
+  <data name="Profile_AvatarTitle" xml:space="preserve"><value>Avatar</value></data>
+  <data name="Profile_Upload" xml:space="preserve"><value>Upload</value></data>
+  <data name="Profile_Remove" xml:space="preserve"><value>Remove</value></data>
+  <data name="Profile_ChangePassword" xml:space="preserve"><value>Change Password</value></data>
+  <data name="Profile_CurrentPassword" xml:space="preserve"><value>Current Password</value></data>
+  <data name="Profile_NewPassword" xml:space="preserve"><value>New Password</value></data>
+  <data name="Profile_ConfirmNewPassword" xml:space="preserve"><value>Confirm New Password</value></data>
+  <data name="Profile_UpdatePassword" xml:space="preserve"><value>Update Password</value></data>
+  <data name="Profile_Updating" xml:space="preserve"><value>Updating…</value></data>
+  <data name="Profile_AuthenticatorApp" xml:space="preserve"><value>Authenticator App</value></data>
+  <data name="Profile_Enabled" xml:space="preserve"><value>Enabled</value></data>
+  <data name="Profile_Disabled" xml:space="preserve"><value>Disabled</value></data>
+  <data name="Profile_TwoFactorActive" xml:space="preserve"><value>Two-factor authentication is active. Recovery codes remaining: {0}</value></data>
+  <data name="Profile_ResetAuthenticator" xml:space="preserve"><value>Reset Authenticator</value></data>
+  <data name="Profile_Disable2FA" xml:space="preserve"><value>Disable 2FA</value></data>
+  <data name="Profile_TwoFactorInactive" xml:space="preserve"><value>Add an extra layer of security by requiring a code from your authenticator app at sign in.</value></data>
+  <data name="Profile_SetUpAuthenticator" xml:space="preserve"><value>Set Up Authenticator App</value></data>
+  <data name="Profile_LinkedAccounts" xml:space="preserve"><value>Linked Accounts</value></data>
+  <data name="Profile_NoProviders" xml:space="preserve"><value>No external sign-in providers are configured.</value></data>
+  <data name="Profile_Linked" xml:space="preserve"><value>Linked</value></data>
+  <data name="Profile_Unlink" xml:space="preserve"><value>Unlink</value></data>
+  <data name="Profile_Link" xml:space="preserve"><value>Link</value></data>
+  <data name="Profile_ActiveSessions" xml:space="preserve"><value>Active Sessions</value></data>
+  <data name="Profile_SignOutAll" xml:space="preserve"><value>Sign Out All</value></data>
+  <data name="Profile_NoSessions" xml:space="preserve"><value>No active sessions found.</value></data>
+  <data name="Profile_UnknownDevice" xml:space="preserve"><value>Unknown device</value></data>
+  <data name="Profile_AuthorizedApps" xml:space="preserve"><value>Authorized Applications</value></data>
+  <data name="Profile_RevokeAll" xml:space="preserve"><value>Revoke All</value></data>
+  <data name="Profile_NoConsents" xml:space="preserve"><value>No authorized applications.</value></data>
+  <data name="Profile_UnknownApp" xml:space="preserve"><value>Unknown application</value></data>
+  <data name="Profile_AuthorizedOn" xml:space="preserve"><value>Authorized {0}</value></data>
+  <data name="Profile_Saved" xml:space="preserve"><value>Profile saved.</value></data>
+  <data name="Profile_SaveFailed" xml:space="preserve"><value>Failed to save.</value></data>
+  <data name="Profile_AvatarUpdated" xml:space="preserve"><value>Avatar updated.</value></data>
+  <data name="Profile_AvatarFailed" xml:space="preserve"><value>Failed to upload avatar.</value></data>
+  <data name="Profile_AvatarRemoved" xml:space="preserve"><value>Avatar removed.</value></data>
+  <data name="ImageCrop_Title" xml:space="preserve"><value>Crop Image</value></data>
+  <data name="ImageCrop_Confirm" xml:space="preserve"><value>Confirm</value></data>
+  <data name="ImageCrop_Cancel" xml:space="preserve"><value>Cancel</value></data>
+  <data name="Profile_PasswordUpdated" xml:space="preserve"><value>Password updated.</value></data>
+  <data name="Profile_PasswordMismatch" xml:space="preserve"><value>Passwords do not match.</value></data>
+  <data name="Profile_2FADisabled" xml:space="preserve"><value>Two-factor authentication disabled.</value></data>
+  <data name="Profile_SessionRevoked" xml:space="preserve"><value>Session revoked.</value></data>
+  <data name="Profile_AllSessionsRevoked" xml:space="preserve"><value>All sessions revoked. You will be signed out shortly.</value></data>
+  <data name="Profile_AccessRevoked" xml:space="preserve"><value>Access revoked.</value></data>
+  <data name="Profile_AllAccessRevoked" xml:space="preserve"><value>All access revoked.</value></data>
+  <data name="Profile_ProviderUnlinked" xml:space="preserve"><value>{0} account unlinked.</value></data>
+  <data name="Profile_UnlinkFailed" xml:space="preserve"><value>Failed to unlink.</value></data>
+
+  <!-- Admin Dashboard -->
+  <data name="Admin_Dashboard_Title" xml:space="preserve"><value>Dashboard</value></data>
+  <data name="Admin_Dashboard_TotalUsers" xml:space="preserve"><value>Total Users</value></data>
+  <data name="Admin_Dashboard_Clients" xml:space="preserve"><value>Clients</value></data>
+  <data name="Admin_Dashboard_Applications" xml:space="preserve"><value>Applications</value></data>
+  <data name="Admin_Dashboard_InactiveUsers" xml:space="preserve"><value>Inactive Users</value></data>
+  <data name="Admin_Dashboard_QuickLinks" xml:space="preserve"><value>Quick Links</value></data>
+  <data name="Admin_Dashboard_CreateUser" xml:space="preserve"><value>Create User</value></data>
+  <data name="Admin_Dashboard_CreateApplication" xml:space="preserve"><value>Create Application</value></data>
+  <data name="Admin_Dashboard_CreateGroup" xml:space="preserve"><value>Create Group</value></data>
+  <data name="Admin_Dashboard_AppSettings" xml:space="preserve"><value>Application Settings</value></data>
+
+  <!-- Admin Settings -->
+  <data name="Admin_Settings_Title" xml:space="preserve"><value>Settings</value></data>
+  <data name="Admin_Settings_TabGeneral" xml:space="preserve"><value>General</value></data>
+  <data name="Admin_Settings_TabLocalization" xml:space="preserve"><value>Localization</value></data>
+  <data name="Admin_Settings_TabIdentityProviders" xml:space="preserve"><value>Identity Providers</value></data>
+  <data name="Admin_Settings_TabUserProfile" xml:space="preserve"><value>User Profile</value></data>
+  <data name="Admin_Settings_Localization" xml:space="preserve"><value>Localization</value></data>
+  <data name="Admin_Settings_DefaultLanguage" xml:space="preserve"><value>Default Language</value></data>
+  <data name="Admin_Settings_DefaultLanguage_Helper" xml:space="preserve"><value>Applied to users who have not set a language preference.</value></data>
+  <data name="Admin_Settings_Branding" xml:space="preserve"><value>Branding</value></data>
+  <data name="Admin_Settings_BrandingTitle" xml:space="preserve"><value>Title</value></data>
+  <data name="Admin_Settings_BrandingTitle_Helper" xml:space="preserve"><value>Shown on login and registration pages.</value></data>
+  <data name="Admin_Settings_BrandingSubtitle" xml:space="preserve"><value>Subtitle</value></data>
+  <data name="Admin_Settings_BrandingSubtitle_Helper" xml:space="preserve"><value>Supporting text below the title.</value></data>
+  <data name="Admin_Settings_UserMgmt" xml:space="preserve"><value>User Management</value></data>
+  <data name="Admin_Settings_EnableRegistration" xml:space="preserve"><value>Enable Registration</value></data>
+  <data name="Admin_Settings_EnableRegistration_Desc" xml:space="preserve"><value>Allow new users to self-register.</value></data>
+  <data name="Admin_Settings_UseEmailAsUsername" xml:space="preserve"><value>Use Email as Username</value></data>
+  <data name="Admin_Settings_UseEmailAsUsername_Desc" xml:space="preserve"><value>Hide the username field and use email for login.</value></data>
+  <data name="Admin_Settings_AllowEmailLogin" xml:space="preserve"><value>Allow login with email</value></data>
+  <data name="Admin_Settings_AllowEmailLogin_Desc" xml:space="preserve"><value>Allow users to log in with either their username or email address.</value></data>
+  <data name="Admin_Settings_EnableAvatars" xml:space="preserve"><value>Enable Avatars</value></data>
+  <data name="Admin_Settings_EnableAvatars_Desc" xml:space="preserve"><value>Allow users to upload profile avatars (max 512×512 px).</value></data>
+  <data name="Admin_Settings_GoogleSso" xml:space="preserve"><value>Google SSO</value></data>
+  <data name="Admin_Settings_GitHubSso" xml:space="preserve"><value>GitHub SSO</value></data>
+  <data name="Admin_Settings_ClientId" xml:space="preserve"><value>Client ID</value></data>
+  <data name="Admin_Settings_ClientSecret" xml:space="preserve"><value>Client Secret</value></data>
+  <data name="Admin_Settings_ClientSecret_Helper" xml:space="preserve"><value>Leave blank to keep existing secret.</value></data>
+  <data name="Admin_Settings_Save" xml:space="preserve"><value>Save Settings</value></data>
+  <data name="Admin_Settings_Saving" xml:space="preserve"><value>Saving…</value></data>
+  <data name="Admin_Settings_Saved" xml:space="preserve"><value>Settings saved.</value></data>
+
+  <!-- Admin Users -->
+  <data name="Admin_Users_Title" xml:space="preserve"><value>Users</value></data>
+  <data name="Admin_Users_Search" xml:space="preserve"><value>Search users…</value></data>
+  <data name="Admin_Users_UserProperties" xml:space="preserve"><value>User Properties</value></data>
+  <data name="Admin_Users_NewUser" xml:space="preserve"><value>New User</value></data>
+  <data name="Admin_Users_ColUsername" xml:space="preserve"><value>Username</value></data>
+  <data name="Admin_Users_ColEmail" xml:space="preserve"><value>Email</value></data>
+  <data name="Admin_Users_ColName" xml:space="preserve"><value>Name</value></data>
+  <data name="Admin_Users_ColStatus" xml:space="preserve"><value>Status</value></data>
+  <data name="Admin_Users_ColCreated" xml:space="preserve"><value>Created</value></data>
+  <data name="Admin_Users_StatusInactive" xml:space="preserve"><value>Inactive</value></data>
+  <data name="Admin_Users_StatusLocked" xml:space="preserve"><value>Locked</value></data>
+  <data name="Admin_Users_StatusActive" xml:space="preserve"><value>Active</value></data>
+  <data name="Admin_Users_DeleteTitle" xml:space="preserve"><value>Delete User</value></data>
+  <data name="Admin_Users_DeleteConfirm" xml:space="preserve"><value>Are you sure you want to delete '{0}'? This cannot be undone.</value></data>
+  <data name="Admin_Users_Deleted" xml:space="preserve"><value>User deleted.</value></data>
+
+  <!-- Admin User Detail -->
+  <data name="Admin_UserDetail_NewUser" xml:space="preserve"><value>New User</value></data>
+  <data name="Admin_UserDetail_CreateUser" xml:space="preserve"><value>Create User</value></data>
+  <data name="Admin_UserDetail_Username" xml:space="preserve"><value>Username</value></data>
+  <data name="Admin_UserDetail_Email" xml:space="preserve"><value>Email</value></data>
+  <data name="Admin_UserDetail_FirstName" xml:space="preserve"><value>First Name</value></data>
+  <data name="Admin_UserDetail_LastName" xml:space="preserve"><value>Last Name</value></data>
+  <data name="Admin_UserDetail_DisplayName" xml:space="preserve"><value>Display Name</value></data>
+  <data name="Admin_UserDetail_Password" xml:space="preserve"><value>Password</value></data>
+  <data name="Admin_UserDetail_Creating" xml:space="preserve"><value>Creating…</value></data>
+  <data name="Admin_UserDetail_Cancel" xml:space="preserve"><value>Cancel</value></data>
+  <data name="Admin_UserDetail_Tab_Profile" xml:space="preserve"><value>Profile</value></data>
+  <data name="Admin_UserDetail_Tab_Security" xml:space="preserve"><value>Security</value></data>
+  <data name="Admin_UserDetail_Tab_Sessions" xml:space="preserve"><value>Sessions</value></data>
+  <data name="Admin_UserDetail_Tab_Access" xml:space="preserve"><value>Access</value></data>
+  <data name="Admin_UserDetail_SaveProfile" xml:space="preserve"><value>Save Profile</value></data>
+  <data name="Admin_UserDetail_Saving" xml:space="preserve"><value>Saving…</value></data>
+  <data name="Admin_UserDetail_AccountStatus" xml:space="preserve"><value>Account Status</value></data>
+  <data name="Admin_UserDetail_Active" xml:space="preserve"><value>Active</value></data>
+  <data name="Admin_UserDetail_NotLocked" xml:space="preserve"><value>Not locked</value></data>
+  <data name="Admin_UserDetail_LockedUntil" xml:space="preserve"><value>Locked until {0}</value></data>
+  <data name="Admin_UserDetail_Unlock" xml:space="preserve"><value>Unlock</value></data>
+  <data name="Admin_UserDetail_LockAccount" xml:space="preserve"><value>Lock Account</value></data>
+  <data name="Admin_UserDetail_ResetPassword" xml:space="preserve"><value>Reset Password</value></data>
+  <data name="Admin_UserDetail_NewPassword" xml:space="preserve"><value>New Password</value></data>
+  <data name="Admin_UserDetail_SetPassword" xml:space="preserve"><value>Set Password</value></data>
+  <data name="Admin_UserDetail_ActiveSessions" xml:space="preserve"><value>Active Sessions</value></data>
+  <data name="Admin_UserDetail_RevokeAll" xml:space="preserve"><value>Revoke All</value></data>
+  <data name="Admin_UserDetail_NoSessions" xml:space="preserve"><value>No active sessions.</value></data>
+  <data name="Admin_UserDetail_UnknownDevice" xml:space="preserve"><value>Unknown device</value></data>
+  <data name="Admin_UserDetail_Revoke" xml:space="preserve"><value>Revoke</value></data>
+  <data name="Admin_UserDetail_Groups" xml:space="preserve"><value>Groups</value></data>
+  <data name="Admin_UserDetail_AddToGroup" xml:space="preserve"><value>Add to group…</value></data>
+  <data name="Admin_UserDetail_EffectiveRoles" xml:space="preserve"><value>Effective Roles</value></data>
+  <data name="Admin_UserDetail_RolesInherited" xml:space="preserve"><value>Roles are inherited from group membership.</value></data>
+  <data name="Admin_UserDetail_NoRoles" xml:space="preserve"><value>No roles assigned.</value></data>
+  <data name="Admin_UserDetail_Created" xml:space="preserve"><value>User created.</value></data>
+  <data name="Admin_UserDetail_ProfileSaved" xml:space="preserve"><value>Profile saved.</value></data>
+  <data name="Admin_UserDetail_Activated" xml:space="preserve"><value>User activated.</value></data>
+  <data name="Admin_UserDetail_Deactivated" xml:space="preserve"><value>User deactivated.</value></data>
+  <data name="Admin_UserDetail_Locked_Msg" xml:space="preserve"><value>User locked.</value></data>
+  <data name="Admin_UserDetail_Unlocked_Msg" xml:space="preserve"><value>User unlocked.</value></data>
+  <data name="Admin_UserDetail_PasswordUpdated" xml:space="preserve"><value>Password updated.</value></data>
+  <data name="Admin_UserDetail_SessionRevoked" xml:space="preserve"><value>Session revoked.</value></data>
+  <data name="Admin_UserDetail_AllSessionsRevoked" xml:space="preserve"><value>All sessions revoked.</value></data>
+  <data name="Admin_UserDetail_AddedToGroup" xml:space="preserve"><value>Added to group.</value></data>
+  <data name="Admin_UserDetail_RemovedFromGroup" xml:space="preserve"><value>Removed from group.</value></data>
+
+  <!-- Admin User Properties -->
+  <data name="Admin_UserProps_Title" xml:space="preserve"><value>User Properties</value></data>
+  <data name="Admin_UserProps_BuiltIn" xml:space="preserve"><value>Built-in Properties</value></data>
+  <data name="Admin_UserProps_BuiltIn_Desc" xml:space="preserve"><value>These properties are always present and cannot be removed.</value></data>
+  <data name="Admin_UserProps_ColName" xml:space="preserve"><value>Name</value></data>
+  <data name="Admin_UserProps_ColDisplayName" xml:space="preserve"><value>Display Name</value></data>
+  <data name="Admin_UserProps_ColType" xml:space="preserve"><value>Type</value></data>
+  <data name="Admin_UserProps_ColRequired" xml:space="preserve"><value>Required</value></data>
+  <data name="Admin_UserProps_ColNotes" xml:space="preserve"><value>Notes</value></data>
+  <data name="Admin_UserProps_AvatarNote" xml:space="preserve"><value>Requires avatar toggle below</value></data>
+  <data name="Admin_UserProps_EnableAvatars" xml:space="preserve"><value>Enable User Avatars</value></data>
+  <data name="Admin_UserProps_EnableAvatars_Desc" xml:space="preserve"><value>Allows users to upload a cropped image (max 512×512 px).</value></data>
+  <data name="Admin_UserProps_UseEmailAsUsername" xml:space="preserve"><value>Use Email as Username</value></data>
+  <data name="Admin_UserProps_UseEmailAsUsername_Desc" xml:space="preserve"><value>When enabled, the username field is hidden and email is used as the unique login identifier.</value></data>
+  <data name="Admin_UserProps_CustomProps" xml:space="preserve"><value>Custom Properties</value></data>
+  <data name="Admin_UserProps_AddProperty" xml:space="preserve"><value>Add Property</value></data>
+  <data name="Admin_UserProps_NoCustomProps" xml:space="preserve"><value>No custom properties defined yet.</value></data>
+  <data name="Admin_UserProps_ColHidden" xml:space="preserve"><value>Hidden</value></data>
+  <data name="Admin_UserProps_ColReadOnly" xml:space="preserve"><value>Read-only</value></data>
+  <data name="Admin_UserProps_AvatarsEnabled_Msg" xml:space="preserve"><value>Avatars enabled.</value></data>
+  <data name="Admin_UserProps_AvatarsDisabled_Msg" xml:space="preserve"><value>Avatars disabled.</value></data>
+  <data name="Admin_UserProps_EmailEnabled_Msg" xml:space="preserve"><value>Email-as-username enabled.</value></data>
+  <data name="Admin_UserProps_EmailDisabled_Msg" xml:space="preserve"><value>Email-as-username disabled.</value></data>
+  <data name="Admin_UserProps_AddPropTitle" xml:space="preserve"><value>Add Property</value></data>
+  <data name="Admin_UserProps_EditPropTitle" xml:space="preserve"><value>Edit Property</value></data>
+  <data name="Admin_UserProps_PropName" xml:space="preserve"><value>Name (claim key)</value></data>
+  <data name="Admin_UserProps_PropName_Helper" xml:space="preserve"><value>Unique identifier, used as the OIDC claim name.</value></data>
+  <data name="Admin_UserProps_PropDisplayName" xml:space="preserve"><value>Display Name</value></data>
+  <data name="Admin_UserProps_PropType" xml:space="preserve"><value>Type</value></data>
+  <data name="Admin_UserProps_TypeText" xml:space="preserve"><value>Text</value></data>
+  <data name="Admin_UserProps_TypeDate" xml:space="preserve"><value>Date</value></data>
+  <data name="Admin_UserProps_TypeBoolean" xml:space="preserve"><value>Boolean</value></data>
+  <data name="Admin_UserProps_TypeAvatar" xml:space="preserve"><value>Avatar</value></data>
+  <data name="Admin_UserProps_IsRequired" xml:space="preserve"><value>Required</value></data>
+  <data name="Admin_UserProps_IsHidden" xml:space="preserve"><value>Hidden from user (admin/token only)</value></data>
+  <data name="Admin_UserProps_IsReadOnly" xml:space="preserve"><value>Read-only (user cannot edit)</value></data>
+  <data name="Admin_UserProps_Cancel" xml:space="preserve"><value>Cancel</value></data>
+  <data name="Admin_UserProps_Save" xml:space="preserve"><value>Save</value></data>
+  <data name="Admin_UserProps_PropCreated" xml:space="preserve"><value>Property created.</value></data>
+  <data name="Admin_UserProps_PropUpdated" xml:space="preserve"><value>Property updated.</value></data>
+  <data name="Admin_UserProps_PropDeleted" xml:space="preserve"><value>Property deleted.</value></data>
+  <data name="Admin_UserProps_DeleteTitle" xml:space="preserve"><value>Delete Property</value></data>
+  <data name="Admin_UserProps_DeleteConfirm" xml:space="preserve"><value>Delete '{0}'? Existing user values for this property will also be deleted.</value></data>
+
+  <!-- Admin Groups -->
+  <data name="Admin_Groups_Title" xml:space="preserve"><value>Groups</value></data>
+  <data name="Admin_Groups_NewGroup" xml:space="preserve"><value>New Group</value></data>
+  <data name="Admin_Groups_NoGroups" xml:space="preserve"><value>No groups created yet.</value></data>
+  <data name="Admin_Groups_ColGroup" xml:space="preserve"><value>Group</value></data>
+  <data name="Admin_Groups_ColDescription" xml:space="preserve"><value>Description</value></data>
+  <data name="Admin_Groups_ColRoles" xml:space="preserve"><value>Roles</value></data>
+  <data name="Admin_Groups_ColMembers" xml:space="preserve"><value>Members</value></data>
+  <data name="Admin_Groups_DeleteTitle" xml:space="preserve"><value>Delete Group</value></data>
+  <data name="Admin_Groups_DeleteConfirm" xml:space="preserve"><value>Delete '{0}'? Members will lose any roles assigned via this group.</value></data>
+  <data name="Admin_Groups_Deleted" xml:space="preserve"><value>Group deleted.</value></data>
+
+  <!-- Admin Group Detail -->
+  <data name="Admin_GroupDetail_NewGroup" xml:space="preserve"><value>New Group</value></data>
+  <data name="Admin_GroupDetail_GroupDetails" xml:space="preserve"><value>Group Details</value></data>
+  <data name="Admin_GroupDetail_Name" xml:space="preserve"><value>Name</value></data>
+  <data name="Admin_GroupDetail_Description" xml:space="preserve"><value>Description</value></data>
+  <data name="Admin_GroupDetail_CreateGroup" xml:space="preserve"><value>Create Group</value></data>
+  <data name="Admin_GroupDetail_Save" xml:space="preserve"><value>Save</value></data>
+  <data name="Admin_GroupDetail_Members" xml:space="preserve"><value>Members ({0})</value></data>
+  <data name="Admin_GroupDetail_AddMember" xml:space="preserve"><value>Add member…</value></data>
+  <data name="Admin_GroupDetail_Roles" xml:space="preserve"><value>Roles</value></data>
+  <data name="Admin_GroupDetail_RolesDesc" xml:space="preserve"><value>Roles assigned here are automatically granted to all group members.</value></data>
+  <data name="Admin_GroupDetail_AddRole" xml:space="preserve"><value>Add role…</value></data>
+  <data name="Admin_GroupDetail_AllRolesAssigned" xml:space="preserve"><value>All available roles are assigned.</value></data>
+  <data name="Admin_GroupDetail_Created" xml:space="preserve"><value>Group created.</value></data>
+  <data name="Admin_GroupDetail_Saved" xml:space="preserve"><value>Group saved.</value></data>
+  <data name="Admin_GroupDetail_MemberAdded" xml:space="preserve"><value>Member added.</value></data>
+  <data name="Admin_GroupDetail_MemberRemoved" xml:space="preserve"><value>Member removed.</value></data>
+  <data name="Admin_GroupDetail_RoleAdded" xml:space="preserve"><value>Role added.</value></data>
+  <data name="Admin_GroupDetail_RoleRemoved" xml:space="preserve"><value>Role removed.</value></data>
+
+  <!-- Admin Roles -->
+  <data name="Admin_Roles_Title" xml:space="preserve"><value>Roles</value></data>
+  <data name="Admin_Roles_NewRole" xml:space="preserve"><value>New Role</value></data>
+  <data name="Admin_Roles_NoRoles" xml:space="preserve"><value>No roles defined yet.</value></data>
+  <data name="Admin_Roles_ColName" xml:space="preserve"><value>Name</value></data>
+  <data name="Admin_Roles_ColDescription" xml:space="preserve"><value>Description</value></data>
+  <data name="Admin_Roles_NewRoleTitle" xml:space="preserve"><value>New Role</value></data>
+  <data name="Admin_Roles_EditRoleTitle" xml:space="preserve"><value>Edit Role</value></data>
+  <data name="Admin_Roles_RoleName" xml:space="preserve"><value>Name</value></data>
+  <data name="Admin_Roles_RoleDesc" xml:space="preserve"><value>Description</value></data>
+  <data name="Admin_Roles_Cancel" xml:space="preserve"><value>Cancel</value></data>
+  <data name="Admin_Roles_Save" xml:space="preserve"><value>Save</value></data>
+  <data name="Admin_Roles_DeleteTitle" xml:space="preserve"><value>Delete Role</value></data>
+  <data name="Admin_Roles_DeleteConfirm" xml:space="preserve"><value>Delete '{0}'? This will remove the role from all groups that use it.</value></data>
+  <data name="Admin_Roles_Created" xml:space="preserve"><value>Role created.</value></data>
+  <data name="Admin_Roles_Updated" xml:space="preserve"><value>Role updated.</value></data>
+  <data name="Admin_Roles_Deleted" xml:space="preserve"><value>Role deleted.</value></data>
+
+  <!-- Admin Applications -->
+  <data name="Admin_Apps_Title" xml:space="preserve"><value>Applications</value></data>
+  <data name="Admin_Apps_NewApp" xml:space="preserve"><value>New Application</value></data>
+  <data name="Admin_Apps_NoApps" xml:space="preserve"><value>No applications configured yet.</value></data>
+  <data name="Admin_Apps_Disabled" xml:space="preserve"><value>Disabled</value></data>
+  <data name="Admin_Apps_Public" xml:space="preserve"><value>Public</value></data>
+  <data name="Admin_Apps_Restricted" xml:space="preserve"><value>Restricted</value></data>
+  <data name="Admin_Apps_Edit" xml:space="preserve"><value>Edit</value></data>
+  <data name="Admin_Apps_Launch" xml:space="preserve"><value>Launch</value></data>
+  <data name="Admin_Apps_Delete" xml:space="preserve"><value>Delete</value></data>
+  <data name="Admin_Apps_DeleteTitle" xml:space="preserve"><value>Delete Application</value></data>
+  <data name="Admin_Apps_DeleteConfirm" xml:space="preserve"><value>Are you sure you want to delete '{0}'? This cannot be undone.</value></data>
+  <data name="Admin_Apps_Deleted" xml:space="preserve"><value>'{0}' deleted.</value></data>
+
+  <!-- Admin Application Detail -->
+  <data name="Admin_AppDetail_NewApp" xml:space="preserve"><value>New Application</value></data>
+  <data name="Admin_AppDetail_EditApp" xml:space="preserve"><value>Edit Application</value></data>
+  <data name="Admin_AppDetail_BasicInfo" xml:space="preserve"><value>Basic Information</value></data>
+  <data name="Admin_AppDetail_Name" xml:space="preserve"><value>Name</value></data>
+  <data name="Admin_AppDetail_Name_Required" xml:space="preserve"><value>Name is required.</value></data>
+  <data name="Admin_AppDetail_Slug" xml:space="preserve"><value>Slug</value></data>
+  <data name="Admin_AppDetail_Slug_Required" xml:space="preserve"><value>Slug is required.</value></data>
+  <data name="Admin_AppDetail_Slug_Helper" xml:space="preserve"><value>Unique URL-safe identifier.</value></data>
+  <data name="Admin_AppDetail_Description" xml:space="preserve"><value>Description</value></data>
+  <data name="Admin_AppDetail_IconUrl" xml:space="preserve"><value>Icon URL</value></data>
+  <data name="Admin_AppDetail_IconUrl_Helper" xml:space="preserve"><value>URL to application icon image.</value></data>
+  <data name="Admin_AppDetail_LaunchUrl" xml:space="preserve"><value>Launch URL</value></data>
+  <data name="Admin_AppDetail_LaunchUrl_Helper" xml:space="preserve"><value>URL users are directed to when launching.</value></data>
+  <data name="Admin_AppDetail_LinkedClient" xml:space="preserve"><value>Linked OIDC Client (optional)</value></data>
+  <data name="Admin_AppDetail_LinkedClient_Helper" xml:space="preserve"><value>Associate this launcher with an OIDC client.</value></data>
+  <data name="Admin_AppDetail_Enabled" xml:space="preserve"><value>Enabled</value></data>
+  <data name="Admin_AppDetail_Public" xml:space="preserve"><value>Public (visible to all users)</value></data>
+  <data name="Admin_AppDetail_CreateApp" xml:space="preserve"><value>Create Application</value></data>
+  <data name="Admin_AppDetail_SaveChanges" xml:space="preserve"><value>Save Changes</value></data>
+  <data name="Admin_AppDetail_Saving" xml:space="preserve"><value>Saving…</value></data>
+  <data name="Admin_AppDetail_Cancel" xml:space="preserve"><value>Cancel</value></data>
+  <data name="Admin_AppDetail_AccessControl" xml:space="preserve"><value>Access Control</value></data>
+  <data name="Admin_AppDetail_PublicAlert" xml:space="preserve"><value>This application is public — all users can see it. Disable public access to restrict by group or user.</value></data>
+  <data name="Admin_AppDetail_GroupAccess" xml:space="preserve"><value>Group Access</value></data>
+  <data name="Admin_AppDetail_UnknownGroup" xml:space="preserve"><value>Unknown group</value></data>
+  <data name="Admin_AppDetail_AddGroup" xml:space="preserve"><value>Add group</value></data>
+  <data name="Admin_AppDetail_UserAccess" xml:space="preserve"><value>User Access</value></data>
+  <data name="Admin_AppDetail_UnknownUser" xml:space="preserve"><value>Unknown user</value></data>
+  <data name="Admin_AppDetail_AddUser" xml:space="preserve"><value>Add user</value></data>
+  <data name="Admin_AppDetail_Created" xml:space="preserve"><value>Application created.</value></data>
+  <data name="Admin_AppDetail_Saved" xml:space="preserve"><value>Application saved.</value></data>
+
+  <!-- Admin Clients -->
+  <data name="Admin_Clients_Title" xml:space="preserve"><value>Clients</value></data>
+  <data name="Admin_Clients_NewClient" xml:space="preserve"><value>New Client</value></data>
+  <data name="Admin_Clients_NoClients" xml:space="preserve"><value>No clients configured yet.</value></data>
+  <data name="Admin_Clients_Enabled" xml:space="preserve"><value>Enabled</value></data>
+  <data name="Admin_Clients_Disabled" xml:space="preserve"><value>Disabled</value></data>
+  <data name="Admin_Clients_Edit" xml:space="preserve"><value>Edit</value></data>
+  <data name="Admin_Clients_Disable" xml:space="preserve"><value>Disable</value></data>
+  <data name="Admin_Clients_Enable" xml:space="preserve"><value>Enable</value></data>
+  <data name="Admin_Clients_Delete" xml:space="preserve"><value>Delete</value></data>
+  <data name="Admin_Clients_DeleteTitle" xml:space="preserve"><value>Delete Client</value></data>
+  <data name="Admin_Clients_DeleteConfirm" xml:space="preserve"><value>Are you sure you want to delete '{0}'? This cannot be undone.</value></data>
+  <data name="Admin_Clients_Deleted" xml:space="preserve"><value>'{0}' deleted.</value></data>
+  <data name="Admin_Clients_DisabledMsg" xml:space="preserve"><value>{0} disabled.</value></data>
+  <data name="Admin_Clients_EnabledMsg" xml:space="preserve"><value>{0} enabled.</value></data>
+
+  <!-- Admin Client Detail -->
+  <data name="Admin_ClientDetail_NewClient" xml:space="preserve"><value>New Client</value></data>
+  <data name="Admin_ClientDetail_EditClient" xml:space="preserve"><value>Edit Client</value></data>
+  <data name="Admin_ClientDetail_BasicInfo" xml:space="preserve"><value>Basic Information</value></data>
+  <data name="Admin_ClientDetail_DisplayName" xml:space="preserve"><value>Display Name</value></data>
+  <data name="Admin_ClientDetail_DisplayName_Required" xml:space="preserve"><value>Display name is required.</value></data>
+  <data name="Admin_ClientDetail_ClientId" xml:space="preserve"><value>Client ID</value></data>
+  <data name="Admin_ClientDetail_ClientId_Required" xml:space="preserve"><value>Client ID is required.</value></data>
+  <data name="Admin_ClientDetail_ClientId_Helper" xml:space="preserve"><value>Unique identifier for this application.</value></data>
+  <data name="Admin_ClientDetail_ClientType" xml:space="preserve"><value>Client Type</value></data>
+  <data name="Admin_ClientDetail_PublicType" xml:space="preserve"><value>Public</value></data>
+  <data name="Admin_ClientDetail_ConfidentialType" xml:space="preserve"><value>Confidential</value></data>
+  <data name="Admin_ClientDetail_Enabled" xml:space="preserve"><value>Enabled</value></data>
+  <data name="Admin_ClientDetail_RedirectUris" xml:space="preserve"><value>Redirect URIs</value></data>
+  <data name="Admin_ClientDetail_AddRedirectUri" xml:space="preserve"><value>Add Redirect URI</value></data>
+  <data name="Admin_ClientDetail_PostLogoutUris" xml:space="preserve"><value>Post-Logout Redirect URIs</value></data>
+  <data name="Admin_ClientDetail_AddPostLogoutUri" xml:space="preserve"><value>Add Post-Logout URI</value></data>
+  <data name="Admin_ClientDetail_Permissions" xml:space="preserve"><value>Permissions</value></data>
+  <data name="Admin_ClientDetail_TokenLifetimes" xml:space="preserve"><value>Token Lifetimes</value></data>
+  <data name="Admin_ClientDetail_TokenLifetimes_Helper" xml:space="preserve"><value>Leave blank to use the server defaults.</value></data>
+  <data name="Admin_ClientDetail_AccessToken" xml:space="preserve"><value>Access Token (minutes)</value></data>
+  <data name="Admin_ClientDetail_IdentityToken" xml:space="preserve"><value>Identity Token (minutes)</value></data>
+  <data name="Admin_ClientDetail_RefreshToken" xml:space="preserve"><value>Refresh Token (minutes)</value></data>
+  <data name="Admin_ClientDetail_CreateClient" xml:space="preserve"><value>Create Client</value></data>
+  <data name="Admin_ClientDetail_SaveChanges" xml:space="preserve"><value>Save Changes</value></data>
+  <data name="Admin_ClientDetail_Saving" xml:space="preserve"><value>Saving…</value></data>
+  <data name="Admin_ClientDetail_Cancel" xml:space="preserve"><value>Cancel</value></data>
+  <data name="Admin_ClientDetail_Secrets" xml:space="preserve"><value>Client Secrets</value></data>
+  <data name="Admin_ClientDetail_Secrets_Desc" xml:space="preserve"><value>Secrets are used to authenticate confidential clients.</value></data>
+  <data name="Admin_ClientDetail_NoDescription" xml:space="preserve"><value>No description</value></data>
+  <data name="Admin_ClientDetail_Expired" xml:space="preserve"><value>Expired</value></data>
+  <data name="Admin_ClientDetail_ExpiresOn" xml:space="preserve"><value>Expires {0}</value></data>
+  <data name="Admin_ClientDetail_NoExpiry" xml:space="preserve"><value>No expiry</value></data>
+  <data name="Admin_ClientDetail_CreatedOn" xml:space="preserve"><value>Created {0}</value></data>
+  <data name="Admin_ClientDetail_AddSecret" xml:space="preserve"><value>Add Secret</value></data>
+  <data name="Admin_ClientDetail_SecretDesc" xml:space="preserve"><value>Description (optional)</value></data>
+  <data name="Admin_ClientDetail_SecretExpiry" xml:space="preserve"><value>Expiry date (optional)</value></data>
+  <data name="Admin_ClientDetail_GenerateSecret" xml:space="preserve"><value>Generate Secret</value></data>
+  <data name="Admin_ClientDetail_DeleteSecretTitle" xml:space="preserve"><value>Delete Secret</value></data>
+  <data name="Admin_ClientDetail_DeleteSecretConfirm" xml:space="preserve"><value>Delete this secret? Any clients using it will immediately lose access.</value></data>
+  <data name="Admin_ClientDetail_SecretDeleted" xml:space="preserve"><value>Secret deleted.</value></data>
+  <data name="Admin_ClientDetail_ClientCreated" xml:space="preserve"><value>Client created.</value></data>
+  <data name="Admin_ClientDetail_ClientSaved" xml:space="preserve"><value>Client saved.</value></data>
+  <data name="Admin_ClientDetail_SecretGeneratedTitle" xml:space="preserve"><value>Secret Generated</value></data>
+</root>

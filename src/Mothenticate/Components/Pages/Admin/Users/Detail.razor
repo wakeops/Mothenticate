@@ -7,13 +7,14 @@
 @inject ISessionService SessionService
 @inject ISnackbar Snackbar
 @inject NavigationManager Navigation
+@inject IStringLocalizer<SharedResource> L
 @using Microsoft.AspNetCore.Identity
 
-<PageTitle>@(_isCreate ? "New User" : _user?.UserName ?? "User") — Mothenticate Admin</PageTitle>
+<PageTitle>@(_isCreate ? L["Admin_UserDetail_NewUser"] : _user?.UserName ?? L["Admin_UserDetail_NewUser"]) — Mothenticate Admin</PageTitle>
 
 <MudStack Row="true" AlignItems="AlignItems.Center" Class="mb-4">
     <MudIconButton Icon="@Icons.Material.Filled.ArrowBack" OnClick='() => Navigation.NavigateTo("/admin/users")' />
-    <MudText Typo="Typo.h4">@(_isCreate ? "New User" : _user?.UserName ?? "User")</MudText>
+    <MudText Typo="Typo.h4">@(_isCreate ? L["Admin_UserDetail_NewUser"] : _user?.UserName ?? L["Admin_UserDetail_NewUser"])</MudText>
 </MudStack>
 
 @if (_loading)
@@ -23,37 +24,37 @@
 else if (_isCreate)
 {
     <MudPaper Elevation="2" Class="pa-4" Style="max-width:600px">
-        <MudText Typo="Typo.h6" GutterBottom="true">Create User</MudText>
+        <MudText Typo="Typo.h6" GutterBottom="true">@L["Admin_UserDetail_CreateUser"]</MudText>
         <MudForm @ref="_form" @bind-IsValid="_valid">
             <MudGrid>
                 <MudItem xs="12">
-                    <MudTextField @bind-Value="_create.Username" Label="Username" Required="true"
+                    <MudTextField @bind-Value="_create.Username" Label="@L["Admin_UserDetail_Username"]" Required="true"
                                   RequiredError="Username is required." Variant="Variant.Outlined" />
                 </MudItem>
                 <MudItem xs="12">
-                    <MudTextField @bind-Value="_create.Email" Label="Email" InputType="InputType.Email"
+                    <MudTextField @bind-Value="_create.Email" Label="@L["Admin_UserDetail_Email"]" InputType="InputType.Email"
                                   Required="true" RequiredError="Email is required." Variant="Variant.Outlined" />
                 </MudItem>
                 <MudItem xs="12" sm="6">
-                    <MudTextField @bind-Value="_create.FirstName" Label="First Name" Variant="Variant.Outlined" />
+                    <MudTextField @bind-Value="_create.FirstName" Label="@L["Admin_UserDetail_FirstName"]" Variant="Variant.Outlined" />
                 </MudItem>
                 <MudItem xs="12" sm="6">
-                    <MudTextField @bind-Value="_create.LastName" Label="Last Name" Variant="Variant.Outlined" />
+                    <MudTextField @bind-Value="_create.LastName" Label="@L["Admin_UserDetail_LastName"]" Variant="Variant.Outlined" />
                 </MudItem>
                 <MudItem xs="12">
-                    <MudTextField @bind-Value="_create.DisplayName" Label="Display Name" Variant="Variant.Outlined" />
+                    <MudTextField @bind-Value="_create.DisplayName" Label="@L["Admin_UserDetail_DisplayName"]" Variant="Variant.Outlined" />
                 </MudItem>
                 <MudItem xs="12">
-                    <MudTextField @bind-Value="_create.Password" Label="Password" InputType="InputType.Password"
+                    <MudTextField @bind-Value="_create.Password" Label="@L["Admin_UserDetail_Password"]" InputType="InputType.Password"
                                   Required="true" RequiredError="Password is required." Variant="Variant.Outlined" />
                 </MudItem>
             </MudGrid>
             <MudStack Row="true" Class="mt-4">
                 <MudButton Variant="Variant.Filled" Color="Color.Primary" OnClick="CreateUser" Disabled="@_saving">
-                    @(_saving ? "Creating…" : "Create User")
+                    @(_saving ? L["Admin_UserDetail_Creating"] : L["Admin_UserDetail_CreateUser"])
                 </MudButton>
                 <MudButton Variant="Variant.Text" OnClick='() => Navigation.NavigateTo("/admin/users")'>
-                    Cancel
+                    @L["Admin_UserDetail_Cancel"]
                 </MudButton>
             </MudStack>
         </MudForm>
@@ -64,28 +65,28 @@ else if (_user is not null)
     <MudTabs Elevation="2" Rounded="true" ApplyEffectsToContainer="true">
 
         <!-- Profile Tab -->
-        <MudTabPanel Text="Profile" Icon="@Icons.Material.Filled.Person">
+        <MudTabPanel Text="@L["Admin_UserDetail_Tab_Profile"]" Icon="@Icons.Material.Filled.Person">
             <MudPaper Elevation="0" Class="pa-4">
                 <MudGrid Style="max-width:600px">
                     <MudItem xs="12" sm="6">
-                        <MudTextField @bind-Value="_profile.FirstName" Label="First Name" Variant="Variant.Outlined" />
+                        <MudTextField @bind-Value="_profile.FirstName" Label="@L["Admin_UserDetail_FirstName"]" Variant="Variant.Outlined" />
                     </MudItem>
                     <MudItem xs="12" sm="6">
-                        <MudTextField @bind-Value="_profile.LastName" Label="Last Name" Variant="Variant.Outlined" />
+                        <MudTextField @bind-Value="_profile.LastName" Label="@L["Admin_UserDetail_LastName"]" Variant="Variant.Outlined" />
                     </MudItem>
                     <MudItem xs="12">
-                        <MudTextField @bind-Value="_profile.DisplayName" Label="Display Name" Variant="Variant.Outlined" />
+                        <MudTextField @bind-Value="_profile.DisplayName" Label="@L["Admin_UserDetail_DisplayName"]" Variant="Variant.Outlined" />
                     </MudItem>
                     <MudItem xs="12">
-                        <MudTextField @bind-Value="_profile.Email" Label="Email" InputType="InputType.Email"
+                        <MudTextField @bind-Value="_profile.Email" Label="@L["Admin_UserDetail_Email"]" InputType="InputType.Email"
                                       Variant="Variant.Outlined" />
                     </MudItem>
                     <MudItem xs="12">
-                        <MudTextField @bind-Value="_profile.Username" Label="Username" Variant="Variant.Outlined" />
+                        <MudTextField @bind-Value="_profile.Username" Label="@L["Admin_UserDetail_Username"]" Variant="Variant.Outlined" />
                     </MudItem>
                     <MudItem xs="12">
                         <MudButton Variant="Variant.Filled" Color="Color.Primary" OnClick="SaveProfile" Disabled="@_saving">
-                            @(_saving ? "Saving…" : "Save Profile")
+                            @(_saving ? L["Admin_UserDetail_Saving"] : L["Admin_UserDetail_SaveProfile"])
                         </MudButton>
                     </MudItem>
                 </MudGrid>
@@ -93,13 +94,13 @@ else if (_user is not null)
         </MudTabPanel>
 
         <!-- Security Tab -->
-        <MudTabPanel Text="Security" Icon="@Icons.Material.Filled.Security">
+        <MudTabPanel Text="@L["Admin_UserDetail_Tab_Security"]" Icon="@Icons.Material.Filled.Security">
             <MudPaper Elevation="0" Class="pa-4">
                 <MudGrid>
                     <MudItem xs="12" md="6">
-                        <MudText Typo="Typo.h6" GutterBottom="true">Account Status</MudText>
+                        <MudText Typo="Typo.h6" GutterBottom="true">@L["Admin_UserDetail_AccountStatus"]</MudText>
                         <MudStack Row="true" AlignItems="AlignItems.Center" Class="mb-2">
-                            <MudText>Active</MudText>
+                            <MudText>@L["Admin_UserDetail_Active"]</MudText>
                             <MudSwitch Value="@_user.IsActive" Color="Color.Primary"
                                        ValueChanged="@((bool v) => SetActive(v))" />
                         </MudStack>
@@ -108,25 +109,25 @@ else if (_user is not null)
                         }
                         <MudStack Row="true" AlignItems="AlignItems.Center" Class="mb-4">
                             <MudText Color="@(isLocked ? Color.Error : Color.Default)">
-                                @(isLocked ? $"Locked until {_user.LockoutEnd:yyyy-MM-dd HH:mm}" : "Not locked")
+                                @(isLocked ? string.Format(L["Admin_UserDetail_LockedUntil"], _user.LockoutEnd?.ToString("yyyy-MM-dd HH:mm")) : L["Admin_UserDetail_NotLocked"])
                             </MudText>
                             @if (isLocked)
                             {
                                 <MudButton Variant="Variant.Outlined" Color="Color.Warning" Size="Size.Small"
-                                           OnClick="Unlock">Unlock</MudButton>
+                                           OnClick="Unlock">@L["Admin_UserDetail_Unlock"]</MudButton>
                             }
                             else
                             {
                                 <MudButton Variant="Variant.Outlined" Color="Color.Error" Size="Size.Small"
-                                           OnClick="Lock">Lock Account</MudButton>
+                                           OnClick="Lock">@L["Admin_UserDetail_LockAccount"]</MudButton>
                             }
                         </MudStack>
 
-                        <MudText Typo="Typo.h6" GutterBottom="true">Reset Password</MudText>
-                        <MudTextField @bind-Value="_newPassword" Label="New Password" InputType="InputType.Password"
+                        <MudText Typo="Typo.h6" GutterBottom="true">@L["Admin_UserDetail_ResetPassword"]</MudText>
+                        <MudTextField @bind-Value="_newPassword" Label="@L["Admin_UserDetail_NewPassword"]" InputType="InputType.Password"
                                       Variant="Variant.Outlined" Class="mb-2" Style="max-width:360px" />
                         <MudButton Variant="Variant.Filled" Color="Color.Primary" OnClick="ResetPassword">
-                            Set Password
+                            @L["Admin_UserDetail_SetPassword"]
                         </MudButton>
                     </MudItem>
                 </MudGrid>
@@ -134,22 +135,22 @@ else if (_user is not null)
         </MudTabPanel>
 
         <!-- Sessions Tab -->
-        <MudTabPanel Text="Sessions" Icon="@Icons.Material.Filled.Devices">
+        <MudTabPanel Text="@L["Admin_UserDetail_Tab_Sessions"]" Icon="@Icons.Material.Filled.Devices">
             <MudPaper Elevation="0" Class="pa-4">
                 <MudStack Row="true" AlignItems="AlignItems.Center" Class="mb-3">
-                    <MudText Typo="Typo.h6">Active Sessions</MudText>
+                    <MudText Typo="Typo.h6">@L["Admin_UserDetail_ActiveSessions"]</MudText>
                     <MudSpacer />
                     @if (_sessions.Count > 0)
                     {
                         <MudButton Variant="Variant.Outlined" Color="Color.Error" Size="Size.Small"
                                    StartIcon="@Icons.Material.Filled.Logout" OnClick="RevokeAllSessions">
-                            Revoke All
+                            @L["Admin_UserDetail_RevokeAll"]
                         </MudButton>
                     }
                 </MudStack>
                 @if (_sessions.Count == 0)
                 {
-                    <MudText Color="Color.Secondary">No active sessions.</MudText>
+                    <MudText Color="Color.Secondary">@L["Admin_UserDetail_NoSessions"]</MudText>
                 }
                 else
                 {
@@ -159,7 +160,7 @@ else if (_user is not null)
                             <MudStack Row="true" AlignItems="AlignItems.Center">
                                 <MudIcon Icon="@Icons.Material.Filled.Computer" Color="Color.Secondary" />
                                 <MudStack Spacing="0">
-                                    <MudText Typo="Typo.body2">@(session.UserAgent ?? "Unknown device")</MudText>
+                                    <MudText Typo="Typo.body2">@(session.UserAgent ?? L["Admin_UserDetail_UnknownDevice"])</MudText>
                                     <MudText Typo="Typo.caption" Color="Color.Secondary">
                                         @session.IpAddress — Last active @session.LastActiveAt.ToString("yyyy-MM-dd HH:mm")
                                     </MudText>
@@ -167,7 +168,7 @@ else if (_user is not null)
                                 <MudSpacer />
                                 <MudButton Size="Size.Small" Color="Color.Error"
                                            OnClick="() => RevokeSession(session.Id)">
-                                    Revoke
+                                    @L["Admin_UserDetail_Revoke"]
                                 </MudButton>
                             </MudStack>
                         </MudPaper>
@@ -177,11 +178,11 @@ else if (_user is not null)
         </MudTabPanel>
 
         <!-- Access Tab -->
-        <MudTabPanel Text="Access" Icon="@Icons.Material.Filled.AdminPanelSettings">
+        <MudTabPanel Text="@L["Admin_UserDetail_Tab_Access"]" Icon="@Icons.Material.Filled.AdminPanelSettings">
             <MudPaper Elevation="0" Class="pa-4">
                 <MudGrid>
                     <MudItem xs="12" md="6">
-                        <MudText Typo="Typo.h6" GutterBottom="true">Groups</MudText>
+                        <MudText Typo="Typo.h6" GutterBottom="true">@L["Admin_UserDetail_Groups"]</MudText>
                         @foreach (var group in _userGroups)
                         {
                             <MudStack Row="true" AlignItems="AlignItems.Center" Class="mb-1">
@@ -190,7 +191,7 @@ else if (_user is not null)
                                                Color="Color.Error" OnClick="() => RemoveFromGroup(group.Id)" />
                             </MudStack>
                         }
-                        <MudSelect T="int?" Placeholder="Add to group…" ValueChanged="AddToGroup"
+                        <MudSelect T="int?" Placeholder="@L["Admin_UserDetail_AddToGroup"]" ValueChanged="AddToGroup"
                                    Variant="Variant.Outlined" Margin="Margin.Dense" Class="mt-2">
                             @foreach (var group in _allGroups.Where(g => _userGroups.All(ug => ug.Id != g.Id)))
                             {
@@ -199,9 +200,9 @@ else if (_user is not null)
                         </MudSelect>
                     </MudItem>
                     <MudItem xs="12" md="6">
-                        <MudText Typo="Typo.h6" GutterBottom="true">Effective Roles</MudText>
+                        <MudText Typo="Typo.h6" GutterBottom="true">@L["Admin_UserDetail_EffectiveRoles"]</MudText>
                         <MudText Typo="Typo.caption" Color="Color.Secondary" Class="mb-2">
-                            Roles are inherited from group membership.
+                            @L["Admin_UserDetail_RolesInherited"]
                         </MudText>
                         @foreach (var role in _effectiveRoles)
                         {
@@ -209,7 +210,7 @@ else if (_user is not null)
                         }
                         @if (!_effectiveRoles.Any())
                         {
-                            <MudText Color="Color.Secondary">No roles assigned.</MudText>
+                            <MudText Color="Color.Secondary">@L["Admin_UserDetail_NoRoles"]</MudText>
                         }
                     </MudItem>
                 </MudGrid>
@@ -282,7 +283,7 @@ else if (_user is not null)
 
             if (result.Succeeded)
             {
-                Snackbar.Add("User created.", Severity.Success);
+                Snackbar.Add(L["Admin_UserDetail_Created"], Severity.Success);
                 Navigation.NavigateTo("/admin/users");
             }
             else
@@ -307,7 +308,7 @@ else if (_user is not null)
                 Snackbar.Add(string.Join(", ", result.Errors.Select(e => e.Description)), Severity.Error);
                 return;
             }
-            Snackbar.Add("Profile saved.", Severity.Success);
+            Snackbar.Add(L["Admin_UserDetail_ProfileSaved"], Severity.Success);
             _user = await UserService.GetByIdAsync(Id!);
         }
         finally
@@ -322,7 +323,7 @@ else if (_user is not null)
         if (result.Succeeded)
         {
             _user = await UserService.GetByIdAsync(Id!);
-            Snackbar.Add($"User {(isActive ? "activated" : "deactivated")}.", Severity.Success);
+            Snackbar.Add(isActive ? L["Admin_UserDetail_Activated"] : L["Admin_UserDetail_Deactivated"], Severity.Success);
         }
         else
         {
@@ -336,7 +337,7 @@ else if (_user is not null)
         if (result.Succeeded)
         {
             _user = await UserService.GetByIdAsync(Id!);
-            Snackbar.Add("User locked.", Severity.Success);
+            Snackbar.Add(L["Admin_UserDetail_Locked_Msg"], Severity.Success);
         }
     }
 
@@ -346,7 +347,7 @@ else if (_user is not null)
         if (result.Succeeded)
         {
             _user = await UserService.GetByIdAsync(Id!);
-            Snackbar.Add("User unlocked.", Severity.Success);
+            Snackbar.Add(L["Admin_UserDetail_Unlocked_Msg"], Severity.Success);
         }
     }
 
@@ -357,7 +358,7 @@ else if (_user is not null)
         if (result.Succeeded)
         {
             _newPassword = string.Empty;
-            Snackbar.Add("Password updated.", Severity.Success);
+            Snackbar.Add(L["Admin_UserDetail_PasswordUpdated"], Severity.Success);
         }
         else
         {
@@ -369,14 +370,14 @@ else if (_user is not null)
     {
         await SessionService.RevokeAsync(sessionId);
         _sessions = [.. await SessionService.GetActiveByUserIdAsync(Id!)];
-        Snackbar.Add("Session revoked.", Severity.Success);
+        Snackbar.Add(L["Admin_UserDetail_SessionRevoked"], Severity.Success);
     }
 
     private async Task RevokeAllSessions()
     {
         await SessionService.RevokeAllForUserAsync(Id!);
         _sessions = [];
-        Snackbar.Add("All sessions revoked.", Severity.Success);
+        Snackbar.Add(L["Admin_UserDetail_AllSessionsRevoked"], Severity.Success);
     }
 
     private async Task AddToGroup(int? groupId)
@@ -385,7 +386,7 @@ else if (_user is not null)
         await GroupService.AddMemberAsync(groupId.Value, Id!);
         _userGroups = [.. await UserService.GetGroupsAsync(Id!)];
         _effectiveRoles = [.. await UserService.GetEffectiveRolesAsync(Id!)];
-        Snackbar.Add("Added to group.", Severity.Success);
+        Snackbar.Add(L["Admin_UserDetail_AddedToGroup"], Severity.Success);
     }
 
     private async Task RemoveFromGroup(int groupId)
@@ -393,7 +394,7 @@ else if (_user is not null)
         await GroupService.RemoveMemberAsync(groupId, Id!);
         _userGroups = [.. await UserService.GetGroupsAsync(Id!)];
         _effectiveRoles = [.. await UserService.GetEffectiveRolesAsync(Id!)];
-        Snackbar.Add("Removed from group.", Severity.Success);
+        Snackbar.Add(L["Admin_UserDetail_RemovedFromGroup"], Severity.Success);
     }
 
     private sealed class ProfileModel

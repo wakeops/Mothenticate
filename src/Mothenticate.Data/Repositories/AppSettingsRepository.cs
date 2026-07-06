@@ -17,6 +17,9 @@ public class AppSettingsRepository(MothenticateDbContext db) : IAppSettingsRepos
             await db.SaveChangesAsync(cancellationToken);
         }
 
+        if (string.IsNullOrEmpty(settings.DefaultLanguage))
+            settings.DefaultLanguage = "en";
+
         return settings;
     }
 

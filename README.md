@@ -50,6 +50,14 @@ volumes:
 
 `ISSUER_URI` must match the public URL Mothenticate is reachable at — this is used in OIDC token issuance and discovery.
 
+## Features
+
+- OAuth2 / OIDC identity provider (powered by OpenIddict)
+- SSO via Google and GitHub
+- Two-factor authentication (TOTP)
+- User, group, and role management
+- App launcher portal
+
 ## Screenshots
 
 *Coming Soon*

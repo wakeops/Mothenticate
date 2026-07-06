@@ -4,15 +4,16 @@
 @inject IDialogService DialogService
 @inject ISnackbar Snackbar
 @inject NavigationManager Navigation
+@inject IStringLocalizer<SharedResource> L
 
 <PageTitle>Applications — Mothenticate Admin</PageTitle>
 
 <MudStack Row="true" AlignItems="AlignItems.Center" Class="mb-4">
-    <MudText Typo="Typo.h4">Applications</MudText>
+    <MudText Typo="Typo.h4">@L["Admin_Apps_Title"]</MudText>
     <MudSpacer />
     <MudButton Variant="Variant.Filled" Color="Color.Primary" StartIcon="@Icons.Material.Filled.Add"
                OnClick='() => Navigation.NavigateTo("/admin/applications/create")'>
-        New Application
+        @L["Admin_Apps_NewApp"]
     </MudButton>
 </MudStack>
 
@@ -22,7 +23,7 @@
 }
 else if (_apps.Count == 0)
 {
-    <MudAlert Severity="Severity.Info">No applications configured yet.</MudAlert>
+    <MudAlert Severity="Severity.Info">@L["Admin_Apps_NoApps"]</MudAlert>
 }
 else
 {
@@ -35,7 +36,9 @@ else
                         <CardHeaderAvatar>
                             @if (!string.IsNullOrEmpty(app.IconUrl))
                             {
-                                <MudAvatar Src="@app.IconUrl" />
+                                <MudAvatar>
+                                    <MudImage Src="@app.IconUrl" Alt="@app.Name"></MudImage>
+                                </MudAvatar>
                             }
                             else
                             {
@@ -52,15 +55,15 @@ else
                             <MudStack Row="true" Spacing="1">
                                 @if (!app.IsEnabled)
                                 {
-                                    <MudChip T="string" Color="Color.Default" Size="Size.Small">Disabled</MudChip>
+                                    <MudChip T="string" Color="Color.Default" Size="Size.Small">@L["Admin_Apps_Disabled"]</MudChip>
                                 }
                                 @if (app.IsPublic)
                                 {
-                                    <MudChip T="string" Color="Color.Info" Size="Size.Small">Public</MudChip>
+                                    <MudChip T="string" Color="Color.Info" Size="Size.Small">@L["Admin_Apps_Public"]</MudChip>
                                 }
                                 else
                                 {
-                                    <MudChip T="string" Color="Color.Warning" Size="Size.Small">Restricted</MudChip>
+                                    <MudChip T="string" Color="Color.Warning" Size="Size.Small">@L["Admin_Apps_Restricted"]</MudChip>
                                 }
                             </MudStack>
                         </CardHeaderActions>
@@ -74,19 +77,19 @@ else
                     <MudCardActions>
                         <MudButton Size="Size.Small" StartIcon="@Icons.Material.Filled.Edit"
                                    OnClick='() => Navigation.NavigateTo("/admin/applications/" + app.Id)'>
-                            Edit
+                            @L["Admin_Apps_Edit"]
                         </MudButton>
                         @if (!string.IsNullOrEmpty(app.LaunchUrl))
                         {
                             <MudButton Size="Size.Small" StartIcon="@Icons.Material.Filled.OpenInNew"
                                        Href="@app.LaunchUrl" Target="_blank">
-                                Launch
+                                @L["Admin_Apps_Launch"]
                             </MudButton>
                         }
                         <MudButton Size="Size.Small" Color="Color.Error"
                                    StartIcon="@Icons.Material.Filled.Delete"
                                    OnClick="() => ConfirmDelete(app)">
-                            Delete
+                            @L["Admin_Apps_Delete"]
                         </MudButton>
                     </MudCardActions>
                 </MudCard>
@@ -108,14 +111,14 @@ else
     private async Task ConfirmDelete(AppLauncher app)
     {
         var confirmed = await DialogService.ConfirmDeleteAsync(
-            "Delete Application",
-            $"Are you sure you want to delete '{app.Name}'? This cannot be undone.");
+            L["Admin_Apps_DeleteTitle"],
+            string.Format(L["Admin_Apps_DeleteConfirm"], app.Name));
 
         if (confirmed == true)
         {
             await ApplicationService.DeleteAsync(app.Id);
             _apps.RemoveAll(a => a.Id == app.Id);
-            Snackbar.Add($"'{app.Name}' deleted.", Severity.Success);
+            Snackbar.Add(string.Format(L["Admin_Apps_Deleted"], app.Name), Severity.Success);
         }
     }
 }

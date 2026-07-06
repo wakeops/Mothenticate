@@ -4,22 +4,19 @@
 @inject IDialogService DialogService
 @inject ISnackbar Snackbar
 @inject NavigationManager Navigation
+@inject IStringLocalizer<SharedResource> L
 
 <PageTitle>Users — Mothenticate Admin</PageTitle>
 
 <MudStack Row="true" AlignItems="AlignItems.Center" Class="mb-4">
-    <MudText Typo="Typo.h4">Users</MudText>
+    <MudText Typo="Typo.h4">@L["Admin_Users_Title"]</MudText>
     <MudSpacer />
-    <MudTextField @bind-Value="_search" Placeholder="Search users…" Immediate="true"
+    <MudTextField @bind-Value="_search" Placeholder="@L["Admin_Users_Search"]" Immediate="true"
                   Adornment="Adornment.Start" AdornmentIcon="@Icons.Material.Filled.Search"
                   Variant="Variant.Outlined" Margin="Margin.Dense" Style="max-width:300px" />
-    <MudTooltip Text="User Properties">
-        <MudIconButton Icon="@Icons.Material.Filled.Settings" Variant="Variant.Outlined"
-                       OnClick='() => Navigation.NavigateTo("/admin/users/properties")' />
-    </MudTooltip>
     <MudButton Variant="Variant.Filled" Color="Color.Primary" StartIcon="@Icons.Material.Filled.PersonAdd"
                OnClick='() => Navigation.NavigateTo("/admin/users/create")'>
-        New User
+        @L["Admin_Users_NewUser"]
     </MudButton>
 </MudStack>
 
@@ -32,31 +29,31 @@ else
     <MudDataGrid T="ApplicationUser" Items="@FilteredUsers" Hover="true" Striped="true"
                  QuickFilter="@_quickFilter" Filterable="false">
         <Columns>
-            <PropertyColumn Property="u => u.UserName" Title="Username" />
-            <PropertyColumn Property="u => u.Email" Title="Email" />
-            <TemplateColumn Title="Name">
+            <PropertyColumn Property="u => u.UserName" Title="@L["Admin_Users_ColUsername"]" />
+            <PropertyColumn Property="u => u.Email" Title="@L["Admin_Users_ColEmail"]" />
+            <TemplateColumn Title="@L["Admin_Users_ColName"]">
                 <CellTemplate>
                     @(string.Join(" ", new[] { context.Item.FirstName, context.Item.LastName }
                         .Where(s => !string.IsNullOrWhiteSpace(s))))
                 </CellTemplate>
             </TemplateColumn>
-            <TemplateColumn Title="Status">
+            <TemplateColumn Title="@L["Admin_Users_ColStatus"]">
                 <CellTemplate>
                     @if (!context.Item.IsActive)
                     {
-                        <MudChip T="string" Color="Color.Default" Size="Size.Small">Inactive</MudChip>
+                        <MudChip T="string" Color="Color.Default" Size="Size.Small">@L["Admin_Users_StatusInactive"]</MudChip>
                     }
                     else if (context.Item.LockoutEnd.HasValue && context.Item.LockoutEnd > DateTimeOffset.UtcNow)
                     {
-                        <MudChip T="string" Color="Color.Error" Size="Size.Small">Locked</MudChip>
+                        <MudChip T="string" Color="Color.Error" Size="Size.Small">@L["Admin_Users_StatusLocked"]</MudChip>
                     }
                     else
                     {
-                        <MudChip T="string" Color="Color.Success" Size="Size.Small">Active</MudChip>
+                        <MudChip T="string" Color="Color.Success" Size="Size.Small">@L["Admin_Users_StatusActive"]</MudChip>
                     }
                 </CellTemplate>
             </TemplateColumn>
-            <PropertyColumn Property="u => u.CreatedAt" Title="Created" Format="yyyy-MM-dd" />
+            <PropertyColumn Property="u => u.CreatedAt" Title="@L["Admin_Users_ColCreated"]" Format="yyyy-MM-dd" />
             <TemplateColumn Title="" StickyRight="true">
                 <CellTemplate>
                     <MudIconButton Icon="@Icons.Material.Filled.Edit" Size="Size.Small"
@@ -95,8 +92,8 @@ else
     private async Task ConfirmDelete(ApplicationUser user)
     {
         var confirmed = await DialogService.ConfirmDeleteAsync(
-            "Delete User",
-            $"Are you sure you want to delete '{user.UserName}'? This cannot be undone.");
+            L["Admin_Users_DeleteTitle"],
+            string.Format(L["Admin_Users_DeleteConfirm"], user.UserName));
 
         if (confirmed == true)
         {
@@ -104,7 +101,7 @@ else
             if (result.Succeeded)
             {
                 _users.RemoveAll(u => u.Id == user.Id);
-                Snackbar.Add("User deleted.", Severity.Success);
+                Snackbar.Add(L["Admin_Users_Deleted"], Severity.Success);
             }
             else
             {
