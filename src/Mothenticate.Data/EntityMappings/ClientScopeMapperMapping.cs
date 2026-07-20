@@ -12,6 +12,10 @@ public class ClientScopeMapperMapping : IEntityTypeConfiguration<ClientScopeMapp
 
         builder.Property(m => m.Name).HasMaxLength(100).IsRequired();
         builder.Property(m => m.MapperType).HasConversion<string>().HasMaxLength(30);
+        builder.Property(m => m.IncludeAccessToken).HasDefaultValue(false);
+        builder.Property(m => m.IncludeIdToken).HasDefaultValue(false);
+        builder.Property(m => m.IncludeIntrospectionToken).HasDefaultValue(false);
+        builder.Property(m => m.IncludeUserInfo).HasDefaultValue(false);
         builder.Property(m => m.Config).HasColumnType("jsonb").IsRequired();
 
         builder.HasIndex(m => new { m.ClientScopeId, m.Name }).IsUnique();

@@ -114,6 +114,7 @@ public static class Bootstrap
         services.AddSingleton<IScopeMapper, AcrMapper>();
         services.AddSingleton<IScopeMapper, SubjectMapper>();
         services.AddSingleton<IScopeMapperResolver, ScopeMapperResolver>();
+        services.AddScoped<IScopeMapperClaimsService, ScopeMapperClaimsService>();
         services.AddScoped<IntrospectionClaimsHandler>();
 
         services.AddSingleton<IIdentityProviderMapper, AttributeImporterMapper>();

@@ -7,8 +7,6 @@
 @inject ISnackbar Snackbar
 @inject NavigationManager Navigation
 @inject IStringLocalizer<SharedResource> L
-@using System.ComponentModel.DataAnnotations
-@using System.Reflection
 @using Mothenticate.IdentityProvider.Services.IdentityProviderMappers
 @using Mothenticate.IdentityProvider.Services.IdentityProviderMappers.Abstract
 @using Mothenticate.IdentityProvider.Services.ScopeMappers.Abstract
@@ -41,26 +39,7 @@ else
                 </MudSelect>
             </MudItem>
 
-            @foreach (var field in _configFields)
-            {
-                <MudItem xs="12">
-                    @if (field.IsUserAttributeReference)
-                    {
-                        <MudSelect T="int?" Value="@GetConfigInt(field.Name)" ValueChanged="@(v => SetConfigInt(field.Name, v))"
-                                   Label="@field.Label" Variant="Variant.Outlined" Required="@field.Required">
-                            @foreach (var userAttr in _attributes)
-                            {
-                                <MudSelectItem T="int?" Value="@((int?)userAttr.Id)">@userAttr.Name</MudSelectItem>
-                            }
-                        </MudSelect>
-                    }
-                    else
-                    {
-                        <MudTextField T="string" Value="@GetConfigValue(field.Name)" ValueChanged="@((string? v) => SetConfigValue(field.Name, v))"
-                                      Label="@field.Label" Variant="Variant.Outlined" Required="@field.Required" />
-                    }
-                </MudItem>
-            }
+            <MapperConfigFieldsEditor Fields="_configFields" ConfigValues="_configValues" Attributes="_attributes" />
 
             <MudItem xs="12">
                 <MudSelect @bind-Value="_model.SyncMode" Label="@L["Admin_IdP_SyncMode"]" Variant="Variant.Outlined">
@@ -85,15 +64,13 @@ else
     [Parameter] public int ProviderId { get; set; }
     [Parameter] public int? Id { get; set; }
 
-    private record ConfigFieldMeta(string Name, string Label, Type ClrType, bool Required, bool IsUserAttributeReference);
-
     private bool _isCreate;
     private bool _loading = true;
     private bool _saving;
     private IdentityProviderMapperEditModel _model = new();
     private List<UserAttribute> _attributes = [];
     private Dictionary<string, string> _configValues = [];
-    private List<ConfigFieldMeta> _configFields = [];
+    private List<MapperConfigFieldsEditor.ConfigFieldMeta> _configFields = [];
 
     protected override async Task OnInitializedAsync()
     {
@@ -118,7 +95,7 @@ else
                 MapperType = mapper.MapperType,
                 SyncMode = mapper.SyncMode
             };
-            _configValues = DeserializeConfig(mapper.Config);
+            _configValues = MapperConfigSerializer.Deserialize(mapper.Config);
         }
 
         RefreshConfigFields();
@@ -137,27 +114,9 @@ else
         var mapper = IdentityProviderMapperResolver.Resolve(_model.MapperType);
 
         _configFields = mapper is IConfigurableMapper configurable
-            ? [.. configurable.SettingsType.GetProperties(BindingFlags.Public | BindingFlags.Instance).Select(BuildFieldMeta)]
+            ? MapperConfigFieldsEditor.ConfigFieldMeta.BuildFrom(configurable.SettingsType)
             : [];
     }
-
-    private static ConfigFieldMeta BuildFieldMeta(PropertyInfo property) => new(
-        property.Name,
-        property.GetCustomAttribute<DisplayAttribute>()?.Name ?? property.Name,
-        Nullable.GetUnderlyingType(property.PropertyType) ?? property.PropertyType,
-        property.GetCustomAttribute<RequiredAttribute>() is not null,
-        property.GetCustomAttribute<UserAttributeReferenceAttribute>() is not null);
-
-    private string? GetConfigValue(string key) => _configValues.GetValueOrDefault(key);
-
-    private void SetConfigValue(string key, string? value) => _configValues[key] = value ?? string.Empty;
-
-    private int? GetConfigInt(string key) => int.TryParse(GetConfigValue(key), out var value) ? value : null;
-
-    private void SetConfigInt(string key, int? value) => SetConfigValue(key, value?.ToString());
-
-    private static Dictionary<string, string> DeserializeConfig(string json)
-        => System.Text.Json.JsonSerializer.Deserialize<Dictionary<string, string>>(json) ?? [];
 
     private async Task Save()
     {
@@ -169,7 +128,7 @@ else
 
         foreach (var field in _configFields.Where(f => f.Required))
         {
-            if (string.IsNullOrWhiteSpace(GetConfigValue(field.Name)))
+            if (string.IsNullOrWhiteSpace(_configValues.GetValueOrDefault(field.Name)))
             {
                 Snackbar.Add(L["Admin_IdP_MapperNameRequired"], Severity.Warning);
                 return;
@@ -186,7 +145,7 @@ else
                 Name = _model.Name,
                 MapperType = _model.MapperType,
                 SyncMode = _model.SyncMode,
-                Config = System.Text.Json.JsonSerializer.Serialize(_configValues)
+                Config = MapperConfigSerializer.Serialize(_configValues)
             };
 
             if (_isCreate)

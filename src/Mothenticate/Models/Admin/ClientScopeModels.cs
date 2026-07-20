@@ -22,4 +22,8 @@ public record ClientScopeMapperEditModel
     public int ClientScopeId { get; init; }
     [Required] public string Name { get; set; } = string.Empty;
     public MapperType MapperType { get; set; } = MapperType.UserAttribute;
+    public bool IncludeAccessToken { get; set; } = true;
+    public bool IncludeIdToken { get; set; } = true;
+    public bool IncludeIntrospectionToken { get; set; } = true;
+    public bool IncludeUserInfo { get; set; } = true;
 }

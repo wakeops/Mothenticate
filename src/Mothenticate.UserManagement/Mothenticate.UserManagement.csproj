@@ -1,6 +1,10 @@
 <Project Sdk="Microsoft.NET.Sdk">
 
   <ItemGroup>
+    <PackageReference Include="Microsoft.Extensions.Caching.Memory" />
+  </ItemGroup>
+
+  <ItemGroup>
     <ProjectReference Include="..\Mothenticate.Data\Mothenticate.Data.csproj" />
   </ItemGroup>
 

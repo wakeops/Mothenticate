@@ -1,5 +1,4 @@
 ﻿using System.Security.Claims;
-using System.Text.Json;
 using Microsoft.AspNetCore;
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Authorization;
@@ -10,9 +9,6 @@ using Mothenticate.Data.Entities;
 using Mothenticate.Domain.Config;
 using Mothenticate.IdentityProvider.Services;
 using Mothenticate.IdentityProvider.Services.ScopeMappers;
-using Mothenticate.IdentityProvider.Services.ScopeMappers.Abstract;
-using Mothenticate.IdentityProvider.Services.ScopeMappers.Handlers;
-using Mothenticate.UserManagement.Services;
 using OpenIddict.Abstractions;
 using OpenIddict.Server.AspNetCore;
 
@@ -27,9 +23,7 @@ public class AuthorizationController(
     UserManager<ApplicationUser> userManager,
     IOpenIddictApplicationManager applicationManager,
     IOpenIddictAuthorizationManager authorizationManager,
-    IUserAttributeService userAttributeService,
-    IClientScopeService clientScopeService,
-    IScopeMapperResolver scopeMapperResolver,
+    IScopeMapperClaimsService scopeMapperClaimsService,
     IClientService clientService) : Controller
 {
     // ── Authorization endpoint ────────────────────────────────────────────────
@@ -230,28 +224,11 @@ public class AuthorizationController(
             claims[OpenIddictConstants.Claims.Role] = await userManager.GetRolesAsync(user);
         }
 
-        var mapperRows = await clientScopeService.GetMappersByScopeNamesAsync(scopes);
-        if (mapperRows.Count > 0)
+        var identity = User.Identity as ClaimsIdentity ?? new ClaimsIdentity();
+        var userInfo = await scopeMapperClaimsService.GetUserInfoClaimsAsync(identity, user, scopes, HttpContext.RequestAborted);
+        foreach (var (key, value) in userInfo)
         {
-            var userAttributes = await userAttributeService.GetAllWithUserValuesAsync(userId);
-            var identity = User.Identity as ClaimsIdentity ?? new ClaimsIdentity();
-            var userInfo = new Dictionary<string, string>();
-
-            foreach (var mapperRow in mapperRows)
-            {
-                if (scopeMapperResolver.Resolve(mapperRow.MapperType) is not IUserInfoMapper userInfoMapper)
-                {
-                    continue;
-                }
-
-                var config = DeserializeConfig(mapperRow.Config);
-                await UserInfoMapperHandler.HandleAsync(userInfoMapper, config, identity, user, userAttributes, userInfo, HttpContext.RequestAborted);
-            }
-
-            foreach (var (key, value) in userInfo)
-            {
-                claims[key] = value;
-            }
+            claims[key] = value;
         }
 
         return Ok(claims);
@@ -293,37 +270,12 @@ public class AuthorizationController(
             }
         }
 
-        await ApplyScopeMapperClaimsAsync(identity, user, scopeList);
+        await scopeMapperClaimsService.ApplyTokenClaimsAsync(identity, user, scopeList, HttpContext.RequestAborted);
 
         identity.SetScopes(scopeList);
 
         return identity;
     }
-
-    private async Task ApplyScopeMapperClaimsAsync(ClaimsIdentity identity, ApplicationUser user, IReadOnlyList<string> scopes)
-    {
-        var mapperRows = await clientScopeService.GetMappersByScopeNamesAsync(scopes);
-        if (mapperRows.Count == 0)
-        {
-            return;
-        }
-
-        var userAttributes = await userAttributeService.GetAllWithUserValuesAsync(user.Id);
-
-        foreach (var mapperRow in mapperRows)
-        {
-            if (scopeMapperResolver.Resolve(mapperRow.MapperType) is not ITokenMapper tokenMapper)
-            {
-                continue;
-            }
-
-            var config = DeserializeConfig(mapperRow.Config);
-            await TokenMapperHandler.HandleAsync(tokenMapper, config, identity, user, userAttributes, HttpContext.RequestAborted);
-        }
-    }
-
-    private static Dictionary<string, string> DeserializeConfig(string config)
-        => JsonSerializer.Deserialize<Dictionary<string, string>>(config) ?? [];
 
     private static void AddClaim(ClaimsIdentity identity, string type, string value, params string[] destinations)
     {
