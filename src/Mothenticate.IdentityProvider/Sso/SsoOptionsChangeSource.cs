@@ -1,27 +1,19 @@
-using Microsoft.AspNetCore.Authentication;
-using Microsoft.AspNetCore.Authentication.Google;
 using Microsoft.AspNetCore.Authentication.OAuth;
 using Microsoft.Extensions.Options;
 using Microsoft.Extensions.Primitives;
 
 namespace Mothenticate.IdentityProvider.Sso;
 
-// Singleton; call Trigger() after saving SSO settings so IOptionsMonitor re-reads from DB.
-public sealed class SsoOptionsChangeSource :
-    IOptionsChangeTokenSource<GoogleOptions>,
-    IOptionsChangeTokenSource<OAuthOptions>
+// Singleton; call NotifyChanged() after saving provider settings so IOptionsMonitor re-reads from DB.
+public sealed class SsoOptionsChangeSource : IOptionsChangeTokenSource<OAuthOptions>, ISsoSettingsChangeNotifier
 {
     private volatile CancellationTokenSource _cts = new();
 
-    string IOptionsChangeTokenSource<GoogleOptions>.Name => Microsoft.Extensions.Options.Options.DefaultName;
-    string IOptionsChangeTokenSource<OAuthOptions>.Name => SsoDefaults.GitHubScheme;
+    string IOptionsChangeTokenSource<OAuthOptions>.Name => Microsoft.Extensions.Options.Options.DefaultName;
 
-    IChangeToken IOptionsChangeTokenSource<GoogleOptions>.GetChangeToken() => BuildToken();
-    IChangeToken IOptionsChangeTokenSource<OAuthOptions>.GetChangeToken() => BuildToken();
+    IChangeToken IOptionsChangeTokenSource<OAuthOptions>.GetChangeToken() => new CancellationChangeToken(_cts.Token);
 
-    private IChangeToken BuildToken() => new CancellationChangeToken(_cts.Token);
-
-    public void Trigger()
+    public void NotifyChanged()
     {
         var old = Interlocked.Exchange(ref _cts, new CancellationTokenSource());
         old.Cancel();

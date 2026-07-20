@@ -1,6 +1,7 @@
 @page "/login"
 @layout AuthLayout
 @inject IAppSettingsService AppSettingsService
+@inject IIdentityProviderService IdentityProviderService
 @inject IStringLocalizer<SharedResource> L
 
 <PageTitle>Sign In — Mothenticate</PageTitle>
@@ -38,22 +39,16 @@
     </MudButton>
 </form>
 
-@if (_googleEnabled || _githubEnabled)
+@if (_ssoProviders.Count > 0)
 {
     <MudDivider Class="mb-4" />
     <MudStack Spacing="2">
-        @if (_googleEnabled)
+        @foreach (var p in _ssoProviders)
         {
-            <MudButton Variant="Variant.Outlined" FullWidth="true" StartIcon="@Icons.Custom.Brands.Google"
-                       Href="/connect/external/google">
-                @L["Login_ContinueWithGoogle"]
-            </MudButton>
-        }
-        @if (_githubEnabled)
-        {
-            <MudButton Variant="Variant.Outlined" FullWidth="true" StartIcon="@Icons.Custom.Brands.GitHub"
-                       Href="/connect/external/github">
-                @L["Login_ContinueWithGitHub"]
+            <MudButton Variant="Variant.Outlined" FullWidth="true"
+                       StartIcon="@GetProviderIcon(p.ProviderType.Name)"
+                       Href="@("/connect/external/" + p.Alias)">
+                @p.DisplayName
             </MudButton>
         }
     </MudStack>
@@ -76,8 +71,7 @@
     private bool _useEmailAsUsername;
     private bool _allowEmailLogin;
     private bool _registrationEnabled;
-    private bool _googleEnabled;
-    private bool _githubEnabled;
+    private List<Mothenticate.Data.Entities.IdentityProvider> _ssoProviders = [];
 
     protected override async Task OnInitializedAsync()
     {
@@ -98,7 +92,17 @@
         _useEmailAsUsername  = settings.UseEmailAsUsername;
         _allowEmailLogin     = settings.AllowEmailLogin;
         _registrationEnabled = settings.RegistrationEnabled;
-        _googleEnabled       = settings.GoogleSsoEnabled;
-        _githubEnabled       = settings.GitHubSsoEnabled;
+
+        var all = await IdentityProviderService.GetProvidersAsync();
+        _ssoProviders = all
+            .Where(p => p.IsEnabled && !p.HideOnLoginPage && !p.AccountLinkingOnly)
+            .ToList();
     }
+
+    private static string GetProviderIcon(string typeName) => typeName.ToLowerInvariant() switch
+    {
+        "google" => Icons.Custom.Brands.Google,
+        "github" => Icons.Custom.Brands.GitHub,
+        _        => Icons.Material.Filled.Login,
+    };
 }

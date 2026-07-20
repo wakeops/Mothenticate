@@ -1,0 +1,210 @@
+@page "/admin/identity-providers/{ProviderId:int}/mappers/edit"
+@page "/admin/identity-providers/{ProviderId:int}/mappers/edit/{Id:int}"
+@attribute [Authorize(Policy = AuthDefaults.AppAdminUserPolicy)]
+@inject IIdentityProviderService IdentityProviderService
+@inject IUserAttributeService UserAttributeService
+@inject IIdentityProviderMapperResolver IdentityProviderMapperResolver
+@inject ISnackbar Snackbar
+@inject NavigationManager Navigation
+@inject IStringLocalizer<SharedResource> L
+@using System.ComponentModel.DataAnnotations
+@using System.Reflection
+@using Mothenticate.IdentityProvider.Services.IdentityProviderMappers
+@using Mothenticate.IdentityProvider.Services.IdentityProviderMappers.Abstract
+@using Mothenticate.IdentityProvider.Services.ScopeMappers.Abstract
+@using Mothenticate.Models.Admin
+
+<PageTitle>@(_isCreate ? L["Admin_IdP_AddMapper"] : L["Admin_IdP_EditMapper"]) — Mothenticate Admin</PageTitle>
+
+<MudStack Row="true" AlignItems="AlignItems.Center" Class="mb-4">
+    <MudIconButton Icon="@Icons.Material.Filled.ArrowBack" OnClick='() => Navigation.NavigateTo($"/admin/identity-providers/{ProviderId}")' />
+    <MudText Typo="Typo.h4">@(_isCreate ? L["Admin_IdP_AddMapper"] : L["Admin_IdP_EditMapper"])</MudText>
+</MudStack>
+
+@if (_loading)
+{
+    <MudProgressLinear Indeterminate="true" />
+}
+else
+{
+    <MudPaper Elevation="2" Class="pa-4" Style="max-width:600px">
+        <MudGrid>
+            <MudItem xs="12">
+                <MudTextField @bind-Value="_model.Name" Label="@L["Admin_IdP_MapperName"]" Variant="Variant.Outlined" Required="true" />
+            </MudItem>
+            <MudItem xs="12">
+                <MudSelect T="IdentityProviderMapperType" Value="_model.MapperType" ValueChanged="OnMapperTypeChanged" Label="@L["Admin_IdP_MapperType"]" Variant="Variant.Outlined">
+                    @foreach (var type in Enum.GetValues<IdentityProviderMapperType>())
+                    {
+                        <MudSelectItem Value="@type">@type</MudSelectItem>
+                    }
+                </MudSelect>
+            </MudItem>
+
+            @foreach (var field in _configFields)
+            {
+                <MudItem xs="12">
+                    @if (field.IsUserAttributeReference)
+                    {
+                        <MudSelect T="int?" Value="@GetConfigInt(field.Name)" ValueChanged="@(v => SetConfigInt(field.Name, v))"
+                                   Label="@field.Label" Variant="Variant.Outlined" Required="@field.Required">
+                            @foreach (var userAttr in _attributes)
+                            {
+                                <MudSelectItem T="int?" Value="@((int?)userAttr.Id)">@userAttr.Name</MudSelectItem>
+                            }
+                        </MudSelect>
+                    }
+                    else
+                    {
+                        <MudTextField T="string" Value="@GetConfigValue(field.Name)" ValueChanged="@((string? v) => SetConfigValue(field.Name, v))"
+                                      Label="@field.Label" Variant="Variant.Outlined" Required="@field.Required" />
+                    }
+                </MudItem>
+            }
+
+            <MudItem xs="12">
+                <MudSelect @bind-Value="_model.SyncMode" Label="@L["Admin_IdP_SyncMode"]" Variant="Variant.Outlined">
+                    <MudSelectItem Value="SyncMode.Inherit">@L["Admin_IdP_SyncMode_Inherit"]</MudSelectItem>
+                    <MudSelectItem Value="SyncMode.Import">@L["Admin_IdP_SyncMode_Import"]</MudSelectItem>
+                    <MudSelectItem Value="SyncMode.Update">@L["Admin_IdP_SyncMode_Update"]</MudSelectItem>
+                </MudSelect>
+            </MudItem>
+        </MudGrid>
+        <MudStack Row="true" Class="mt-4">
+            <MudButton Variant="Variant.Filled" Color="Color.Primary" OnClick="Save" Disabled="@_saving">
+                @(_isCreate ? L["Admin_IdP_Add"] : L["Admin_IdP_Save"])
+            </MudButton>
+            <MudButton Variant="Variant.Text" OnClick='() => Navigation.NavigateTo($"/admin/identity-providers/{ProviderId}")'>
+                @L["Admin_IdP_Cancel"]
+            </MudButton>
+        </MudStack>
+    </MudPaper>
+}
+
+@code {
+    [Parameter] public int ProviderId { get; set; }
+    [Parameter] public int? Id { get; set; }
+
+    private record ConfigFieldMeta(string Name, string Label, Type ClrType, bool Required, bool IsUserAttributeReference);
+
+    private bool _isCreate;
+    private bool _loading = true;
+    private bool _saving;
+    private IdentityProviderMapperEditModel _model = new();
+    private List<UserAttribute> _attributes = [];
+    private Dictionary<string, string> _configValues = [];
+    private List<ConfigFieldMeta> _configFields = [];
+
+    protected override async Task OnInitializedAsync()
+    {
+        _isCreate = Id is null;
+        _attributes = [.. await UserAttributeService.GetAllDefinitionsAsync()];
+
+        if (!_isCreate)
+        {
+            var provider = await IdentityProviderService.GetProviderAsync(ProviderId);
+            var mapper = provider?.Mappers.FirstOrDefault(m => m.Id == Id);
+            if (mapper is null)
+            {
+                Navigation.NavigateTo($"/admin/identity-providers/{ProviderId}");
+                return;
+            }
+
+            _model = new IdentityProviderMapperEditModel
+            {
+                Id = mapper.Id,
+                IdentityProviderId = mapper.IdentityProviderId,
+                Name = mapper.Name,
+                MapperType = mapper.MapperType,
+                SyncMode = mapper.SyncMode
+            };
+            _configValues = DeserializeConfig(mapper.Config);
+        }
+
+        RefreshConfigFields();
+        _loading = false;
+    }
+
+    private void OnMapperTypeChanged(IdentityProviderMapperType type)
+    {
+        _model.MapperType = type;
+        _configValues = [];
+        RefreshConfigFields();
+    }
+
+    private void RefreshConfigFields()
+    {
+        var mapper = IdentityProviderMapperResolver.Resolve(_model.MapperType);
+
+        _configFields = mapper is IConfigurableMapper configurable
+            ? [.. configurable.SettingsType.GetProperties(BindingFlags.Public | BindingFlags.Instance).Select(BuildFieldMeta)]
+            : [];
+    }
+
+    private static ConfigFieldMeta BuildFieldMeta(PropertyInfo property) => new(
+        property.Name,
+        property.GetCustomAttribute<DisplayAttribute>()?.Name ?? property.Name,
+        Nullable.GetUnderlyingType(property.PropertyType) ?? property.PropertyType,
+        property.GetCustomAttribute<RequiredAttribute>() is not null,
+        property.GetCustomAttribute<UserAttributeReferenceAttribute>() is not null);
+
+    private string? GetConfigValue(string key) => _configValues.GetValueOrDefault(key);
+
+    private void SetConfigValue(string key, string? value) => _configValues[key] = value ?? string.Empty;
+
+    private int? GetConfigInt(string key) => int.TryParse(GetConfigValue(key), out var value) ? value : null;
+
+    private void SetConfigInt(string key, int? value) => SetConfigValue(key, value?.ToString());
+
+    private static Dictionary<string, string> DeserializeConfig(string json)
+        => System.Text.Json.JsonSerializer.Deserialize<Dictionary<string, string>>(json) ?? [];
+
+    private async Task Save()
+    {
+        if (string.IsNullOrWhiteSpace(_model.Name))
+        {
+            Snackbar.Add(L["Admin_IdP_MapperNameRequired"], Severity.Warning);
+            return;
+        }
+
+        foreach (var field in _configFields.Where(f => f.Required))
+        {
+            if (string.IsNullOrWhiteSpace(GetConfigValue(field.Name)))
+            {
+                Snackbar.Add(L["Admin_IdP_MapperNameRequired"], Severity.Warning);
+                return;
+            }
+        }
+
+        _saving = true;
+        try
+        {
+            var mapper = new IdentityProviderMapper
+            {
+                Id = _model.Id,
+                IdentityProviderId = ProviderId,
+                Name = _model.Name,
+                MapperType = _model.MapperType,
+                SyncMode = _model.SyncMode,
+                Config = System.Text.Json.JsonSerializer.Serialize(_configValues)
+            };
+
+            if (_isCreate)
+            {
+                await IdentityProviderService.AddMapperAsync(mapper);
+                Snackbar.Add(L["Admin_IdP_MapperCreated"], Severity.Success);
+            }
+            else
+            {
+                await IdentityProviderService.UpdateMapperAsync(mapper);
+                Snackbar.Add(L["Admin_IdP_MapperUpdated"], Severity.Success);
+            }
+
+            Navigation.NavigateTo($"/admin/identity-providers/{ProviderId}");
+        }
+        finally
+        {
+            _saving = false;
+        }
+    }
+}

@@ -24,6 +24,9 @@
     <value>2.0</value>
   </resheader>
 
+  <!-- Common -->
+  <data name="Common_AddItem" xml:space="preserve"><value>Add item</value></data>
+
   <!-- Layout -->
   <data name="Layout_Apps" xml:space="preserve"><value>Apps</value></data>
   <data name="Layout_Profile" xml:space="preserve"><value>Profile</value></data>
@@ -39,6 +42,8 @@
   <data name="Admin_Nav_Groups" xml:space="preserve"><value>Groups</value></data>
   <data name="Admin_Nav_Roles" xml:space="preserve"><value>Roles</value></data>
   <data name="Admin_Nav_Settings" xml:space="preserve"><value>Settings</value></data>
+  <data name="Admin_Nav_UserAttributes" xml:space="preserve"><value>User Attributes</value></data>
+  <data name="Admin_Nav_ClientScopes" xml:space="preserve"><value>Client Scopes</value></data>
 
   <!-- Login errors -->
   <data name="Error_InvalidCredentials" xml:space="preserve"><value>Invalid username or password.</value></data>
@@ -56,8 +61,6 @@
   <data name="Login_PasswordLabel" xml:space="preserve"><value>Password</value></data>
   <data name="Login_RememberMe" xml:space="preserve"><value>Remember me</value></data>
   <data name="Login_SignIn" xml:space="preserve"><value>Sign In</value></data>
-  <data name="Login_ContinueWithGoogle" xml:space="preserve"><value>Continue with Google</value></data>
-  <data name="Login_ContinueWithGitHub" xml:space="preserve"><value>Continue with GitHub</value></data>
   <data name="Login_NoAccount" xml:space="preserve"><value>Don't have an account?</value></data>
   <data name="Login_Register" xml:space="preserve"><value>Register</value></data>
 
@@ -133,18 +136,10 @@
   <data name="Profile_Tab_Security" xml:space="preserve"><value>Security</value></data>
   <data name="Profile_Tab_Sessions" xml:space="preserve"><value>Sessions</value></data>
   <data name="Profile_Tab_Consents" xml:space="preserve"><value>Consents</value></data>
-  <data name="Profile_FirstName" xml:space="preserve"><value>First Name</value></data>
-  <data name="Profile_LastName" xml:space="preserve"><value>Last Name</value></data>
-  <data name="Profile_DisplayName" xml:space="preserve"><value>Display Name</value></data>
-  <data name="Profile_Email" xml:space="preserve"><value>Email</value></data>
-  <data name="Profile_EmailHelper" xml:space="preserve"><value>Email cannot be changed here.</value></data>
-  <data name="Profile_Username" xml:space="preserve"><value>Username</value></data>
-  <data name="Profile_UsernameHelper" xml:space="preserve"><value>Username cannot be changed.</value></data>
-  <data name="Profile_SaveChanges" xml:space="preserve"><value>Save Changes</value></data>
-  <data name="Profile_Saving" xml:space="preserve"><value>Saving…</value></data>
-  <data name="Profile_AvatarTitle" xml:space="preserve"><value>Avatar</value></data>
   <data name="Profile_Upload" xml:space="preserve"><value>Upload</value></data>
   <data name="Profile_Remove" xml:space="preserve"><value>Remove</value></data>
+  <data name="Profile_SaveChanges" xml:space="preserve"><value>Save Changes</value></data>
+  <data name="Profile_Saving" xml:space="preserve"><value>Saving…</value></data>
   <data name="Profile_ChangePassword" xml:space="preserve"><value>Change Password</value></data>
   <data name="Profile_CurrentPassword" xml:space="preserve"><value>Current Password</value></data>
   <data name="Profile_NewPassword" xml:space="preserve"><value>New Password</value></data>
@@ -175,10 +170,6 @@
   <data name="Profile_AuthorizedOn" xml:space="preserve"><value>Authorized {0}</value></data>
   <data name="Profile_Saved" xml:space="preserve"><value>Profile saved.</value></data>
   <data name="Profile_SaveFailed" xml:space="preserve"><value>Failed to save.</value></data>
-  <data name="Profile_AvatarUpdated" xml:space="preserve"><value>Avatar updated.</value></data>
-  <data name="Profile_AvatarFailed" xml:space="preserve"><value>Failed to upload avatar.</value></data>
-  <data name="Profile_AvatarRemoved" xml:space="preserve"><value>Avatar removed.</value></data>
-  <data name="ImageCrop_Title" xml:space="preserve"><value>Crop Image</value></data>
   <data name="ImageCrop_Confirm" xml:space="preserve"><value>Confirm</value></data>
   <data name="ImageCrop_Cancel" xml:space="preserve"><value>Cancel</value></data>
   <data name="Profile_PasswordUpdated" xml:space="preserve"><value>Password updated.</value></data>
@@ -224,8 +215,6 @@
   <data name="Admin_Settings_UseEmailAsUsername_Desc" xml:space="preserve"><value>Hide the username field and use email for login.</value></data>
   <data name="Admin_Settings_AllowEmailLogin" xml:space="preserve"><value>Allow login with email</value></data>
   <data name="Admin_Settings_AllowEmailLogin_Desc" xml:space="preserve"><value>Allow users to log in with either their username or email address.</value></data>
-  <data name="Admin_Settings_EnableAvatars" xml:space="preserve"><value>Enable Avatars</value></data>
-  <data name="Admin_Settings_EnableAvatars_Desc" xml:space="preserve"><value>Allow users to upload profile avatars (max 512×512 px).</value></data>
   <data name="Admin_Settings_GoogleSso" xml:space="preserve"><value>Google SSO</value></data>
   <data name="Admin_Settings_GitHubSso" xml:space="preserve"><value>GitHub SSO</value></data>
   <data name="Admin_Settings_ClientId" xml:space="preserve"><value>Client ID</value></data>
@@ -235,6 +224,84 @@
   <data name="Admin_Settings_Saving" xml:space="preserve"><value>Saving…</value></data>
   <data name="Admin_Settings_Saved" xml:space="preserve"><value>Settings saved.</value></data>
 
+  <!-- Admin Identity Providers -->
+  <data name="Admin_IdP_Search" xml:space="preserve"><value>Search by alias or provider…</value></data>
+  <data name="Admin_IdP_NewProvider" xml:space="preserve"><value>New Provider</value></data>
+  <data name="Admin_IdP_None" xml:space="preserve"><value>No identity providers configured.</value></data>
+  <data name="Admin_IdP_ColName" xml:space="preserve"><value>Name</value></data>
+  <data name="Admin_IdP_ColProvider" xml:space="preserve"><value>Provider</value></data>
+  <data name="Admin_IdP_DeleteTitle" xml:space="preserve"><value>Delete Identity Provider</value></data>
+  <data name="Admin_IdP_DeleteConfirm" xml:space="preserve"><value>Are you sure you want to delete '{0}'? This cannot be undone.</value></data>
+  <data name="Admin_IdP_Deleted" xml:space="preserve"><value>'{0}' deleted.</value></data>
+  <data name="Admin_IdP_ReturnToList" xml:space="preserve"><value>Return to Identity Providers</value></data>
+  <data name="Admin_IdP_ProviderNotFound" xml:space="preserve"><value>Provider not found.</value></data>
+  <data name="Admin_IdP_NotFound" xml:space="preserve"><value>Identity provider configuration not found.</value></data>
+  <data name="Admin_IdP_Create_PageTitle" xml:space="preserve"><value>Add Identity Provider</value></data>
+  <data name="Admin_IdP_Create_Title" xml:space="preserve"><value>Add {0} identity provider</value></data>
+  <data name="Admin_IdP_Edit_PageTitle" xml:space="preserve"><value>Edit Identity Provider</value></data>
+  <data name="Admin_IdP_Enabled" xml:space="preserve"><value>Enabled</value></data>
+  <data name="Admin_IdP_Disabled" xml:space="preserve"><value>Disabled</value></data>
+  <data name="Admin_IdP_EnabledSuccess" xml:space="preserve"><value>Provider enabled.</value></data>
+  <data name="Admin_IdP_DisabledSuccess" xml:space="preserve"><value>Provider disabled.</value></data>
+  <data name="Admin_IdP_TabSettings" xml:space="preserve"><value>Settings</value></data>
+  <data name="Admin_IdP_TabMappers" xml:space="preserve"><value>Mappers</value></data>
+  <data name="Admin_IdP_MapperSearch" xml:space="preserve"><value>Search mappers…</value></data>
+  <data name="Admin_IdP_AddMapper" xml:space="preserve"><value>Add Mapper</value></data>
+  <data name="Admin_IdP_EditMapper" xml:space="preserve"><value>Edit Mapper</value></data>
+  <data name="Admin_IdP_ColMapperName" xml:space="preserve"><value>Name</value></data>
+  <data name="Admin_IdP_ColMapperType" xml:space="preserve"><value>Type</value></data>
+  <data name="Admin_IdP_MapperName" xml:space="preserve"><value>Name</value></data>
+  <data name="Admin_IdP_MapperType" xml:space="preserve"><value>Type</value></data>
+  <data name="Admin_IdP_MapperNameRequired" xml:space="preserve"><value>Name and all required fields must be filled in.</value></data>
+  <data name="Admin_IdP_MapperCreated" xml:space="preserve"><value>Mapper created.</value></data>
+  <data name="Admin_IdP_MapperUpdated" xml:space="preserve"><value>Mapper updated.</value></data>
+  <data name="Admin_IdP_MapperDeleted" xml:space="preserve"><value>Mapper deleted.</value></data>
+  <data name="Admin_IdP_DeleteMapperTitle" xml:space="preserve"><value>Delete Mapper</value></data>
+  <data name="Admin_IdP_DeleteMapperConfirm" xml:space="preserve"><value>Delete '{0}'?</value></data>
+  <data name="Admin_IdP_SyncMode_Inherit" xml:space="preserve"><value>Inherit — use the provider's sync mode</value></data>
+  <data name="Admin_IdP_RedirectUri" xml:space="preserve"><value>Redirect URI</value></data>
+  <data name="Admin_IdP_CopyUri" xml:space="preserve"><value>Copy to clipboard</value></data>
+  <data name="Admin_IdP_UriCopied" xml:space="preserve"><value>Redirect URI copied to clipboard.</value></data>
+  <data name="Admin_IdP_Alias" xml:space="preserve"><value>Alias</value></data>
+  <data name="Admin_IdP_Alias_Helper" xml:space="preserve"><value>Used in the callback path: /signin-{alias}. Cannot be changed after creation.</value></data>
+  <data name="Admin_IdP_DisplayName" xml:space="preserve"><value>Display Name</value></data>
+  <data name="Admin_IdP_ClientId" xml:space="preserve"><value>Client ID</value></data>
+  <data name="Admin_IdP_ClientSecret" xml:space="preserve"><value>Client Secret</value></data>
+  <data name="Admin_IdP_DiscoveryUrl" xml:space="preserve"><value>Discovery URL</value></data>
+  <data name="Admin_IdP_AuthorizationEndpoint" xml:space="preserve"><value>Authorization Endpoint</value></data>
+  <data name="Admin_IdP_TokenEndpoint" xml:space="preserve"><value>Token Endpoint</value></data>
+  <data name="Admin_IdP_UserinfoEndpoint" xml:space="preserve"><value>Userinfo Endpoint</value></data>
+  <data name="Admin_IdP_DefaultScopes" xml:space="preserve"><value>Default Scopes</value></data>
+  <data name="Admin_IdP_IdField" xml:space="preserve"><value>ID Field</value></data>
+  <data name="Admin_IdP_NameField" xml:space="preserve"><value>Name Field</value></data>
+  <data name="Admin_IdP_EmailField" xml:space="preserve"><value>Email Field</value></data>
+  <data name="Admin_IdP_Scopes" xml:space="preserve"><value>Scopes</value></data>
+  <data name="Admin_IdP_Scopes_Helper" xml:space="preserve"><value>Space-separated OAuth2 scopes. Defaults to 'openid' if blank.</value></data>
+  <data name="Admin_IdP_DisplayOrder" xml:space="preserve"><value>Display Order</value></data>
+  <data name="Admin_IdP_SyncMode" xml:space="preserve"><value>Sync Mode</value></data>
+  <data name="Admin_IdP_SyncMode_Import" xml:space="preserve"><value>Import — sync user data on first login only</value></data>
+  <data name="Admin_IdP_SyncMode_Update" xml:space="preserve"><value>Update — sync user data on every login</value></data>
+  <data name="Admin_IdP_ShowInConsole" xml:space="preserve"><value>Show in Account Console</value></data>
+  <data name="Admin_IdP_ShowInConsole_Always" xml:space="preserve"><value>Always</value></data>
+  <data name="Admin_IdP_ShowInConsole_WhenLinked" xml:space="preserve"><value>When linked</value></data>
+  <data name="Admin_IdP_ShowInConsole_Never" xml:space="preserve"><value>Never</value></data>
+  <data name="Admin_IdP_AccountLinkingOnly" xml:space="preserve"><value>Account Linking Only — users cannot sign in through this provider, only link from their profile</value></data>
+  <data name="Admin_IdP_HideOnLoginPage" xml:space="preserve"><value>Hide on Login Page — only accessible via ?idp_hint={alias}</value></data>
+  <data name="Admin_IdP_Add" xml:space="preserve"><value>Add</value></data>
+  <data name="Admin_IdP_Adding" xml:space="preserve"><value>Adding…</value></data>
+  <data name="Admin_IdP_Cancel" xml:space="preserve"><value>Cancel</value></data>
+  <data name="Admin_IdP_Created" xml:space="preserve"><value>'{0}' created.</value></data>
+  <data name="Admin_IdP_Save" xml:space="preserve"><value>Save</value></data>
+  <data name="Admin_IdP_Saving" xml:space="preserve"><value>Saving…</value></data>
+  <data name="Admin_IdP_Saved" xml:space="preserve"><value>Settings saved.</value></data>
+  <data name="Admin_IdP_Revert" xml:space="preserve"><value>Revert</value></data>
+  <data name="Admin_IdP_Reverted" xml:space="preserve"><value>Changes reverted.</value></data>
+  <data name="Admin_IdP_BaseProperties" xml:space="preserve"><value>Base Configuration (read-only)</value></data>
+  <data name="Admin_IdP_InstanceProperties" xml:space="preserve"><value>Instance Configuration</value></data>
+  <data name="Admin_IdP_PropertyKey" xml:space="preserve"><value>Key</value></data>
+  <data name="Admin_IdP_PropertyValue" xml:space="preserve"><value>Value</value></data>
+  <data name="Admin_IdP_AddProperty" xml:space="preserve"><value>Add Property</value></data>
+
   <!-- Admin Users -->
   <data name="Admin_Users_Title" xml:space="preserve"><value>Users</value></data>
   <data name="Admin_Users_Search" xml:space="preserve"><value>Search users…</value></data>
@@ -242,7 +309,6 @@
   <data name="Admin_Users_NewUser" xml:space="preserve"><value>New User</value></data>
   <data name="Admin_Users_ColUsername" xml:space="preserve"><value>Username</value></data>
   <data name="Admin_Users_ColEmail" xml:space="preserve"><value>Email</value></data>
-  <data name="Admin_Users_ColName" xml:space="preserve"><value>Name</value></data>
   <data name="Admin_Users_ColStatus" xml:space="preserve"><value>Status</value></data>
   <data name="Admin_Users_ColCreated" xml:space="preserve"><value>Created</value></data>
   <data name="Admin_Users_StatusInactive" xml:space="preserve"><value>Inactive</value></data>
@@ -257,9 +323,6 @@
   <data name="Admin_UserDetail_CreateUser" xml:space="preserve"><value>Create User</value></data>
   <data name="Admin_UserDetail_Username" xml:space="preserve"><value>Username</value></data>
   <data name="Admin_UserDetail_Email" xml:space="preserve"><value>Email</value></data>
-  <data name="Admin_UserDetail_FirstName" xml:space="preserve"><value>First Name</value></data>
-  <data name="Admin_UserDetail_LastName" xml:space="preserve"><value>Last Name</value></data>
-  <data name="Admin_UserDetail_DisplayName" xml:space="preserve"><value>Display Name</value></data>
   <data name="Admin_UserDetail_Password" xml:space="preserve"><value>Password</value></data>
   <data name="Admin_UserDetail_Creating" xml:space="preserve"><value>Creating…</value></data>
   <data name="Admin_UserDetail_Cancel" xml:space="preserve"><value>Cancel</value></data>
@@ -300,49 +363,108 @@
   <data name="Admin_UserDetail_AddedToGroup" xml:space="preserve"><value>Added to group.</value></data>
   <data name="Admin_UserDetail_RemovedFromGroup" xml:space="preserve"><value>Removed from group.</value></data>
 
-  <!-- Admin User Properties -->
-  <data name="Admin_UserProps_Title" xml:space="preserve"><value>User Properties</value></data>
-  <data name="Admin_UserProps_BuiltIn" xml:space="preserve"><value>Built-in Properties</value></data>
-  <data name="Admin_UserProps_BuiltIn_Desc" xml:space="preserve"><value>These properties are always present and cannot be removed.</value></data>
-  <data name="Admin_UserProps_ColName" xml:space="preserve"><value>Name</value></data>
-  <data name="Admin_UserProps_ColDisplayName" xml:space="preserve"><value>Display Name</value></data>
-  <data name="Admin_UserProps_ColType" xml:space="preserve"><value>Type</value></data>
-  <data name="Admin_UserProps_ColRequired" xml:space="preserve"><value>Required</value></data>
-  <data name="Admin_UserProps_ColNotes" xml:space="preserve"><value>Notes</value></data>
-  <data name="Admin_UserProps_AvatarNote" xml:space="preserve"><value>Requires avatar toggle below</value></data>
-  <data name="Admin_UserProps_EnableAvatars" xml:space="preserve"><value>Enable User Avatars</value></data>
-  <data name="Admin_UserProps_EnableAvatars_Desc" xml:space="preserve"><value>Allows users to upload a cropped image (max 512×512 px).</value></data>
+  <!-- Admin Settings > User Profile tab -->
   <data name="Admin_UserProps_UseEmailAsUsername" xml:space="preserve"><value>Use Email as Username</value></data>
   <data name="Admin_UserProps_UseEmailAsUsername_Desc" xml:space="preserve"><value>When enabled, the username field is hidden and email is used as the unique login identifier.</value></data>
-  <data name="Admin_UserProps_CustomProps" xml:space="preserve"><value>Custom Properties</value></data>
-  <data name="Admin_UserProps_AddProperty" xml:space="preserve"><value>Add Property</value></data>
-  <data name="Admin_UserProps_NoCustomProps" xml:space="preserve"><value>No custom properties defined yet.</value></data>
-  <data name="Admin_UserProps_ColHidden" xml:space="preserve"><value>Hidden</value></data>
-  <data name="Admin_UserProps_ColReadOnly" xml:space="preserve"><value>Read-only</value></data>
-  <data name="Admin_UserProps_AvatarsEnabled_Msg" xml:space="preserve"><value>Avatars enabled.</value></data>
-  <data name="Admin_UserProps_AvatarsDisabled_Msg" xml:space="preserve"><value>Avatars disabled.</value></data>
+  <data name="Admin_UserProps_CustomProps" xml:space="preserve"><value>User Attributes</value></data>
+  <data name="Admin_UserProps_BuiltIn_Desc" xml:space="preserve"><value>Configure which attributes are collected and shown on user profiles.</value></data>
+  <data name="Admin_UserProps_ManageAttributes" xml:space="preserve"><value>Manage Attributes</value></data>
   <data name="Admin_UserProps_EmailEnabled_Msg" xml:space="preserve"><value>Email-as-username enabled.</value></data>
   <data name="Admin_UserProps_EmailDisabled_Msg" xml:space="preserve"><value>Email-as-username disabled.</value></data>
-  <data name="Admin_UserProps_AddPropTitle" xml:space="preserve"><value>Add Property</value></data>
-  <data name="Admin_UserProps_EditPropTitle" xml:space="preserve"><value>Edit Property</value></data>
-  <data name="Admin_UserProps_PropName" xml:space="preserve"><value>Name (claim key)</value></data>
-  <data name="Admin_UserProps_PropName_Helper" xml:space="preserve"><value>Unique identifier, used as the OIDC claim name.</value></data>
-  <data name="Admin_UserProps_PropDisplayName" xml:space="preserve"><value>Display Name</value></data>
-  <data name="Admin_UserProps_PropType" xml:space="preserve"><value>Type</value></data>
-  <data name="Admin_UserProps_TypeText" xml:space="preserve"><value>Text</value></data>
-  <data name="Admin_UserProps_TypeDate" xml:space="preserve"><value>Date</value></data>
-  <data name="Admin_UserProps_TypeBoolean" xml:space="preserve"><value>Boolean</value></data>
-  <data name="Admin_UserProps_TypeAvatar" xml:space="preserve"><value>Avatar</value></data>
-  <data name="Admin_UserProps_IsRequired" xml:space="preserve"><value>Required</value></data>
-  <data name="Admin_UserProps_IsHidden" xml:space="preserve"><value>Hidden from user (admin/token only)</value></data>
-  <data name="Admin_UserProps_IsReadOnly" xml:space="preserve"><value>Read-only (user cannot edit)</value></data>
-  <data name="Admin_UserProps_Cancel" xml:space="preserve"><value>Cancel</value></data>
-  <data name="Admin_UserProps_Save" xml:space="preserve"><value>Save</value></data>
-  <data name="Admin_UserProps_PropCreated" xml:space="preserve"><value>Property created.</value></data>
-  <data name="Admin_UserProps_PropUpdated" xml:space="preserve"><value>Property updated.</value></data>
-  <data name="Admin_UserProps_PropDeleted" xml:space="preserve"><value>Property deleted.</value></data>
-  <data name="Admin_UserProps_DeleteTitle" xml:space="preserve"><value>Delete Property</value></data>
-  <data name="Admin_UserProps_DeleteConfirm" xml:space="preserve"><value>Delete '{0}'? Existing user values for this property will also be deleted.</value></data>
+
+  <!-- Admin User Attributes -->
+  <data name="Admin_UserAttrs_Title" xml:space="preserve"><value>User Attributes</value></data>
+  <data name="Admin_UserAttrs_ColName" xml:space="preserve"><value>Attribute Name</value></data>
+  <data name="Admin_UserAttrs_ColDisplayName" xml:space="preserve"><value>Display Name</value></data>
+  <data name="Admin_UserAttrs_CreateAttribute" xml:space="preserve"><value>Create attribute</value></data>
+  <data name="Admin_UserAttrs_EditAttribute" xml:space="preserve"><value>Edit attribute</value></data>
+  <data name="Admin_UserAttrs_DeleteTitle" xml:space="preserve"><value>Delete Attribute</value></data>
+  <data name="Admin_UserAttrs_DeleteConfirm" xml:space="preserve"><value>Delete '{0}'? Existing user values for this attribute will also be deleted.</value></data>
+  <data name="Admin_UserAttrs_Deleted" xml:space="preserve"><value>Attribute deleted.</value></data>
+  <data name="Admin_UserAttrs_Created" xml:space="preserve"><value>Attribute created.</value></data>
+  <data name="Admin_UserAttrs_Updated" xml:space="preserve"><value>Attribute updated.</value></data>
+  <data name="Admin_UserAttrs_TabGeneral" xml:space="preserve"><value>General settings</value></data>
+  <data name="Admin_UserAttrs_TabPermissions" xml:space="preserve"><value>Permissions</value></data>
+  <data name="Admin_UserAttrs_TabValidations" xml:space="preserve"><value>Validations</value></data>
+  <data name="Admin_UserAttrs_Name" xml:space="preserve"><value>Name</value></data>
+  <data name="Admin_UserAttrs_DisplayName" xml:space="preserve"><value>Display name</value></data>
+  <data name="Admin_UserAttrs_InputType" xml:space="preserve"><value>Input type</value></data>
+  <data name="Admin_UserAttrs_Multivalued" xml:space="preserve"><value>Multivalued</value></data>
+  <data name="Admin_UserAttrs_DefaultValue" xml:space="preserve"><value>Default value</value></data>
+  <data name="Admin_UserAttrs_EnabledWhen" xml:space="preserve"><value>Enabled when</value></data>
+  <data name="Admin_UserAttrs_Always" xml:space="preserve"><value>Always</value></data>
+  <data name="Admin_UserAttrs_ScopesRequested" xml:space="preserve"><value>Scopes are requested</value></data>
+  <data name="Admin_UserAttrs_Scopes" xml:space="preserve"><value>Scopes</value></data>
+  <data name="Admin_UserAttrs_RequiredField" xml:space="preserve"><value>Required field</value></data>
+  <data name="Admin_UserAttrs_RequiredFor" xml:space="preserve"><value>Required for</value></data>
+  <data name="Admin_UserAttrs_RequiredForBoth" xml:space="preserve"><value>Both users and admins</value></data>
+  <data name="Admin_UserAttrs_RequiredForUsers" xml:space="preserve"><value>Only users</value></data>
+  <data name="Admin_UserAttrs_RequiredForAdmins" xml:space="preserve"><value>Only admins</value></data>
+  <data name="Admin_UserAttrs_RequiredWhen" xml:space="preserve"><value>Required when</value></data>
+  <data name="Admin_UserAttrs_WhoCanEdit" xml:space="preserve"><value>Who can edit?</value></data>
+  <data name="Admin_UserAttrs_WhoCanView" xml:space="preserve"><value>Who can view?</value></data>
+  <data name="Admin_UserAttrs_User" xml:space="preserve"><value>User</value></data>
+  <data name="Admin_UserAttrs_Admin" xml:space="preserve"><value>Admin</value></data>
+  <data name="Admin_UserAttrs_AddValidator" xml:space="preserve"><value>Add validator</value></data>
+  <data name="Admin_UserAttrs_NoValidators" xml:space="preserve"><value>No validators configured.</value></data>
+  <data name="Admin_UserAttrs_ColValidatorName" xml:space="preserve"><value>Validator name</value></data>
+  <data name="Admin_UserAttrs_ColConfig" xml:space="preserve"><value>Config</value></data>
+  <data name="Admin_UserAttrs_Create" xml:space="preserve"><value>Create</value></data>
+  <data name="Admin_UserAttrs_Save" xml:space="preserve"><value>Save</value></data>
+  <data name="Admin_UserAttrs_Cancel" xml:space="preserve"><value>Cancel</value></data>
+  <data name="Admin_UserAttrs_NameAndTypeRequired" xml:space="preserve"><value>Name and input type are required.</value></data>
+
+  <!-- Admin Client Scopes -->
+  <data name="Admin_ClientScopes_Title" xml:space="preserve"><value>Client Scopes</value></data>
+  <data name="Admin_ClientScopes_Search" xml:space="preserve"><value>Search scopes...</value></data>
+  <data name="Admin_ClientScopes_AllProtocols" xml:space="preserve"><value>All protocols</value></data>
+  <data name="Admin_ClientScopes_CreateScope" xml:space="preserve"><value>Create scope</value></data>
+  <data name="Admin_ClientScopes_EditScope" xml:space="preserve"><value>Edit scope</value></data>
+  <data name="Admin_ClientScopes_ColName" xml:space="preserve"><value>Name</value></data>
+  <data name="Admin_ClientScopes_ColProtocol" xml:space="preserve"><value>Protocol</value></data>
+  <data name="Admin_ClientScopes_ColDescription" xml:space="preserve"><value>Description</value></data>
+  <data name="Admin_ClientScopes_DeleteTitle" xml:space="preserve"><value>Delete Client Scope</value></data>
+  <data name="Admin_ClientScopes_DeleteConfirm" xml:space="preserve"><value>Delete '{0}'?</value></data>
+  <data name="Admin_ClientScopes_Deleted" xml:space="preserve"><value>Client scope deleted.</value></data>
+  <data name="Admin_ClientScopes_Created" xml:space="preserve"><value>Client scope created.</value></data>
+  <data name="Admin_ClientScopes_Updated" xml:space="preserve"><value>Client scope updated.</value></data>
+  <data name="Admin_ClientScopes_TabSettings" xml:space="preserve"><value>Settings</value></data>
+  <data name="Admin_ClientScopes_TabMappers" xml:space="preserve"><value>Mappers</value></data>
+  <data name="Admin_ClientScopes_Name" xml:space="preserve"><value>Name</value></data>
+  <data name="Admin_ClientScopes_Description" xml:space="preserve"><value>Description</value></data>
+  <data name="Admin_ClientScopes_AssignedType" xml:space="preserve"><value>Assigned type</value></data>
+  <data name="Admin_ClientScopes_Protocol" xml:space="preserve"><value>Protocol</value></data>
+  <data name="Admin_ClientScopes_DisplayOnConsent" xml:space="preserve"><value>Display on consent screen</value></data>
+  <data name="Admin_ClientScopes_ConsentText" xml:space="preserve"><value>Consent text</value></data>
+  <data name="Admin_ClientScopes_ConsentText_Helper" xml:space="preserve"><value>Shown on the consent screen. Defaults to the scope name if left blank.</value></data>
+  <data name="Admin_ClientScopes_IncludeInToken" xml:space="preserve"><value>Include in token scope</value></data>
+  <data name="Admin_ClientScopes_IncludeInMetadata" xml:space="preserve"><value>Include in OpenID Provider Metadata</value></data>
+  <data name="Admin_ClientScopes_Create" xml:space="preserve"><value>Create</value></data>
+  <data name="Admin_ClientScopes_Save" xml:space="preserve"><value>Save</value></data>
+  <data name="Admin_ClientScopes_Cancel" xml:space="preserve"><value>Cancel</value></data>
+  <data name="Admin_ClientScopes_NameRequired" xml:space="preserve"><value>Name is required.</value></data>
+  <data name="Admin_ClientScopes_MapperSearch" xml:space="preserve"><value>Search mappers...</value></data>
+  <data name="Admin_ClientScopes_AddMapper" xml:space="preserve"><value>Add Mapper</value></data>
+  <data name="Admin_ClientScopes_EditMapper" xml:space="preserve"><value>Edit Mapper</value></data>
+  <data name="Admin_ClientScopes_ColMapperName" xml:space="preserve"><value>Name</value></data>
+  <data name="Admin_ClientScopes_ColCategory" xml:space="preserve"><value>Category</value></data>
+  <data name="Admin_ClientScopes_ColType" xml:space="preserve"><value>Type</value></data>
+  <data name="Admin_ClientScopes_DeleteMapperTitle" xml:space="preserve"><value>Delete Mapper</value></data>
+  <data name="Admin_ClientScopes_DeleteMapperConfirm" xml:space="preserve"><value>Delete '{0}'?</value></data>
+  <data name="Admin_ClientScopes_MapperDeleted" xml:space="preserve"><value>Mapper deleted.</value></data>
+  <data name="Admin_ClientScopes_MapperCreated" xml:space="preserve"><value>Mapper created.</value></data>
+  <data name="Admin_ClientScopes_MapperUpdated" xml:space="preserve"><value>Mapper updated.</value></data>
+  <data name="Admin_ClientScopes_MapperName" xml:space="preserve"><value>Name</value></data>
+  <data name="Admin_ClientScopes_UserAttribute" xml:space="preserve"><value>User Attribute</value></data>
+  <data name="Admin_ClientScopes_UserProperty" xml:space="preserve"><value>User Property</value></data>
+  <data name="Admin_ClientScopes_UserProperty_Helper" xml:space="preserve"><value>Name of a public property on the user account (e.g. EmailConfirmed).</value></data>
+  <data name="Admin_ClientScopes_AcrHelper" xml:space="preserve"><value>This claim is computed automatically and doesn't require a source mapping.</value></data>
+  <data name="Admin_ClientScopes_TokenClaimName" xml:space="preserve"><value>Token Claim Name</value></data>
+  <data name="Admin_ClientScopes_AddToIdToken" xml:space="preserve"><value>Add to ID token</value></data>
+  <data name="Admin_ClientScopes_AddToAccessToken" xml:space="preserve"><value>Add to access token</value></data>
+  <data name="Admin_ClientScopes_AddToUserInfo" xml:space="preserve"><value>Add to userinfo</value></data>
+  <data name="Admin_ClientScopes_AddToIntrospection" xml:space="preserve"><value>Add to introspection</value></data>
+  <data name="Admin_ClientScopes_MapperNameAndAttributeRequired" xml:space="preserve"><value>Name and user attribute are required.</value></data>
 
   <!-- Admin Groups -->
   <data name="Admin_Groups_Title" xml:space="preserve"><value>Groups</value></data>

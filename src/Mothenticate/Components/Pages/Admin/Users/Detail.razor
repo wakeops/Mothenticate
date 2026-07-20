@@ -2,6 +2,7 @@
 @page "/admin/users/{Id}"
 @attribute [Authorize(Policy = AuthDefaults.AppAdminUserPolicy)]
 @inject IUserService UserService
+@inject IUserAttributeService UserAttributeService
 @inject IGroupService GroupService
 @inject IRoleService RoleService
 @inject ISessionService SessionService
@@ -35,19 +36,17 @@ else if (_isCreate)
                     <MudTextField @bind-Value="_create.Email" Label="@L["Admin_UserDetail_Email"]" InputType="InputType.Email"
                                   Required="true" RequiredError="Email is required." Variant="Variant.Outlined" />
                 </MudItem>
-                <MudItem xs="12" sm="6">
-                    <MudTextField @bind-Value="_create.FirstName" Label="@L["Admin_UserDetail_FirstName"]" Variant="Variant.Outlined" />
-                </MudItem>
-                <MudItem xs="12" sm="6">
-                    <MudTextField @bind-Value="_create.LastName" Label="@L["Admin_UserDetail_LastName"]" Variant="Variant.Outlined" />
-                </MudItem>
-                <MudItem xs="12">
-                    <MudTextField @bind-Value="_create.DisplayName" Label="@L["Admin_UserDetail_DisplayName"]" Variant="Variant.Outlined" />
-                </MudItem>
                 <MudItem xs="12">
                     <MudTextField @bind-Value="_create.Password" Label="@L["Admin_UserDetail_Password"]" InputType="InputType.Password"
                                   Required="true" RequiredError="Password is required." Variant="Variant.Outlined" />
                 </MudItem>
+                @foreach (var userAttr in CreateFormAttributes)
+                {
+                    <MudItem xs="12">
+                        <UserAttributeEditor Attribute="userAttr" Values="GetValuesList(userAttr.Id)"
+                                              ReadOnly="@(!userAttr.CanEditAdmin)" />
+                    </MudItem>
+                }
             </MudGrid>
             <MudStack Row="true" Class="mt-4">
                 <MudButton Variant="Variant.Filled" Color="Color.Primary" OnClick="CreateUser" Disabled="@_saving">
@@ -68,22 +67,13 @@ else if (_user is not null)
         <MudTabPanel Text="@L["Admin_UserDetail_Tab_Profile"]" Icon="@Icons.Material.Filled.Person">
             <MudPaper Elevation="0" Class="pa-4">
                 <MudGrid Style="max-width:600px">
-                    <MudItem xs="12" sm="6">
-                        <MudTextField @bind-Value="_profile.FirstName" Label="@L["Admin_UserDetail_FirstName"]" Variant="Variant.Outlined" />
-                    </MudItem>
-                    <MudItem xs="12" sm="6">
-                        <MudTextField @bind-Value="_profile.LastName" Label="@L["Admin_UserDetail_LastName"]" Variant="Variant.Outlined" />
-                    </MudItem>
-                    <MudItem xs="12">
-                        <MudTextField @bind-Value="_profile.DisplayName" Label="@L["Admin_UserDetail_DisplayName"]" Variant="Variant.Outlined" />
-                    </MudItem>
-                    <MudItem xs="12">
-                        <MudTextField @bind-Value="_profile.Email" Label="@L["Admin_UserDetail_Email"]" InputType="InputType.Email"
-                                      Variant="Variant.Outlined" />
-                    </MudItem>
-                    <MudItem xs="12">
-                        <MudTextField @bind-Value="_profile.Username" Label="@L["Admin_UserDetail_Username"]" Variant="Variant.Outlined" />
-                    </MudItem>
+                    @foreach (var userAttr in _editableAttributes)
+                    {
+                        <MudItem xs="12">
+                            <UserAttributeEditor Attribute="userAttr" Values="GetValuesList(userAttr.Id)"
+                                                  ReadOnly="@(!userAttr.CanEditAdmin)" />
+                        </MudItem>
+                    }
                     <MudItem xs="12">
                         <MudButton Variant="Variant.Filled" Color="Color.Primary" OnClick="SaveProfile" Disabled="@_saving">
                             @(_saving ? L["Admin_UserDetail_Saving"] : L["Admin_UserDetail_SaveProfile"])
@@ -228,8 +218,9 @@ else if (_user is not null)
     private bool _valid;
     private MudForm _form = default!;
 
+    private static readonly string[] IdentifierAttributeNames = ["username", "email"];
+
     private ApplicationUser? _user;
-    private ProfileModel _profile = new();
     private CreateModel _create = new();
     private string _newPassword = string.Empty;
 
@@ -238,9 +229,15 @@ else if (_user is not null)
     private List<Group> _allGroups = [];
     private List<AppRole> _effectiveRoles = [];
 
+    private List<UserAttribute> _editableAttributes = [];
+    private Dictionary<int, List<string?>> _attributeValues = [];
+
     protected override async Task OnInitializedAsync()
     {
         _isCreate = string.IsNullOrEmpty(Id) || Id == "create";
+
+        var allAttributes = await UserAttributeService.GetAllDefinitionsAsync();
+        _editableAttributes = allAttributes.Where(a => a.CanViewAdmin).ToList();
 
         if (!_isCreate)
         {
@@ -251,14 +248,13 @@ else if (_user is not null)
                 return;
             }
 
-            _profile = new ProfileModel
-            {
-                FirstName = _user.FirstName,
-                LastName = _user.LastName,
-                DisplayName = _user.DisplayName,
-                Email = _user.Email ?? string.Empty,
-                Username = _user.UserName ?? string.Empty
-            };
+            var attributeValues = await UserAttributeService.GetUserValuesAsync(Id!);
+            _attributeValues = attributeValues
+                .GroupBy(v => v.UserAttributeId)
+                .ToDictionary(g => g.Key, g => g.OrderBy(v => v.Ordinal).Select(v => v.Value).ToList());
+
+            SeedIdentifierValue("username", _user.UserName);
+            SeedIdentifierValue("email", _user.Email);
 
             _sessions = [.. await SessionService.GetActiveByUserIdAsync(Id!)];
             _userGroups = [.. await UserService.GetGroupsAsync(Id!)];
@@ -269,6 +265,48 @@ else if (_user is not null)
         _loading = false;
     }
 
+    private IEnumerable<UserAttribute> CreateFormAttributes => _editableAttributes.Where(a =>
+        !a.Name.Equals("username", StringComparison.OrdinalIgnoreCase) &&
+        !a.Name.Equals("email", StringComparison.OrdinalIgnoreCase));
+
+    private static bool IsIdentifierAttribute(UserAttribute attribute)
+        => IdentifierAttributeNames.Contains(attribute.Name, StringComparer.OrdinalIgnoreCase);
+
+    private UserAttribute? FindAttribute(string name)
+        => _editableAttributes.FirstOrDefault(a => a.Name.Equals(name, StringComparison.OrdinalIgnoreCase));
+
+    private List<string?> GetValuesList(int attributeId)
+    {
+        if (!_attributeValues.TryGetValue(attributeId, out var list))
+        {
+            list = [];
+            _attributeValues[attributeId] = list;
+        }
+
+        return list;
+    }
+
+    private void SeedIdentifierValue(string name, string? value)
+    {
+        var attribute = FindAttribute(name);
+        if (attribute is not null)
+        {
+            _attributeValues[attribute.Id] = [value];
+        }
+    }
+
+    private string? GetIdentifierValue(string name)
+    {
+        var attribute = FindAttribute(name);
+        if (attribute is null)
+        {
+            return null;
+        }
+
+        var values = GetValuesList(attribute.Id);
+        return values.Count > 0 ? values[0] : null;
+    }
+
     private async Task CreateUser()
     {
         await _form.ValidateAsync();
@@ -277,12 +315,20 @@ else if (_user is not null)
         _saving = true;
         try
         {
-            var result = await UserService.CreateAsync(
-                _create.Username, _create.Email, _create.Password,
-                _create.FirstName, _create.LastName, _create.DisplayName);
+            var result = await UserService.CreateAsync(_create.Username, _create.Email, _create.Password);
 
             if (result.Succeeded)
             {
+                var created = (await UserService.GetAllAsync())
+                    .FirstOrDefault(u => u.UserName == _create.Username || u.Email == _create.Email);
+                if (created is not null)
+                {
+                    foreach (var attribute in CreateFormAttributes)
+                    {
+                        await UserAttributeService.SetUserValuesAsync(created.Id, attribute.Id, GetValuesList(attribute.Id));
+                    }
+                }
+
                 Snackbar.Add(L["Admin_UserDetail_Created"], Severity.Success);
                 Navigation.NavigateTo("/admin/users");
             }
@@ -302,12 +348,22 @@ else if (_user is not null)
         _saving = true;
         try
         {
-            var result = await UserService.UpdateProfileAsync(Id!, _profile.FirstName, _profile.LastName, _profile.DisplayName);
+            var userName = GetIdentifierValue("username") ?? _user!.UserName ?? string.Empty;
+            var email = GetIdentifierValue("email") ?? _user!.Email ?? string.Empty;
+
+            var result = await UserService.UpdateIdentifiersAsync(Id!, userName, email);
             if (!result.Succeeded)
             {
                 Snackbar.Add(string.Join(", ", result.Errors.Select(e => e.Description)), Severity.Error);
                 return;
             }
+
+            foreach (var attribute in _editableAttributes)
+            {
+                if (IsIdentifierAttribute(attribute)) continue;
+                await UserAttributeService.SetUserValuesAsync(Id!, attribute.Id, GetValuesList(attribute.Id));
+            }
+
             Snackbar.Add(L["Admin_UserDetail_ProfileSaved"], Severity.Success);
             _user = await UserService.GetByIdAsync(Id!);
         }
@@ -397,22 +453,10 @@ else if (_user is not null)
         Snackbar.Add(L["Admin_UserDetail_RemovedFromGroup"], Severity.Success);
     }
 
-    private sealed class ProfileModel
-    {
-        public string? FirstName { get; set; }
-        public string? LastName { get; set; }
-        public string? DisplayName { get; set; }
-        public string Email { get; set; } = string.Empty;
-        public string Username { get; set; } = string.Empty;
-    }
-
     private sealed class CreateModel
     {
         public string Username { get; set; } = string.Empty;
         public string Email { get; set; } = string.Empty;
         public string Password { get; set; } = string.Empty;
-        public string? FirstName { get; set; }
-        public string? LastName { get; set; }
-        public string? DisplayName { get; set; }
     }
 }

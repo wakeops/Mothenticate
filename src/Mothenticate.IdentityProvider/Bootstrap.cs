@@ -1,5 +1,4 @@
 using Microsoft.AspNetCore.Authentication;
-using Microsoft.AspNetCore.Authentication.Google;
 using Microsoft.AspNetCore.Authentication.OAuth;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.Extensions.DependencyInjection;
@@ -9,8 +8,14 @@ using Mothenticate.Data;
 using Mothenticate.Data.Entities;
 using Mothenticate.Domain.Config;
 using Mothenticate.IdentityProvider.Services;
+using Mothenticate.IdentityProvider.Services.IdentityProviderMappers;
+using Mothenticate.IdentityProvider.Services.IdentityProviderMappers.Abstract;
+using Mothenticate.IdentityProvider.Services.ScopeMappers;
+using Mothenticate.IdentityProvider.Services.ScopeMappers.Abstract;
+using Mothenticate.IdentityProvider.Services.ScopeMappers.Handlers;
 using Mothenticate.IdentityProvider.Sso;
 using OpenIddict.Abstractions;
+using OpenIddict.Server;
 
 namespace Mothenticate.IdentityProvider;
 
@@ -55,7 +60,14 @@ public static class Bootstrap
                     OpenIddictConstants.Scopes.Profile,
                     OpenIddictConstants.Scopes.Roles,
                     OpenIddictConstants.Scopes.OfflineAccess,
-                    OpenIddictConstants.Scopes.OpenId);
+                    OpenIddictConstants.Scopes.OpenId,
+                    "acr",
+                    "basic");
+
+                options.AddEventHandler<OpenIddictServerEvents.HandleIntrospectionRequestContext>(builder =>
+                    builder.UseScopedHandler<IntrospectionClaimsHandler>()
+                    .SetOrder(int.MaxValue - 100_000)
+                    .SetType(OpenIddictServerHandlerType.Custom));
 
                 if (environment.IsDevelopment())
                 {
@@ -95,14 +107,29 @@ public static class Bootstrap
         services.AddScoped<ISessionService, SessionService>();
         services.AddScoped<ITwoFactorService, TwoFactorService>();
         services.AddScoped<ISsoService, SsoService>();
+        services.AddScoped<IIdentityProviderService, IdentityProviderService>();
 
-        // SSO dynamic options — change source allows cache invalidation when settings are saved
+        services.AddSingleton<IScopeMapper, UserAttributeMapper>();
+        services.AddSingleton<IScopeMapper, UserPropertyMapper>();
+        services.AddSingleton<IScopeMapper, AcrMapper>();
+        services.AddSingleton<IScopeMapper, SubjectMapper>();
+        services.AddSingleton<IScopeMapperResolver, ScopeMapperResolver>();
+        services.AddScoped<IntrospectionClaimsHandler>();
+
+        services.AddSingleton<IIdentityProviderMapper, AttributeImporterMapper>();
+        services.AddSingleton<IIdentityProviderMapperResolver, IdentityProviderMapperResolver>();
+
+        // Dynamic SSO — schemes and options are loaded from DB at runtime, no restart needed
         var changeSource = new SsoOptionsChangeSource();
         services.AddSingleton(changeSource);
-        services.AddSingleton<IOptionsChangeTokenSource<GoogleOptions>>(changeSource);
         services.AddSingleton<IOptionsChangeTokenSource<OAuthOptions>>(changeSource);
-        services.AddSingleton<IConfigureOptions<GoogleOptions>, GoogleOptionsConfigurator>();
-        services.AddSingleton<IConfigureOptions<OAuthOptions>, GitHubOptionsConfigurator>();
+        services.AddSingleton<ISsoSettingsChangeNotifier>(changeSource);
+        services.AddSingleton<IConfigureOptions<OAuthOptions>, DynamicOAuthOptionsConfigurator>();
+        services.AddSingleton<IAuthenticationSchemeProvider, DynamicAuthSchemeProvider>();
+
+        // Register OAuthHandler so the DI container can resolve it for dynamic schemes
+        services.AddTransient<OAuthHandler<OAuthOptions>>();
+        services.AddSingleton<IPostConfigureOptions<OAuthOptions>, OAuthPostConfigureOptions<OAuthOptions, OAuthHandler<OAuthOptions>>>();
 
         services.AddAuthentication()
             .AddCookie(SsoDefaults.ExternalCookieScheme, o =>
@@ -114,9 +141,7 @@ public static class Bootstrap
             {
                 o.Cookie.Name = "Mothenticate.PreAuth";
                 o.ExpireTimeSpan = TimeSpan.FromMinutes(5);
-            })
-            .AddGoogle()
-            .AddOAuth(SsoDefaults.GitHubScheme, _ => { });
+            });
 
         return services;
     }

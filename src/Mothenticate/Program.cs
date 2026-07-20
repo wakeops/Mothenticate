@@ -6,6 +6,8 @@ using Mothenticate;
 using Mothenticate.Data;
 using Mothenticate.IdentityProvider;
 using Mothenticate.UserManagement;
+using Mothenticate.IdentityProvider.Services;
+using Mothenticate.UserManagement.Services;
 
 JwtSecurityTokenHandler.DefaultInboundClaimTypeMap.Clear();
 
@@ -35,6 +37,11 @@ var app = builder.Build();
 
 // Migrations and seed
 await app.Services.RunAppDataMigrationsAsync();
+await using (var scope = app.Services.CreateAsyncScope())
+{
+    var idpService = scope.ServiceProvider.GetRequiredService<IIdentityProviderService>();
+    await idpService.SeedProviderTypesAsync();
+}
 
 // Middleware
 app.UseAppApi();

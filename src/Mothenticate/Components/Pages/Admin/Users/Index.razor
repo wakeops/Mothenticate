@@ -31,12 +31,6 @@ else
         <Columns>
             <PropertyColumn Property="u => u.UserName" Title="@L["Admin_Users_ColUsername"]" />
             <PropertyColumn Property="u => u.Email" Title="@L["Admin_Users_ColEmail"]" />
-            <TemplateColumn Title="@L["Admin_Users_ColName"]">
-                <CellTemplate>
-                    @(string.Join(" ", new[] { context.Item.FirstName, context.Item.LastName }
-                        .Where(s => !string.IsNullOrWhiteSpace(s))))
-                </CellTemplate>
-            </TemplateColumn>
             <TemplateColumn Title="@L["Admin_Users_ColStatus"]">
                 <CellTemplate>
                     @if (!context.Item.IsActive)
@@ -79,9 +73,7 @@ else
     private Func<ApplicationUser, bool> _quickFilter => u =>
         string.IsNullOrWhiteSpace(_search)
         || (u.UserName?.Contains(_search, StringComparison.OrdinalIgnoreCase) ?? false)
-        || (u.Email?.Contains(_search, StringComparison.OrdinalIgnoreCase) ?? false)
-        || (u.FirstName?.Contains(_search, StringComparison.OrdinalIgnoreCase) ?? false)
-        || (u.LastName?.Contains(_search, StringComparison.OrdinalIgnoreCase) ?? false);
+        || (u.Email?.Contains(_search, StringComparison.OrdinalIgnoreCase) ?? false);
 
     protected override async Task OnInitializedAsync()
     {

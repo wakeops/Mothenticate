@@ -19,6 +19,7 @@ public class AccountController(
     IAppSettingsService settingsService,
     ITwoFactorService twoFactorService,
     ISeedService seedService,
+    IUserAttributeService userAttributeService,
     SetupState setupState) : Controller
 {
     [HttpPost("login")]
@@ -147,10 +148,7 @@ public class AccountController(
         var result = await userManager.CreateAsync(new ApplicationUser
         {
             UserName = effectiveUsername,
-            Email = email,
-            FirstName = firstName,
-            LastName = lastName,
-            DisplayName = string.IsNullOrWhiteSpace(firstName) ? effectiveUsername : firstName
+            Email = email
         }, password);
 
         if (!result.Succeeded)
@@ -166,6 +164,11 @@ public class AccountController(
         {
             return Redirect("/login");
         }
+
+        await userAttributeService.SetUserValueByNameAsync(user.Id, "firstName", firstName);
+        await userAttributeService.SetUserValueByNameAsync(user.Id, "lastName", lastName);
+        await userAttributeService.SetUserValueByNameAsync(user.Id, "displayName",
+            string.IsNullOrWhiteSpace(firstName) ? effectiveUsername : firstName);
 
         await SignInFullAsync(user, false);
         return Redirect("/portal");
@@ -186,8 +189,7 @@ public class AccountController(
             UserName = username,
             Email = email,
             EmailConfirmed = true,
-            IsActive = true,
-            DisplayName = username
+            IsActive = true
         };
 
         var result = await userManager.CreateAsync(user, password);
@@ -197,6 +199,7 @@ public class AccountController(
             return Redirect($"/setup?error={msg}");
         }
 
+        await userAttributeService.SetUserValueByNameAsync(user.Id, "displayName", username);
         await userManager.AddToRoleAsync(user, AuthDefaults.AppAdminUserRole);
         setupState.MarkConfigured();
 
@@ -214,12 +217,16 @@ public class AccountController(
     private async Task SignInFullAsync(ApplicationUser user, bool rememberMe)
     {
         var roles = await userManager.GetRolesAsync(user);
+        var attributeValues = await userAttributeService.GetUserValuesAsync(user.Id);
+        var displayName = attributeValues
+            .FirstOrDefault(v => v.UserAttribute.Name.Equals("displayName", StringComparison.OrdinalIgnoreCase))?.Value;
+
         var claims = new List<Claim>
         {
             new(ClaimTypes.NameIdentifier, user.Id),
             new(ClaimTypes.Name, user.UserName ?? user.Email ?? string.Empty),
             new(ClaimTypes.Email, user.Email ?? string.Empty),
-            new(AuthDefaults.PreferredUsernameClaimType, user.DisplayName ?? user.UserName ?? user.Email ?? string.Empty),
+            new(AuthDefaults.PreferredUsernameClaimType, displayName ?? user.UserName ?? user.Email ?? string.Empty),
         };
         claims.AddRange(roles.Select(r => new Claim(ClaimTypes.Role, r)));
 

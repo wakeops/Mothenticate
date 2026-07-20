@@ -19,17 +19,13 @@ public class UserService(
     public Task<IReadOnlyList<ApplicationUser>> GetAllAsync(CancellationToken cancellationToken = default)
         => userRepository.GetAllAsync(cancellationToken);
 
-    public async Task<IdentityResult> CreateAsync(string username, string email, string password,
-        string? firstName = null, string? lastName = null, string? displayName = null)
+    public async Task<IdentityResult> CreateAsync(string username, string email, string password)
     {
         var settings = await appSettingsService.GetAsync();
         var user = new ApplicationUser
         {
             UserName = settings.UseEmailAsUsername ? email : username,
             Email = email,
-            FirstName = firstName,
-            LastName = lastName,
-            DisplayName = displayName,
             EmailConfirmed = true
         };
 
@@ -42,7 +38,7 @@ public class UserService(
         return result;
     }
 
-    public async Task<IdentityResult> UpdateProfileAsync(string id, string? firstName, string? lastName, string? displayName, CancellationToken cancellationToken = default)
+    public async Task<IdentityResult> UpdateIdentifiersAsync(string id, string userName, string email, CancellationToken cancellationToken = default)
     {
         var user = await userManager.FindByIdAsync(id);
         if (user is null)
@@ -50,9 +46,17 @@ public class UserService(
             return IdentityResult.Failed(new IdentityError { Code = "UserNotFound", Description = $"User '{id}' not found." });
         }
 
-        user.FirstName = firstName;
-        user.LastName = lastName;
-        user.DisplayName = displayName;
+        var userNameResult = await userManager.SetUserNameAsync(user, userName);
+        if (!userNameResult.Succeeded)
+        {
+            return userNameResult;
+        }
+
+        var emailResult = await userManager.SetEmailAsync(user, email);
+        if (!emailResult.Succeeded)
+        {
+            return emailResult;
+        }
 
         return await userManager.UpdateAsync(user);
     }
@@ -123,32 +127,6 @@ public class UserService(
         }
 
         user.IsActive = isActive;
-        return await userManager.UpdateAsync(user);
-    }
-
-    public async Task<IdentityResult> SetAvatarAsync(string id, byte[] data, string contentType, CancellationToken cancellationToken = default)
-    {
-        var user = await userManager.FindByIdAsync(id);
-        if (user is null)
-        {
-            return IdentityResult.Failed(new IdentityError { Code = "UserNotFound", Description = $"User '{id}' not found." });
-        }
-
-        user.AvatarData = data;
-        user.AvatarContentType = contentType;
-        return await userManager.UpdateAsync(user);
-    }
-
-    public async Task<IdentityResult> RemoveAvatarAsync(string id, CancellationToken cancellationToken = default)
-    {
-        var user = await userManager.FindByIdAsync(id);
-        if (user is null)
-        {
-            return IdentityResult.Failed(new IdentityError { Code = "UserNotFound", Description = $"User '{id}' not found." });
-        }
-
-        user.AvatarData = null;
-        user.AvatarContentType = null;
         return await userManager.UpdateAsync(user);
     }
 

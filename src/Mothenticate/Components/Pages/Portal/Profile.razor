@@ -2,10 +2,10 @@
 @layout UserLayout
 @attribute [Authorize]
 @inject IUserService UserService
-@inject IUserPropertyService UserPropertyService
+@inject IUserAttributeService UserAttributeService
 @inject ISessionService SessionService
 @inject IConsentService ConsentService
-@inject IAppSettingsService AppSettingsService
+@inject IIdentityProviderService IdentityProviderService
 @inject ITwoFactorService TwoFactorService
 @inject ISsoService SsoService
 @inject AuthenticationStateProvider AuthState
@@ -31,22 +31,10 @@ else
             <MudGrid>
                 <MudItem xs="12" md="8">
                     <MudStack Spacing="3">
-                        <MudTextField Value="@_username" Label="@L["Profile_Username"]" Variant="Variant.Outlined" ReadOnly="true"
-                                      HelperText="@L["Profile_UsernameHelper"]" />
-                        <MudTextField Value="@_email" Label="@L["Profile_Email"]" Variant="Variant.Outlined" ReadOnly="true"
-                                      HelperText="@L["Profile_EmailHelper"]" />
-                        <MudTextField @bind-Value="_displayName" Label="@L["Profile_DisplayName"]" Variant="Variant.Outlined" />
-                        <MudTextField @bind-Value="_firstName" Label="@L["Profile_FirstName"]" Variant="Variant.Outlined" />
-                        <MudTextField @bind-Value="_lastName" Label="@L["Profile_LastName"]" Variant="Variant.Outlined" />
-
-                        @foreach (var prop in _editableProperties)
+                        @foreach (var userAttr in _editableAttributes)
                         {
-                            var propId = prop.Id;
-                            <MudTextField Label="@prop.DisplayName"
-                                          Value="@GetPropertyValue(propId)"
-                                          ValueChanged="@((string v) => SetPropertyValue(propId, v))"
-                                          Variant="Variant.Outlined"
-                                          ReadOnly="@prop.IsReadOnly" />
+                            <UserAttributeEditor Attribute="userAttr" Values="GetValuesList(userAttr.Id)"
+                                                  ReadOnly="@(!userAttr.CanEditUser)" />
                         }
 
                         <div>
@@ -58,42 +46,6 @@ else
                     </MudStack>
                 </MudItem>
 
-                @if (_avatarsEnabled)
-                {
-                    <MudItem xs="12" md="4">
-                        <MudPaper Elevation="1" Class="pa-4 text-center">
-                            <MudText Typo="Typo.subtitle2" Class="mb-3">@L["Profile_AvatarTitle"]</MudText>
-                            @if (_user?.AvatarData is not null)
-                            {
-                                <MudAvatar Class="profile-avatar">
-                                    <MudImage Src="@($"data:{_user.AvatarContentType};base64,{Convert.ToBase64String(_user.AvatarData)}")"></MudImage>
-                                </MudAvatar>
-                            }
-                            else
-                            {
-                                <MudAvatar Color="Color.Primary" Class="profile-avatar">
-                                    @(_displayName.Length > 0 ? _displayName[0].ToString().ToUpper() : "?")
-                                </MudAvatar>
-                            }
-                            <MudFileUpload T="IBrowserFile" FilesChanged="UploadAvatar" Accept="image/*">
-                                <CustomContent>
-                                    <MudButton Variant="Variant.Filled" Color="Color.Primary" StartIcon="@Icons.Material.Filled.Image"
-                                               Size="Size.Small" Class="mb-2" OnClick="@context.OpenFilePickerAsync">
-                                        @L["Profile_Upload"]
-                                    </MudButton>
-                                </CustomContent>
-                                <SelectedTemplate />
-                            </MudFileUpload>
-                            @if (_user?.AvatarData is not null)
-                            {
-                                <MudButton Variant="Variant.Text" Color="Color.Error" Size="Size.Small"
-                                           OnClick="RemoveAvatar">
-                                    @L["Profile_Remove"]
-                                </MudButton>
-                            }
-                        </MudPaper>
-                    </MudItem>
-                }
             </MudGrid>
         </MudTabPanel>
 
@@ -168,7 +120,7 @@ else
                     <!-- Linked accounts -->
                     <MudPaper Elevation="1" Class="pa-4">
                         <MudText Typo="Typo.h6" GutterBottom="true">@L["Profile_LinkedAccounts"]</MudText>
-                        @if (_linkedLogins.Count == 0 && !_settings!.GoogleSsoEnabled && !_settings.GitHubSsoEnabled)
+                        @if (_ssoProviders.Count == 0)
                         {
                             <MudText Typo="Typo.body2" Color="Color.Secondary">
                                 @L["Profile_NoProviders"]
@@ -176,52 +128,32 @@ else
                         }
                         else
                         {
-                            @if (_settings!.GoogleSsoEnabled)
+                            @foreach (var provider in _ssoProviders)
                             {
-                                var googleLinked = _linkedLogins.FirstOrDefault(l => l.LoginProvider == SsoDefaults.GoogleScheme);
-                                <MudStack Row="true" AlignItems="AlignItems.Center" Class="mb-3">
-                                    <MudIcon Icon="@Icons.Custom.Brands.Google" />
-                                    <MudText Class="flex-1">Google</MudText>
-                                    @if (googleLinked is not null)
-                                    {
-                                        <MudChip T="string" Color="Color.Success" Size="Size.Small" Class="mr-2">@L["Profile_Linked"]</MudChip>
-                                        <MudButton Size="Size.Small" Color="Color.Error" Variant="Variant.Outlined"
-                                                   OnClick='() => UnlinkProvider(SsoDefaults.GoogleScheme, googleLinked.ProviderKey)'>
-                                            @L["Profile_Unlink"]
-                                        </MudButton>
-                                    }
-                                    else
-                                    {
-                                        <MudButton Size="Size.Small" Variant="Variant.Outlined"
-                                                   Href='"/connect/external/google?linkUserId=" + _userId'>
-                                            @L["Profile_Link"]
-                                        </MudButton>
-                                    }
-                                </MudStack>
-                            }
-
-                            @if (_settings!.GitHubSsoEnabled)
-                            {
-                                var githubLinked = _linkedLogins.FirstOrDefault(l => l.LoginProvider == SsoDefaults.GitHubScheme);
-                                <MudStack Row="true" AlignItems="AlignItems.Center" Class="mb-3">
-                                    <MudIcon Icon="@Icons.Custom.Brands.GitHub" />
-                                    <MudText Class="flex-1">GitHub</MudText>
-                                    @if (githubLinked is not null)
-                                    {
-                                        <MudChip T="string" Color="Color.Success" Size="Size.Small" Class="mr-2">@L["Profile_Linked"]</MudChip>
-                                        <MudButton Size="Size.Small" Color="Color.Error" Variant="Variant.Outlined"
-                                                   OnClick='() => UnlinkProvider(SsoDefaults.GitHubScheme, githubLinked.ProviderKey)'>
-                                            @L["Profile_Unlink"]
-                                        </MudButton>
-                                    }
-                                    else
-                                    {
-                                        <MudButton Size="Size.Small" Variant="Variant.Outlined"
-                                                   Href='"/connect/external/github?linkUserId=" + _userId'>
-                                            @L["Profile_Link"]
-                                        </MudButton>
-                                    }
-                                </MudStack>
+                                var linked = _linkedLogins.FirstOrDefault(l => l.LoginProvider == provider.Alias);
+                                var showRow = provider.ShowInAccountConsole == Mothenticate.Data.Entities.ShowInAccountConsole.Always || linked is not null;
+                                @if (showRow)
+                                {
+                                    <MudStack Row="true" AlignItems="AlignItems.Center" Class="mb-3">
+                                        <MudIcon Icon="@GetProviderIcon(provider.ProviderType.Name)" />
+                                        <MudText Class="flex-1">@provider.DisplayName</MudText>
+                                        @if (linked is not null)
+                                        {
+                                            <MudChip T="string" Color="Color.Success" Size="Size.Small" Class="mr-2">@L["Profile_Linked"]</MudChip>
+                                            <MudButton Size="Size.Small" Color="Color.Error" Variant="Variant.Outlined"
+                                                       OnClick="() => UnlinkProvider(provider.Alias, linked.ProviderKey)">
+                                                @L["Profile_Unlink"]
+                                            </MudButton>
+                                        }
+                                        else
+                                        {
+                                            <MudButton Size="Size.Small" Variant="Variant.Outlined"
+                                                       Href="@("/connect/external/" + provider.Alias + "?linkUserId=" + _userId)">
+                                                @L["Profile_Link"]
+                                            </MudButton>
+                                        }
+                                    </MudStack>
+                                }
                             }
                         }
                     </MudPaper>
@@ -333,17 +265,12 @@ else
     private ApplicationUser? _user;
     private string _userId = string.Empty;
     private bool _loading = true;
-    private bool _avatarsEnabled;
-    private AppSettings? _settings;
 
     // Profile
-    private string _firstName = string.Empty;
-    private string _lastName = string.Empty;
-    private string _displayName = string.Empty;
-    private string _email = string.Empty;
-    private string _username = string.Empty;
-    private List<UserProperty> _editableProperties = [];
-    private Dictionary<int, string?> _propertyValues = [];
+    private static readonly string[] IdentifierAttributeNames = ["username", "email"];
+
+    private List<UserAttribute> _editableAttributes = [];
+    private Dictionary<int, List<string?>> _attributeValues = [];
     private bool _savingProfile;
 
     // Security
@@ -358,6 +285,7 @@ else
 
     // SSO
     private List<Microsoft.AspNetCore.Identity.UserLoginInfo> _linkedLogins = [];
+    private List<Mothenticate.Data.Entities.IdentityProvider> _ssoProviders = [];
 
     // Sessions
     private List<UserSession> _sessions = [];
@@ -376,24 +304,21 @@ else
             return;
         }
 
-        _settings = await AppSettingsService.GetAsync();
-        _avatarsEnabled = _settings.AvatarsEnabled;
-
         _user = await UserService.GetByIdAsync(_userId);
+
+        var allAttributes = await UserAttributeService.GetAllDefinitionsAsync();
+        _editableAttributes = allAttributes.Where(a => a.CanViewUser).ToList();
+
+        var values = await UserAttributeService.GetUserValuesAsync(_userId);
+        _attributeValues = values
+            .GroupBy(v => v.UserAttributeId)
+            .ToDictionary(g => g.Key, g => g.OrderBy(v => v.Ordinal).Select(v => v.Value).ToList());
+
         if (_user is not null)
         {
-            _firstName = _user.FirstName ?? string.Empty;
-            _lastName = _user.LastName ?? string.Empty;
-            _displayName = _user.DisplayName ?? string.Empty;
-            _email = _user.Email ?? string.Empty;
-            _username = _user.UserName ?? string.Empty;
+            SeedIdentifierValue("username", _user.UserName);
+            SeedIdentifierValue("email", _user.Email);
         }
-
-        var allProps = await UserPropertyService.GetAllDefinitionsAsync();
-        _editableProperties = allProps.Where(p => !p.IsHidden).ToList();
-
-        var values = await UserPropertyService.GetUserValuesAsync(_userId);
-        _propertyValues = values.ToDictionary(v => v.PropertyId, v => v.Value);
 
         _sessions = [.. await SessionService.GetActiveByUserIdAsync(_userId)];
         _consents = [.. await ConsentService.GetBySubjectAsync(_userId)];
@@ -404,25 +329,68 @@ else
 
         _linkedLogins = [.. await SsoService.GetLoginsAsync(_userId)];
 
+        var allProviders = await IdentityProviderService.GetProvidersAsync();
+        _ssoProviders = allProviders
+            .Where(p => p.IsEnabled && p.ShowInAccountConsole != Mothenticate.Data.Entities.ShowInAccountConsole.Never)
+            .ToList();
+
         _loading = false;
     }
 
-    private string? GetPropertyValue(int propId)
-        => _propertyValues.TryGetValue(propId, out var v) ? v : null;
+    private List<string?> GetValuesList(int attributeId)
+    {
+        if (!_attributeValues.TryGetValue(attributeId, out var list))
+        {
+            list = [];
+            _attributeValues[attributeId] = list;
+        }
 
-    private void SetPropertyValue(int propId, string? value)
-        => _propertyValues[propId] = value;
+        return list;
+    }
+
+    private static bool IsIdentifierAttribute(UserAttribute attribute)
+        => IdentifierAttributeNames.Contains(attribute.Name, StringComparer.OrdinalIgnoreCase);
+
+    private UserAttribute? FindAttribute(string name)
+        => _editableAttributes.FirstOrDefault(a => a.Name.Equals(name, StringComparison.OrdinalIgnoreCase));
+
+    private void SeedIdentifierValue(string name, string? value)
+    {
+        var attribute = FindAttribute(name);
+        if (attribute is not null)
+        {
+            _attributeValues[attribute.Id] = [value];
+        }
+    }
+
+    private string? GetIdentifierValue(string name)
+    {
+        var attribute = FindAttribute(name);
+        if (attribute is null)
+        {
+            return null;
+        }
+
+        var values = GetValuesList(attribute.Id);
+        return values.Count > 0 ? values[0] : null;
+    }
 
     private async Task SaveProfile()
     {
         _savingProfile = true;
         try
         {
-            var result = await UserService.UpdateProfileAsync(_userId, _firstName, _lastName, _displayName);
+            var userName = GetIdentifierValue("username") ?? _user?.UserName ?? string.Empty;
+            var email = GetIdentifierValue("email") ?? _user?.Email ?? string.Empty;
+
+            var result = await UserService.UpdateIdentifiersAsync(_userId, userName, email);
             if (result.Succeeded)
             {
-                foreach (var (propId, value) in _propertyValues)
-                    await UserPropertyService.SetUserValueAsync(_userId, propId, value);
+                foreach (var attribute in _editableAttributes)
+                {
+                    if (IsIdentifierAttribute(attribute)) continue;
+                    await UserAttributeService.SetUserValuesAsync(_userId, attribute.Id, GetValuesList(attribute.Id));
+                }
                 Snackbar.Add(L["Profile_Saved"], Severity.Success);
             }
             else
@@ -434,42 +402,6 @@ else
         {
             _savingProfile = false;
         }
-    }
-
-    private async Task UploadAvatar(IBrowserFile file)
-    {
-        const long maxSize = 5 * 1024 * 1024;
-        using var ms = new System.IO.MemoryStream();
-        await file.OpenReadStream(maxSize).CopyToAsync(ms);
-        var dataUrl = $"data:{file.ContentType};base64,{Convert.ToBase64String(ms.ToArray())}";
-
-        var dialog = await DialogService.ShowAsync<ImageCropDialog>(
-            L["ImageCrop_Title"],
-            new DialogParameters<ImageCropDialog> { { d => d.ImageDataUrl, dataUrl } },
-            new DialogOptions { MaxWidth = MaxWidth.Small, FullWidth = true, CloseButton = false });
-
-        var dialogResult = await dialog.Result;
-        if (dialogResult is { Canceled: false, Data: string croppedBase64 })
-        {
-            var croppedBytes = Convert.FromBase64String(croppedBase64);
-            var result = await UserService.SetAvatarAsync(_userId, croppedBytes, "image/png");
-            if (result.Succeeded)
-            {
-                _user = await UserService.GetByIdAsync(_userId);
-                Snackbar.Add(L["Profile_AvatarUpdated"], Severity.Success);
-            }
-            else
-            {
-                Snackbar.Add(L["Profile_AvatarFailed"], Severity.Error);
-            }
-        }
-    }
-
-    private async Task RemoveAvatar()
-    {
-        await UserService.RemoveAvatarAsync(_userId);
-        _user = await UserService.GetByIdAsync(_userId);
-        Snackbar.Add(L["Profile_AvatarRemoved"], Severity.Success);
     }
 
     private async Task ChangePassword()
@@ -534,6 +466,13 @@ else
         _recoveryCodeCount = 0;
         Snackbar.Add(L["Profile_2FADisabled"], Severity.Success);
     }
+
+    private static string GetProviderIcon(string typeName) => typeName.ToLowerInvariant() switch
+    {
+        "google" => Icons.Custom.Brands.Google,
+        "github" => Icons.Custom.Brands.GitHub,
+        _        => Icons.Material.Filled.Login,
+    };
 
     private async Task UnlinkProvider(string provider, string providerKey)
     {

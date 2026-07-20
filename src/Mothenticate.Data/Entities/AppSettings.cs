@@ -8,7 +8,6 @@ public class AppSettings
     // User management
     public bool UseEmailAsUsername { get; set; } = false;
     public bool AllowEmailLogin { get; set; } = false;
-    public bool AvatarsEnabled { get; set; } = false;
     public bool RegistrationEnabled { get; set; } = true;
 
     // Localization
@@ -18,13 +17,5 @@ public class AppSettings
     public string? BrandingTitle { get; set; }
     public string? BrandingSubtitle { get; set; }
 
-    // SSO — Google
-    public bool GoogleSsoEnabled { get; set; } = false;
-    public string? GoogleClientId { get; set; }
-    public string? GoogleClientSecret { get; set; }
 
-    // SSO — GitHub
-    public bool GitHubSsoEnabled { get; set; } = false;
-    public string? GitHubClientId { get; set; }
-    public string? GitHubClientSecret { get; set; }
 }

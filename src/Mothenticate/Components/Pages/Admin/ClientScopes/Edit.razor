@@ -1,0 +1,232 @@
+@page "/admin/client-scopes/edit"
+@page "/admin/client-scopes/edit/{Id:int}"
+@attribute [Authorize(Policy = AuthDefaults.AppAdminUserPolicy)]
+@inject IClientScopeService ClientScopeService
+@inject IScopeMapperResolver ScopeMapperResolver
+@inject IDialogService DialogService
+@inject ISnackbar Snackbar
+@inject NavigationManager Navigation
+@inject IStringLocalizer<SharedResource> L
+@using Mothenticate.Models.Admin
+@using Mothenticate.IdentityProvider.Services.ScopeMappers
+@using Mothenticate.IdentityProvider.Services.ScopeMappers.Abstract
+
+<PageTitle>@(_isCreate ? L["Admin_ClientScopes_CreateScope"] : L["Admin_ClientScopes_EditScope"]) — Mothenticate Admin</PageTitle>
+
+<MudStack Row="true" AlignItems="AlignItems.Center" Class="mb-4">
+    <MudIconButton Icon="@Icons.Material.Filled.ArrowBack" OnClick='() => Navigation.NavigateTo("/admin/client-scopes")' />
+    <MudText Typo="Typo.h4">@(_isCreate ? L["Admin_ClientScopes_CreateScope"] : L["Admin_ClientScopes_EditScope"])</MudText>
+</MudStack>
+
+@if (_loading)
+{
+    <MudProgressLinear Indeterminate="true" />
+}
+else if (_isCreate)
+{
+    <MudPaper Elevation="2" Class="pa-4" Style="max-width:600px">
+        @SettingsForm
+        <MudStack Row="true" Class="mt-4">
+            <MudButton Variant="Variant.Filled" Color="Color.Primary" OnClick="Save" Disabled="@_saving">
+                @L["Admin_ClientScopes_Create"]
+            </MudButton>
+            <MudButton Variant="Variant.Text" OnClick='() => Navigation.NavigateTo("/admin/client-scopes")'>
+                @L["Admin_ClientScopes_Cancel"]
+            </MudButton>
+        </MudStack>
+    </MudPaper>
+}
+else
+{
+    <MudTabs Elevation="2" Rounded="true" ApplyEffectsToContainer="true" TabPanelsClass="pa-6">
+        <MudTabPanel Text="@L["Admin_ClientScopes_TabSettings"]">
+            <div style="max-width:600px">
+                @SettingsForm
+                <MudStack Row="true" Class="mt-4">
+                    <MudButton Variant="Variant.Filled" Color="Color.Primary" OnClick="Save" Disabled="@_saving">
+                        @L["Admin_ClientScopes_Save"]
+                    </MudButton>
+                    <MudButton Variant="Variant.Text" OnClick='() => Navigation.NavigateTo("/admin/client-scopes")'>
+                        @L["Admin_ClientScopes_Cancel"]
+                    </MudButton>
+                </MudStack>
+            </div>
+        </MudTabPanel>
+
+        <MudTabPanel Text="@L["Admin_ClientScopes_TabMappers"]">
+            <MudStack Row="true" AlignItems="AlignItems.Center" Spacing="2" Class="mb-4">
+                <MudTextField @bind-Value="_mapperSearch" Placeholder="@L["Admin_ClientScopes_MapperSearch"]" Immediate="true"
+                              Adornment="Adornment.Start" AdornmentIcon="@Icons.Material.Filled.Search"
+                              Variant="Variant.Outlined" Margin="Margin.Dense" Class="flex-1" />
+                <MudButton Variant="Variant.Filled" Color="Color.Primary" StartIcon="@Icons.Material.Filled.Add"
+                           OnClick='() => Navigation.NavigateTo($"/admin/client-scopes/{Id}/mappers/edit")'>
+                    @L["Admin_ClientScopes_AddMapper"]
+                </MudButton>
+            </MudStack>
+
+            <MudTable Items="@FilteredMappers" Hover="true" Dense="true">
+                <HeaderContent>
+                    <MudTh>@L["Admin_ClientScopes_ColMapperName"]</MudTh>
+                    <MudTh>@L["Admin_ClientScopes_ColCategory"]</MudTh>
+                    <MudTh>@L["Admin_ClientScopes_ColType"]</MudTh>
+                    <MudTh Style="width:56px"></MudTh>
+                </HeaderContent>
+                <RowTemplate>
+                    <MudTd>
+                        <MudLink Href="@($"/admin/client-scopes/{Id}/mappers/edit/{context.Id}")">@context.Name</MudLink>
+                    </MudTd>
+                    <MudTd>@GetMapperCategory(context)</MudTd>
+                    <MudTd>@context.MapperType</MudTd>
+                    <MudTd>
+                        <MudIconButton Icon="@Icons.Material.Filled.Delete" Size="Size.Small" Color="Color.Error"
+                                       OnClick="() => DeleteMapper(context)" />
+                    </MudTd>
+                </RowTemplate>
+            </MudTable>
+        </MudTabPanel>
+    </MudTabs>
+}
+
+@code {
+    [Parameter] public int? Id { get; set; }
+
+    private bool _isCreate;
+    private bool _loading = true;
+    private bool _saving;
+    private ClientScopeEditModel _model = new();
+    private List<ClientScopeMapper> _mappers = [];
+    private string _mapperSearch = string.Empty;
+
+    private IEnumerable<ClientScopeMapper> FilteredMappers => _mappers.Where(m =>
+        string.IsNullOrWhiteSpace(_mapperSearch) || m.Name.Contains(_mapperSearch, StringComparison.OrdinalIgnoreCase));
+
+    private string GetMapperCategory(ClientScopeMapper mapper)
+        => ScopeMapperResolver.Resolve(mapper.MapperType) is ITokenMapper ? "Token Mapper" : "Unknown";
+
+    protected override async Task OnInitializedAsync()
+    {
+        _isCreate = Id is null;
+
+        if (!_isCreate)
+        {
+            var scope = await ClientScopeService.GetByIdAsync(Id!.Value);
+            if (scope is null)
+            {
+                Navigation.NavigateTo("/admin/client-scopes");
+                return;
+            }
+
+            _model = new ClientScopeEditModel
+            {
+                Id = scope.Id,
+                Name = scope.Name,
+                Description = scope.Description,
+                AssignedType = scope.AssignedType,
+                Protocol = scope.Protocol,
+                DisplayOnConsentScreen = scope.DisplayOnConsentScreen,
+                ConsentText = scope.ConsentText,
+                IncludeInTokenScope = scope.IncludeInTokenScope,
+                IncludeInMetadata = scope.IncludeInMetadata
+            };
+            _mappers = [.. scope.Mappers];
+        }
+
+        _loading = false;
+    }
+
+    private async Task DeleteMapper(ClientScopeMapper mapper)
+    {
+        var confirmed = await DialogService.ConfirmDeleteAsync(
+            L["Admin_ClientScopes_DeleteMapperTitle"],
+            string.Format(L["Admin_ClientScopes_DeleteMapperConfirm"], mapper.Name));
+
+        if (confirmed == true)
+        {
+            await ClientScopeService.DeleteMapperAsync(mapper.Id);
+            _mappers.RemoveAll(m => m.Id == mapper.Id);
+            Snackbar.Add(L["Admin_ClientScopes_MapperDeleted"], Severity.Success);
+        }
+    }
+
+    private async Task Save()
+    {
+        if (string.IsNullOrWhiteSpace(_model.Name))
+        {
+            Snackbar.Add(L["Admin_ClientScopes_NameRequired"], Severity.Warning);
+            return;
+        }
+
+        _saving = true;
+        try
+        {
+            var scope = new ClientScope
+            {
+                Id = _model.Id,
+                Name = _model.Name,
+                Description = _model.Description,
+                AssignedType = _model.AssignedType,
+                Protocol = _model.Protocol,
+                DisplayOnConsentScreen = _model.DisplayOnConsentScreen,
+                ConsentText = _model.ConsentText,
+                IncludeInTokenScope = _model.IncludeInTokenScope,
+                IncludeInMetadata = _model.IncludeInMetadata
+            };
+
+            if (_isCreate)
+            {
+                var created = await ClientScopeService.CreateAsync(scope);
+                Snackbar.Add(L["Admin_ClientScopes_Created"], Severity.Success);
+                Navigation.NavigateTo($"/admin/client-scopes/edit/{created.Id}");
+            }
+            else
+            {
+                await ClientScopeService.UpdateAsync(scope);
+                Snackbar.Add(L["Admin_ClientScopes_Updated"], Severity.Success);
+            }
+        }
+        catch (InvalidOperationException ex)
+        {
+            Snackbar.Add(ex.Message, Severity.Error);
+        }
+        finally
+        {
+            _saving = false;
+        }
+    }
+
+    private RenderFragment SettingsForm =>
+    @<text>
+        <MudGrid>
+            <MudItem xs="12">
+                <MudTextField @bind-Value="_model.Name" Label="@L["Admin_ClientScopes_Name"]" Variant="Variant.Outlined" Required="true" />
+            </MudItem>
+            <MudItem xs="12">
+                <MudTextField @bind-Value="_model.Description" Label="@L["Admin_ClientScopes_Description"]" Variant="Variant.Outlined" Lines="2" />
+            </MudItem>
+            <MudItem xs="12" sm="6">
+                <MudSelect @bind-Value="_model.AssignedType" Label="@L["Admin_ClientScopes_AssignedType"]" Variant="Variant.Outlined">
+                    @foreach (var type in Enum.GetValues<AssignedScopeType>())
+                    {
+                        <MudSelectItem Value="@type">@type</MudSelectItem>
+                    }
+                </MudSelect>
+            </MudItem>
+            <MudItem xs="12" sm="6">
+                <MudTextField Value="@_model.Protocol.ToString()" Label="@L["Admin_ClientScopes_Protocol"]" Variant="Variant.Outlined" ReadOnly="true" />
+            </MudItem>
+            <MudItem xs="12">
+                <MudCheckBox @bind-Value="_model.DisplayOnConsentScreen" Label="@L["Admin_ClientScopes_DisplayOnConsent"]" Color="Color.Primary" />
+            </MudItem>
+            <MudItem xs="12">
+                <MudTextField @bind-Value="_model.ConsentText" Label="@L["Admin_ClientScopes_ConsentText"]" Variant="Variant.Outlined"
+                              HelperText="@L["Admin_ClientScopes_ConsentText_Helper"]" />
+            </MudItem>
+            <MudItem xs="12">
+                <MudCheckBox @bind-Value="_model.IncludeInTokenScope" Label="@L["Admin_ClientScopes_IncludeInToken"]" Color="Color.Primary" />
+            </MudItem>
+            <MudItem xs="12">
+                <MudCheckBox @bind-Value="_model.IncludeInMetadata" Label="@L["Admin_ClientScopes_IncludeInMetadata"]" Color="Color.Primary" />
+            </MudItem>
+        </MudGrid>
+    </text>;
+}

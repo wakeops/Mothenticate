@@ -269,9 +269,6 @@ namespace Mothenticate.Data.Migrations
                     b.Property<bool>("AllowEmailLogin")
                         .HasColumnType("boolean");
 
-                    b.Property<bool>("AvatarsEnabled")
-                        .HasColumnType("boolean");
-
                     b.Property<string>("BrandingSubtitle")
                         .HasMaxLength(500)
                         .HasColumnType("character varying(500)");
@@ -283,28 +280,6 @@ namespace Mothenticate.Data.Migrations
                     b.Property<string>("DefaultLanguage")
                         .IsRequired()
                         .HasColumnType("text");
-
-                    b.Property<string>("GitHubClientId")
-                        .HasMaxLength(300)
-                        .HasColumnType("character varying(300)");
-
-                    b.Property<string>("GitHubClientSecret")
-                        .HasMaxLength(300)
-                        .HasColumnType("character varying(300)");
-
-                    b.Property<bool>("GitHubSsoEnabled")
-                        .HasColumnType("boolean");
-
-                    b.Property<string>("GoogleClientId")
-                        .HasMaxLength(300)
-                        .HasColumnType("character varying(300)");
-
-                    b.Property<string>("GoogleClientSecret")
-                        .HasMaxLength(300)
-                        .HasColumnType("character varying(300)");
-
-                    b.Property<bool>("GoogleSsoEnabled")
-                        .HasColumnType("boolean");
 
                     b.Property<bool>("RegistrationEnabled")
                         .HasColumnType("boolean");
@@ -325,13 +300,6 @@ namespace Mothenticate.Data.Migrations
                     b.Property<int>("AccessFailedCount")
                         .HasColumnType("integer");
 
-                    b.Property<string>("AvatarContentType")
-                        .HasMaxLength(50)
-                        .HasColumnType("character varying(50)");
-
-                    b.Property<byte[]>("AvatarData")
-                        .HasColumnType("bytea");
-
                     b.Property<string>("ConcurrencyStamp")
                         .IsConcurrencyToken()
                         .HasColumnType("text");
@@ -339,41 +307,17 @@ namespace Mothenticate.Data.Migrations
                     b.Property<DateTimeOffset>("CreatedAt")
                         .HasColumnType("timestamp with time zone");
 
-                    b.Property<string>("DisplayName")
-                        .HasMaxLength(150)
-                        .HasColumnType("character varying(150)");
-
-                    b.Property<string>("Email")
-                        .HasMaxLength(256)
-                        .HasColumnType("character varying(256)");
-
                     b.Property<bool>("EmailConfirmed")
                         .HasColumnType("boolean");
 
-                    b.Property<string>("FirstName")
-                        .HasMaxLength(100)
-                        .HasColumnType("character varying(100)");
-
                     b.Property<bool>("IsActive")
                         .HasColumnType("boolean");
-
-                    b.Property<string>("LastName")
-                        .HasMaxLength(100)
-                        .HasColumnType("character varying(100)");
 
                     b.Property<bool>("LockoutEnabled")
                         .HasColumnType("boolean");
 
                     b.Property<DateTimeOffset?>("LockoutEnd")
                         .HasColumnType("timestamp with time zone");
-
-                    b.Property<string>("NormalizedEmail")
-                        .HasMaxLength(256)
-                        .HasColumnType("character varying(256)");
-
-                    b.Property<string>("NormalizedUserName")
-                        .HasMaxLength(256)
-                        .HasColumnType("character varying(256)");
 
                     b.Property<string>("PasswordHash")
                         .HasColumnType("text");
@@ -390,18 +334,7 @@ namespace Mothenticate.Data.Migrations
                     b.Property<bool>("TwoFactorEnabled")
                         .HasColumnType("boolean");
 
-                    b.Property<string>("UserName")
-                        .HasMaxLength(256)
-                        .HasColumnType("character varying(256)");
-
                     b.HasKey("Id");
-
-                    b.HasIndex("NormalizedEmail")
-                        .HasDatabaseName("EmailIndex");
-
-                    b.HasIndex("NormalizedUserName")
-                        .IsUnique()
-                        .HasDatabaseName("UserNameIndex");
 
                     b.ToTable("AspNetUsers", (string)null);
                 });
@@ -445,6 +378,87 @@ namespace Mothenticate.Data.Migrations
                     b.HasIndex("ResourceType", "ResourceId");
 
                     b.ToTable("AuditLogs");
+                });
+
+            modelBuilder.Entity("Mothenticate.Data.Entities.ClientScope", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("integer");
+
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
+
+                    b.Property<string>("AssignedType")
+                        .IsRequired()
+                        .HasMaxLength(20)
+                        .HasColumnType("character varying(20)");
+
+                    b.Property<string>("ConsentText")
+                        .HasMaxLength(500)
+                        .HasColumnType("character varying(500)");
+
+                    b.Property<string>("Description")
+                        .HasMaxLength(500)
+                        .HasColumnType("character varying(500)");
+
+                    b.Property<bool>("DisplayOnConsentScreen")
+                        .HasColumnType("boolean");
+
+                    b.Property<bool>("IncludeInMetadata")
+                        .HasColumnType("boolean");
+
+                    b.Property<bool>("IncludeInTokenScope")
+                        .HasColumnType("boolean");
+
+                    b.Property<string>("Name")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("character varying(100)");
+
+                    b.Property<string>("Protocol")
+                        .IsRequired()
+                        .HasMaxLength(20)
+                        .HasColumnType("character varying(20)");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("Name")
+                        .IsUnique();
+
+                    b.ToTable("ClientScopes");
+                });
+
+            modelBuilder.Entity("Mothenticate.Data.Entities.ClientScopeMapper", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("integer");
+
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
+
+                    b.Property<int>("ClientScopeId")
+                        .HasColumnType("integer");
+
+                    b.Property<string>("Config")
+                        .IsRequired()
+                        .HasColumnType("jsonb");
+
+                    b.Property<string>("MapperType")
+                        .IsRequired()
+                        .HasMaxLength(30)
+                        .HasColumnType("character varying(30)");
+
+                    b.Property<string>("Name")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("character varying(100)");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("ClientScopeId", "Name")
+                        .IsUnique();
+
+                    b.ToTable("ClientScopeMappers");
                 });
 
             modelBuilder.Entity("Mothenticate.Data.Entities.ClientSecret", b =>
@@ -523,6 +537,314 @@ namespace Mothenticate.Data.Migrations
                     b.ToTable("GroupRoles");
                 });
 
+            modelBuilder.Entity("Mothenticate.Data.Entities.IdentityProvider", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("integer");
+
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
+
+                    b.Property<bool>("AccountLinkingOnly")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("boolean")
+                        .HasDefaultValue(false);
+
+                    b.Property<string>("Alias")
+                        .IsRequired()
+                        .HasMaxLength(64)
+                        .HasColumnType("character varying(64)");
+
+                    b.Property<int?>("ConfigurationId")
+                        .HasColumnType("integer");
+
+                    b.Property<string>("DisplayName")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.Property<int?>("DisplayOrder")
+                        .HasColumnType("integer");
+
+                    b.Property<bool>("HideOnLoginPage")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("boolean")
+                        .HasDefaultValue(false);
+
+                    b.Property<bool>("IsEnabled")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("boolean")
+                        .HasDefaultValue(true);
+
+                    b.Property<int>("ProviderTypeId")
+                        .HasColumnType("integer");
+
+                    b.Property<string>("ShowInAccountConsole")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.Property<string>("SyncMode")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("Alias")
+                        .IsUnique();
+
+                    b.HasIndex("ConfigurationId");
+
+                    b.HasIndex("ProviderTypeId");
+
+                    b.ToTable("IdentityProviders");
+                });
+
+            modelBuilder.Entity("Mothenticate.Data.Entities.IdentityProviderConfiguration", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("integer");
+
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
+
+                    b.Property<string>("Properties")
+                        .IsRequired()
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("jsonb")
+                        .HasDefaultValue("{}");
+
+                    b.HasKey("Id");
+
+                    b.ToTable("IdentityProviderConfigurations");
+                });
+
+            modelBuilder.Entity("Mothenticate.Data.Entities.IdentityProviderMapper", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("integer");
+
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
+
+                    b.Property<string>("Config")
+                        .IsRequired()
+                        .HasColumnType("jsonb");
+
+                    b.Property<int>("IdentityProviderId")
+                        .HasColumnType("integer");
+
+                    b.Property<string>("MapperType")
+                        .IsRequired()
+                        .HasMaxLength(30)
+                        .HasColumnType("character varying(30)");
+
+                    b.Property<string>("Name")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("character varying(100)");
+
+                    b.Property<string>("SyncMode")
+                        .IsRequired()
+                        .HasMaxLength(20)
+                        .HasColumnType("character varying(20)");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("IdentityProviderId", "Name")
+                        .IsUnique();
+
+                    b.ToTable("IdentityProviderMappers");
+                });
+
+            modelBuilder.Entity("Mothenticate.Data.Entities.IdentityProviderType", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("integer");
+
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
+
+                    b.Property<int?>("DefaultConfigurationId")
+                        .HasColumnType("integer");
+
+                    b.Property<string>("Name")
+                        .IsRequired()
+                        .HasMaxLength(64)
+                        .HasColumnType("character varying(64)");
+
+                    b.Property<string>("ProtocolType")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("DefaultConfigurationId");
+
+                    b.HasIndex("Name")
+                        .IsUnique();
+
+                    b.ToTable("IdentityProviderTypes");
+                });
+
+            modelBuilder.Entity("Mothenticate.Data.Entities.UserAttribute", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("integer");
+
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
+
+                    b.Property<bool>("CanEditAdmin")
+                        .HasColumnType("boolean");
+
+                    b.Property<bool>("CanEditUser")
+                        .HasColumnType("boolean");
+
+                    b.Property<bool>("CanViewAdmin")
+                        .HasColumnType("boolean");
+
+                    b.Property<bool>("CanViewUser")
+                        .HasColumnType("boolean");
+
+                    b.Property<string>("DefaultValue")
+                        .HasMaxLength(2000)
+                        .HasColumnType("character varying(2000)");
+
+                    b.Property<string>("DisplayName")
+                        .IsRequired()
+                        .HasMaxLength(200)
+                        .HasColumnType("character varying(200)");
+
+                    b.Property<string>("EnabledWhen")
+                        .IsRequired()
+                        .HasMaxLength(20)
+                        .HasColumnType("character varying(20)");
+
+                    b.Property<string>("InputType")
+                        .IsRequired()
+                        .HasMaxLength(20)
+                        .HasColumnType("character varying(20)");
+
+                    b.Property<bool>("IsBuiltIn")
+                        .HasColumnType("boolean");
+
+                    b.Property<bool>("IsMultivalued")
+                        .HasColumnType("boolean");
+
+                    b.Property<bool>("IsRequired")
+                        .HasColumnType("boolean");
+
+                    b.Property<string>("Name")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("character varying(100)");
+
+                    b.Property<string>("RequiredFor")
+                        .HasMaxLength(20)
+                        .HasColumnType("character varying(20)");
+
+                    b.Property<string>("RequiredWhen")
+                        .HasMaxLength(20)
+                        .HasColumnType("character varying(20)");
+
+                    b.Property<int>("SortOrder")
+                        .HasColumnType("integer");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("Name")
+                        .IsUnique();
+
+                    b.ToTable("UserAttributes");
+                });
+
+            modelBuilder.Entity("Mothenticate.Data.Entities.UserAttributeScope", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("integer");
+
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
+
+                    b.Property<string>("Purpose")
+                        .IsRequired()
+                        .HasMaxLength(20)
+                        .HasColumnType("character varying(20)");
+
+                    b.Property<int>("ScopeId")
+                        .HasColumnType("integer");
+
+                    b.Property<int>("UserAttributeId")
+                        .HasColumnType("integer");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("ScopeId");
+
+                    b.HasIndex("UserAttributeId", "ScopeId", "Purpose")
+                        .IsUnique();
+
+                    b.ToTable("UserAttributeScopes");
+                });
+
+            modelBuilder.Entity("Mothenticate.Data.Entities.UserAttributeValidator", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("integer");
+
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
+
+                    b.Property<string>("ConfigJson")
+                        .IsRequired()
+                        .HasColumnType("jsonb");
+
+                    b.Property<int>("UserAttributeId")
+                        .HasColumnType("integer");
+
+                    b.Property<string>("ValidatorType")
+                        .IsRequired()
+                        .HasMaxLength(20)
+                        .HasColumnType("character varying(20)");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("UserAttributeId");
+
+                    b.ToTable("UserAttributeValidators");
+                });
+
+            modelBuilder.Entity("Mothenticate.Data.Entities.UserAttributeValue", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("integer");
+
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
+
+                    b.Property<int>("Ordinal")
+                        .HasColumnType("integer");
+
+                    b.Property<int>("UserAttributeId")
+                        .HasColumnType("integer");
+
+                    b.Property<string>("UserId")
+                        .IsRequired()
+                        .HasMaxLength(450)
+                        .HasColumnType("character varying(450)");
+
+                    b.Property<string>("Value")
+                        .HasColumnType("text");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("UserAttributeId");
+
+                    b.HasIndex("UserId", "UserAttributeId", "Ordinal")
+                        .IsUnique();
+
+                    b.ToTable("UserAttributeValues");
+                });
+
             modelBuilder.Entity("Mothenticate.Data.Entities.UserGroup", b =>
                 {
                     b.Property<string>("UserId")
@@ -537,78 +859,6 @@ namespace Mothenticate.Data.Migrations
                     b.HasIndex("GroupId");
 
                     b.ToTable("UserGroups");
-                });
-
-            modelBuilder.Entity("Mothenticate.Data.Entities.UserProperty", b =>
-                {
-                    b.Property<int>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("integer");
-
-                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
-
-                    b.Property<string>("DisplayName")
-                        .IsRequired()
-                        .HasMaxLength(200)
-                        .HasColumnType("character varying(200)");
-
-                    b.Property<bool>("IsHidden")
-                        .HasColumnType("boolean");
-
-                    b.Property<bool>("IsReadOnly")
-                        .HasColumnType("boolean");
-
-                    b.Property<bool>("IsRequired")
-                        .HasColumnType("boolean");
-
-                    b.Property<string>("Name")
-                        .IsRequired()
-                        .HasMaxLength(100)
-                        .HasColumnType("character varying(100)");
-
-                    b.Property<int>("SortOrder")
-                        .HasColumnType("integer");
-
-                    b.Property<string>("Type")
-                        .IsRequired()
-                        .HasMaxLength(20)
-                        .HasColumnType("character varying(20)");
-
-                    b.HasKey("Id");
-
-                    b.HasIndex("Name")
-                        .IsUnique();
-
-                    b.ToTable("UserProperties");
-                });
-
-            modelBuilder.Entity("Mothenticate.Data.Entities.UserPropertyValue", b =>
-                {
-                    b.Property<int>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("integer");
-
-                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
-
-                    b.Property<int>("PropertyId")
-                        .HasColumnType("integer");
-
-                    b.Property<string>("UserId")
-                        .IsRequired()
-                        .HasMaxLength(450)
-                        .HasColumnType("character varying(450)");
-
-                    b.Property<string>("Value")
-                        .HasColumnType("text");
-
-                    b.HasKey("Id");
-
-                    b.HasIndex("PropertyId");
-
-                    b.HasIndex("UserId", "PropertyId")
-                        .IsUnique();
-
-                    b.ToTable("UserPropertyValues");
                 });
 
             modelBuilder.Entity("Mothenticate.Data.Entities.UserSession", b =>
@@ -936,6 +1186,17 @@ namespace Mothenticate.Data.Migrations
                     b.Navigation("User");
                 });
 
+            modelBuilder.Entity("Mothenticate.Data.Entities.ClientScopeMapper", b =>
+                {
+                    b.HasOne("Mothenticate.Data.Entities.ClientScope", "ClientScope")
+                        .WithMany("Mappers")
+                        .HasForeignKey("ClientScopeId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("ClientScope");
+                });
+
             modelBuilder.Entity("Mothenticate.Data.Entities.GroupRole", b =>
                 {
                     b.HasOne("Mothenticate.Data.Entities.Group", "Group")
@@ -955,6 +1216,94 @@ namespace Mothenticate.Data.Migrations
                     b.Navigation("Role");
                 });
 
+            modelBuilder.Entity("Mothenticate.Data.Entities.IdentityProvider", b =>
+                {
+                    b.HasOne("Mothenticate.Data.Entities.IdentityProviderConfiguration", "Configuration")
+                        .WithMany()
+                        .HasForeignKey("ConfigurationId")
+                        .OnDelete(DeleteBehavior.SetNull);
+
+                    b.HasOne("Mothenticate.Data.Entities.IdentityProviderType", "ProviderType")
+                        .WithMany("Providers")
+                        .HasForeignKey("ProviderTypeId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.Navigation("Configuration");
+
+                    b.Navigation("ProviderType");
+                });
+
+            modelBuilder.Entity("Mothenticate.Data.Entities.IdentityProviderMapper", b =>
+                {
+                    b.HasOne("Mothenticate.Data.Entities.IdentityProvider", "IdentityProvider")
+                        .WithMany("Mappers")
+                        .HasForeignKey("IdentityProviderId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("IdentityProvider");
+                });
+
+            modelBuilder.Entity("Mothenticate.Data.Entities.IdentityProviderType", b =>
+                {
+                    b.HasOne("Mothenticate.Data.Entities.IdentityProviderConfiguration", "DefaultConfiguration")
+                        .WithMany()
+                        .HasForeignKey("DefaultConfigurationId")
+                        .OnDelete(DeleteBehavior.SetNull);
+
+                    b.Navigation("DefaultConfiguration");
+                });
+
+            modelBuilder.Entity("Mothenticate.Data.Entities.UserAttributeScope", b =>
+                {
+                    b.HasOne("Mothenticate.Data.Entities.ClientScope", "Scope")
+                        .WithMany("AttributeScopes")
+                        .HasForeignKey("ScopeId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("Mothenticate.Data.Entities.UserAttribute", "UserAttribute")
+                        .WithMany("Scopes")
+                        .HasForeignKey("UserAttributeId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Scope");
+
+                    b.Navigation("UserAttribute");
+                });
+
+            modelBuilder.Entity("Mothenticate.Data.Entities.UserAttributeValidator", b =>
+                {
+                    b.HasOne("Mothenticate.Data.Entities.UserAttribute", "UserAttribute")
+                        .WithMany("Validators")
+                        .HasForeignKey("UserAttributeId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("UserAttribute");
+                });
+
+            modelBuilder.Entity("Mothenticate.Data.Entities.UserAttributeValue", b =>
+                {
+                    b.HasOne("Mothenticate.Data.Entities.UserAttribute", "UserAttribute")
+                        .WithMany("Values")
+                        .HasForeignKey("UserAttributeId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("Mothenticate.Data.Entities.ApplicationUser", "User")
+                        .WithMany("AttributeValues")
+                        .HasForeignKey("UserId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("User");
+
+                    b.Navigation("UserAttribute");
+                });
+
             modelBuilder.Entity("Mothenticate.Data.Entities.UserGroup", b =>
                 {
                     b.HasOne("Mothenticate.Data.Entities.Group", "Group")
@@ -970,25 +1319,6 @@ namespace Mothenticate.Data.Migrations
                         .IsRequired();
 
                     b.Navigation("Group");
-
-                    b.Navigation("User");
-                });
-
-            modelBuilder.Entity("Mothenticate.Data.Entities.UserPropertyValue", b =>
-                {
-                    b.HasOne("Mothenticate.Data.Entities.UserProperty", "Property")
-                        .WithMany("Values")
-                        .HasForeignKey("PropertyId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.HasOne("Mothenticate.Data.Entities.ApplicationUser", "User")
-                        .WithMany("PropertyValues")
-                        .HasForeignKey("UserId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.Navigation("Property");
 
                     b.Navigation("User");
                 });
@@ -1040,11 +1370,18 @@ namespace Mothenticate.Data.Migrations
 
             modelBuilder.Entity("Mothenticate.Data.Entities.ApplicationUser", b =>
                 {
-                    b.Navigation("PropertyValues");
+                    b.Navigation("AttributeValues");
 
                     b.Navigation("Sessions");
 
                     b.Navigation("UserGroups");
+                });
+
+            modelBuilder.Entity("Mothenticate.Data.Entities.ClientScope", b =>
+                {
+                    b.Navigation("AttributeScopes");
+
+                    b.Navigation("Mappers");
                 });
 
             modelBuilder.Entity("Mothenticate.Data.Entities.Group", b =>
@@ -1054,8 +1391,22 @@ namespace Mothenticate.Data.Migrations
                     b.Navigation("UserGroups");
                 });
 
-            modelBuilder.Entity("Mothenticate.Data.Entities.UserProperty", b =>
+            modelBuilder.Entity("Mothenticate.Data.Entities.IdentityProvider", b =>
                 {
+                    b.Navigation("Mappers");
+                });
+
+            modelBuilder.Entity("Mothenticate.Data.Entities.IdentityProviderType", b =>
+                {
+                    b.Navigation("Providers");
+                });
+
+            modelBuilder.Entity("Mothenticate.Data.Entities.UserAttribute", b =>
+                {
+                    b.Navigation("Scopes");
+
+                    b.Navigation("Validators");
+
                     b.Navigation("Values");
                 });
 

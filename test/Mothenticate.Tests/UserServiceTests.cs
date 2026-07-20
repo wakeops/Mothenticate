@@ -67,11 +67,11 @@ public class UserServiceTests
     }
 
     [Fact]
-    public async Task UpdateProfileAsync_ReturnsFailure_WhenUserNotFound()
+    public async Task UpdateIdentifiersAsync_ReturnsFailure_WhenUserNotFound()
     {
         _userManagerMock.Setup(m => m.FindByIdAsync("missing")).ReturnsAsync((ApplicationUser?)null);
 
-        var result = await _service.UpdateProfileAsync("missing", "First", "Last", "Display");
+        var result = await _service.UpdateIdentifiersAsync("missing", "newname", "new@test.com");
 
         Assert.False(result.Succeeded);
         Assert.Contains(result.Errors, e => e.Code == "UserNotFound");

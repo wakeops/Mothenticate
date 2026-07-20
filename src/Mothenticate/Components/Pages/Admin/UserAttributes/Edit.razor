@@ -1,0 +1,317 @@
+@page "/admin/user-attributes/edit"
+@page "/admin/user-attributes/edit/{Id:int}"
+@attribute [Authorize(Policy = AuthDefaults.AppAdminUserPolicy)]
+@inject IUserAttributeService UserAttributeService
+@inject IClientScopeService ClientScopeService
+@inject ISnackbar Snackbar
+@inject NavigationManager Navigation
+@inject IStringLocalizer<SharedResource> L
+@using Mothenticate.Models.Admin
+
+<PageTitle>@(_isCreate ? L["Admin_UserAttrs_CreateAttribute"] : L["Admin_UserAttrs_EditAttribute"]) — Mothenticate Admin</PageTitle>
+
+<MudStack Row="true" AlignItems="AlignItems.Center" Class="mb-4">
+    <MudIconButton Icon="@Icons.Material.Filled.ArrowBack" OnClick='() => Navigation.NavigateTo("/admin/user-attributes")' />
+    <MudText Typo="Typo.h4">@(_isCreate ? L["Admin_UserAttrs_CreateAttribute"] : L["Admin_UserAttrs_EditAttribute"])</MudText>
+</MudStack>
+
+@if (_loading)
+{
+    <MudProgressLinear Indeterminate="true" />
+}
+else
+{
+    <MudTabs Elevation="2" Rounded="true" ApplyEffectsToContainer="true" TabPanelsClass="pa-6">
+
+        <!-- General settings -->
+        <MudTabPanel Text="@L["Admin_UserAttrs_TabGeneral"]">
+            <MudGrid Style="max-width:700px">
+                <MudItem xs="12" sm="6">
+                    <MudTextField @bind-Value="_model.Name" Label="@L["Admin_UserAttrs_Name"]" Variant="Variant.Outlined"
+                                  Required="true" Disabled="@(!_isCreate)" />
+                </MudItem>
+                <MudItem xs="12" sm="6">
+                    <MudTextField @bind-Value="_model.DisplayName" Label="@L["Admin_UserAttrs_DisplayName"]" Variant="Variant.Outlined" Required="true" />
+                </MudItem>
+                <MudItem xs="12" sm="6">
+                    <MudSelect T="AttributeInputType?" @bind-Value="_model.InputType" Label="@L["Admin_UserAttrs_InputType"]"
+                               Variant="Variant.Outlined" Required="true">
+                        @foreach (var type in Enum.GetValues<AttributeInputType>())
+                        {
+                            <MudSelectItem T="AttributeInputType?" Value="@type">@type</MudSelectItem>
+                        }
+                    </MudSelect>
+                </MudItem>
+
+                @if (_model.InputType is not null && _model.InputType != AttributeInputType.Image)
+                {
+                    <MudItem xs="12" sm="6">
+                        <MudCheckBox @bind-Value="_model.IsMultivalued" Label="@L["Admin_UserAttrs_Multivalued"]" Color="Color.Primary" />
+                    </MudItem>
+                }
+
+                @if (_model.InputType is not null)
+                {
+                    <MudItem xs="12">
+                        <MudTextField @bind-Value="_model.DefaultValue" Label="@L["Admin_UserAttrs_DefaultValue"]" Variant="Variant.Outlined" />
+                    </MudItem>
+                }
+
+                <MudItem xs="12">
+                    <MudText Typo="Typo.subtitle2" GutterBottom="true">@L["Admin_UserAttrs_EnabledWhen"]</MudText>
+                    <MudRadioGroup T="ScopeCondition" @bind-Value="_model.EnabledWhen">
+                        <MudRadio T="ScopeCondition" Value="ScopeCondition.Always" Color="Color.Primary">@L["Admin_UserAttrs_Always"]</MudRadio>
+                        <MudRadio T="ScopeCondition" Value="ScopeCondition.ScopesRequested" Color="Color.Primary">@L["Admin_UserAttrs_ScopesRequested"]</MudRadio>
+                    </MudRadioGroup>
+                    @if (_model.EnabledWhen == ScopeCondition.ScopesRequested)
+                    {
+                        <MudSelect T="int" MultiSelection="true" @bind-SelectedValues="_enabledScopeIds"
+                                   Label="@L["Admin_UserAttrs_Scopes"]" Variant="Variant.Outlined" Class="mt-2">
+                            @foreach (var scope in _scopes)
+                            {
+                                <MudSelectItem T="int" Value="@scope.Id">@scope.Name</MudSelectItem>
+                            }
+                        </MudSelect>
+                    }
+                </MudItem>
+
+                <MudItem xs="12">
+                    <MudCheckBox @bind-Value="_model.IsRequired" Label="@L["Admin_UserAttrs_RequiredField"]" Color="Color.Primary" />
+                </MudItem>
+
+                @if (_model.IsRequired)
+                {
+                    <MudItem xs="12">
+                        <MudText Typo="Typo.subtitle2" GutterBottom="true">@L["Admin_UserAttrs_RequiredFor"]</MudText>
+                        <MudRadioGroup T="RequiredFor" @bind-Value="_model.RequiredFor">
+                            <MudRadio T="RequiredFor" Value="RequiredFor.Both" Color="Color.Primary">@L["Admin_UserAttrs_RequiredForBoth"]</MudRadio>
+                            <MudRadio T="RequiredFor" Value="RequiredFor.UsersOnly" Color="Color.Primary">@L["Admin_UserAttrs_RequiredForUsers"]</MudRadio>
+                            <MudRadio T="RequiredFor" Value="RequiredFor.AdminsOnly" Color="Color.Primary">@L["Admin_UserAttrs_RequiredForAdmins"]</MudRadio>
+                        </MudRadioGroup>
+                    </MudItem>
+
+                    <MudItem xs="12">
+                        <MudText Typo="Typo.subtitle2" GutterBottom="true">@L["Admin_UserAttrs_RequiredWhen"]</MudText>
+                        <MudRadioGroup T="ScopeCondition" @bind-Value="_model.RequiredWhen">
+                            <MudRadio T="ScopeCondition" Value="ScopeCondition.Always" Color="Color.Primary">@L["Admin_UserAttrs_Always"]</MudRadio>
+                            <MudRadio T="ScopeCondition" Value="ScopeCondition.ScopesRequested" Color="Color.Primary">@L["Admin_UserAttrs_ScopesRequested"]</MudRadio>
+                        </MudRadioGroup>
+                        @if (_model.RequiredWhen == ScopeCondition.ScopesRequested)
+                        {
+                            <MudSelect T="int" MultiSelection="true" @bind-SelectedValues="_requiredScopeIds"
+                                       Label="@L["Admin_UserAttrs_Scopes"]" Variant="Variant.Outlined" Class="mt-2">
+                                @foreach (var scope in _scopes)
+                                {
+                                    <MudSelectItem T="int" Value="@scope.Id">@scope.Name</MudSelectItem>
+                                }
+                            </MudSelect>
+                        }
+                    </MudItem>
+                }
+            </MudGrid>
+        </MudTabPanel>
+
+        <!-- Permissions -->
+        <MudTabPanel Text="@L["Admin_UserAttrs_TabPermissions"]">
+            <MudGrid Style="max-width:500px">
+                <MudItem xs="12">
+                    <MudText Typo="Typo.subtitle2" GutterBottom="true">@L["Admin_UserAttrs_WhoCanEdit"]</MudText>
+                    <MudCheckBox @bind-Value="_model.CanEditUser" Label="@L["Admin_UserAttrs_User"]" Color="Color.Primary" />
+                    <MudCheckBox @bind-Value="_model.CanEditAdmin" Label="@L["Admin_UserAttrs_Admin"]" Color="Color.Primary" />
+                </MudItem>
+                <MudItem xs="12">
+                    <MudText Typo="Typo.subtitle2" GutterBottom="true">@L["Admin_UserAttrs_WhoCanView"]</MudText>
+                    <MudCheckBox @bind-Value="_model.CanViewUser" Label="@L["Admin_UserAttrs_User"]" Color="Color.Primary" />
+                    <MudCheckBox @bind-Value="_model.CanViewAdmin" Label="@L["Admin_UserAttrs_Admin"]" Color="Color.Primary" />
+                </MudItem>
+            </MudGrid>
+        </MudTabPanel>
+
+        <!-- Validations -->
+        <MudTabPanel Text="@L["Admin_UserAttrs_TabValidations"]">
+            <MudStack Row="true" AlignItems="AlignItems.Center" Class="mb-3">
+                <MudSpacer />
+                <MudMenu Label="@L["Admin_UserAttrs_AddValidator"]" StartIcon="@Icons.Material.Filled.Add"
+                         Variant="Variant.Filled" Color="Color.Primary" EndIcon="@Icons.Material.Filled.ArrowDropDown"
+                         Disabled="@(_model.InputType is null)">
+                    @foreach (var validatorType in CompatibleValidators())
+                    {
+                        <MudMenuItem OnClick="@(() => AddValidator(validatorType))">@validatorType</MudMenuItem>
+                    }
+                </MudMenu>
+            </MudStack>
+
+            @if (_model.Validators.Count == 0)
+            {
+                <MudText Color="Color.Secondary">@L["Admin_UserAttrs_NoValidators"]</MudText>
+            }
+            else
+            {
+                <MudTable Items="@_model.Validators" Dense="true" Hover="true">
+                    <HeaderContent>
+                        <MudTh>@L["Admin_UserAttrs_ColValidatorName"]</MudTh>
+                        <MudTh>@L["Admin_UserAttrs_ColConfig"]</MudTh>
+                        <MudTh Style="width:56px"></MudTh>
+                    </HeaderContent>
+                    <RowTemplate>
+                        <MudTd>@context.ValidatorType</MudTd>
+                        <MudTd>
+                            <MudTextField T="string" Value="@context.ConfigJson"
+                                          ValueChanged="@((string v) => context.ConfigJson = v)"
+                                          Variant="Variant.Outlined" Margin="Margin.Dense" />
+                        </MudTd>
+                        <MudTd>
+                            <MudIconButton Icon="@Icons.Material.Filled.Delete" Size="Size.Small" Color="Color.Error"
+                                           OnClick="() => _model.Validators.Remove(context)" />
+                        </MudTd>
+                    </RowTemplate>
+                </MudTable>
+            }
+        </MudTabPanel>
+    </MudTabs>
+
+    <MudStack Row="true" Class="mt-4">
+        <MudButton Variant="Variant.Filled" Color="Color.Primary" OnClick="Save" Disabled="@_saving">
+            @(_isCreate ? L["Admin_UserAttrs_Create"] : L["Admin_UserAttrs_Save"])
+        </MudButton>
+        <MudButton Variant="Variant.Text" OnClick='() => Navigation.NavigateTo("/admin/user-attributes")'>
+            @L["Admin_UserAttrs_Cancel"]
+        </MudButton>
+    </MudStack>
+}
+
+@code {
+    [Parameter] public int? Id { get; set; }
+
+    private bool _isCreate;
+    private bool _loading = true;
+    private bool _saving;
+    private UserAttributeEditModel _model = new();
+    private List<ClientScope> _scopes = [];
+    private IReadOnlyCollection<int> _enabledScopeIds = [];
+    private IReadOnlyCollection<int> _requiredScopeIds = [];
+
+    protected override async Task OnInitializedAsync()
+    {
+        _isCreate = Id is null;
+        _scopes = [.. await ClientScopeService.GetAllAsync()];
+
+        if (!_isCreate)
+        {
+            var attribute = await UserAttributeService.GetDefinitionByIdAsync(Id!.Value);
+            if (attribute is null)
+            {
+                Navigation.NavigateTo("/admin/user-attributes");
+                return;
+            }
+
+            _model = new UserAttributeEditModel
+            {
+                Id = attribute.Id,
+                Name = attribute.Name,
+                DisplayName = attribute.DisplayName,
+                InputType = attribute.InputType,
+                IsMultivalued = attribute.IsMultivalued,
+                DefaultValue = attribute.DefaultValue,
+                EnabledWhen = attribute.EnabledWhen,
+                IsRequired = attribute.IsRequired,
+                RequiredFor = attribute.RequiredFor ?? RequiredFor.Both,
+                RequiredWhen = attribute.RequiredWhen ?? ScopeCondition.Always,
+                CanEditUser = attribute.CanEditUser,
+                CanEditAdmin = attribute.CanEditAdmin,
+                CanViewUser = attribute.CanViewUser,
+                CanViewAdmin = attribute.CanViewAdmin,
+                IsBuiltIn = attribute.IsBuiltIn,
+                Validators = [.. attribute.Validators.Select(v => new UserAttributeValidatorModel
+                {
+                    Id = v.Id,
+                    ValidatorType = v.ValidatorType,
+                    ConfigJson = v.ConfigJson
+                })]
+            };
+
+            _enabledScopeIds = attribute.Scopes.Where(s => s.Purpose == ScopePurpose.EnabledWhen).Select(s => s.ScopeId).ToList();
+            _requiredScopeIds = attribute.Scopes.Where(s => s.Purpose == ScopePurpose.RequiredWhen).Select(s => s.ScopeId).ToList();
+        }
+
+        _loading = false;
+    }
+
+    private IEnumerable<ValidatorType> CompatibleValidators() => _model.InputType switch
+    {
+        AttributeInputType.String => [ValidatorType.Length, ValidatorType.Email, ValidatorType.Pattern, ValidatorType.Uri, ValidatorType.Options, ValidatorType.Multivalued],
+        AttributeInputType.Number => [ValidatorType.Double, ValidatorType.Integer, ValidatorType.Multivalued],
+        AttributeInputType.Date => [ValidatorType.Date, ValidatorType.Multivalued],
+        AttributeInputType.Time => [ValidatorType.Time, ValidatorType.Multivalued],
+        AttributeInputType.DateTime => [ValidatorType.Date, ValidatorType.Time, ValidatorType.Multivalued],
+        AttributeInputType.Boolean => [ValidatorType.Options],
+        AttributeInputType.Image => [ValidatorType.Image],
+        _ => []
+    };
+
+    private void AddValidator(ValidatorType type)
+    {
+        _model.Validators.Add(new UserAttributeValidatorModel { ValidatorType = type, ConfigJson = "{}" });
+    }
+
+    private async Task Save()
+    {
+        if (string.IsNullOrWhiteSpace(_model.Name) || _model.InputType is null)
+        {
+            Snackbar.Add(L["Admin_UserAttrs_NameAndTypeRequired"], Severity.Warning);
+            return;
+        }
+
+        _saving = true;
+        try
+        {
+            var attribute = new UserAttribute
+            {
+                Id = _model.Id,
+                Name = _model.Name,
+                DisplayName = _model.DisplayName,
+                InputType = _model.InputType.Value,
+                IsMultivalued = _model.IsMultivalued,
+                DefaultValue = _model.DefaultValue,
+                EnabledWhen = _model.EnabledWhen,
+                IsRequired = _model.IsRequired,
+                RequiredFor = _model.IsRequired ? _model.RequiredFor : null,
+                RequiredWhen = _model.IsRequired ? _model.RequiredWhen : null,
+                CanEditUser = _model.CanEditUser,
+                CanEditAdmin = _model.CanEditAdmin,
+                CanViewUser = _model.CanViewUser,
+                CanViewAdmin = _model.CanViewAdmin,
+                IsBuiltIn = _model.IsBuiltIn
+            };
+
+            foreach (var scopeId in _enabledScopeIds)
+                attribute.Scopes.Add(new UserAttributeScope { ScopeId = scopeId, Purpose = ScopePurpose.EnabledWhen });
+            foreach (var scopeId in _requiredScopeIds)
+                attribute.Scopes.Add(new UserAttributeScope { ScopeId = scopeId, Purpose = ScopePurpose.RequiredWhen });
+
+            foreach (var validator in _model.Validators)
+                attribute.Validators.Add(new UserAttributeValidator { ValidatorType = validator.ValidatorType, ConfigJson = validator.ConfigJson });
+
+            if (_isCreate)
+            {
+                await UserAttributeService.CreateDefinitionAsync(attribute);
+                Snackbar.Add(L["Admin_UserAttrs_Created"], Severity.Success);
+            }
+            else
+            {
+                await UserAttributeService.UpdateDefinitionAsync(attribute);
+                Snackbar.Add(L["Admin_UserAttrs_Updated"], Severity.Success);
+            }
+
+            Navigation.NavigateTo("/admin/user-attributes");
+        }
+        catch (InvalidOperationException ex)
+        {
+            Snackbar.Add(ex.Message, Severity.Error);
+        }
+        finally
+        {
+            _saving = false;
+        }
+    }
+}
