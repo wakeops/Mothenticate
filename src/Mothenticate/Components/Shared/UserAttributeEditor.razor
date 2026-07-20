@@ -72,7 +72,7 @@ else
             var label = Attribute.IsMultivalued ? null : Attribute.DisplayName;
             var value = GetValue(index);
         }
-        switch (Attribute.InputType)
+        @switch (Attribute.InputType)
         {
             case AttributeInputType.Boolean:
                 <MudCheckBox Value="@(bool.TryParse(value, out var b) && b)"
