@@ -1,0 +1,79 @@
+@using System.ComponentModel.DataAnnotations
+@using System.Reflection
+@using Mothenticate.IdentityProvider.Services.ScopeMappers.Abstract
+
+@foreach (var field in Fields)
+{
+    <MudItem xs="12">
+        @if (field.IsUserAttributeReference)
+        {
+            <MudSelect T="int?" Value="@GetInt(field.Name)" ValueChanged="@(v => SetInt(field.Name, v))"
+                       Label="@field.Label" Variant="Variant.Outlined" Required="@field.Required">
+                @foreach (var userAttr in Attributes)
+                {
+                    <MudSelectItem T="int?" Value="@((int?)userAttr.Id)">@userAttr.Name</MudSelectItem>
+                }
+            </MudSelect>
+        }
+        else if (field.ClrType == typeof(bool))
+        {
+            <MudCheckBox T="bool" Value="@GetBool(field.Name)" ValueChanged="@((bool v) => SetBool(field.Name, v))"
+                         Label="@field.Label" Color="Color.Primary" />
+        }
+        else if (field.ClrType.IsEnum)
+        {
+            <MudSelect T="string" Value="@GetValue(field.Name)" ValueChanged="@(v => SetValue(field.Name, v))"
+                       Label="@field.Label" Variant="Variant.Outlined" Required="@field.Required">
+                @foreach (var name in Enum.GetNames(field.ClrType))
+                {
+                    <MudSelectItem T="string" Value="@name">@name</MudSelectItem>
+                }
+            </MudSelect>
+        }
+        else
+        {
+            <MudTextField T="string" Value="@GetValue(field.Name)" ValueChanged="@((string? v) => SetValue(field.Name, v))"
+                          Label="@field.Label" Variant="Variant.Outlined" Required="@field.Required"
+                          InputType="@(field.ClrType == typeof(int) ? MudBlazor.InputType.Number : MudBlazor.InputType.Text)" />
+        }
+    </MudItem>
+}
+
+@code {
+    /// <summary>
+    /// Describes one settings-model property, discovered via reflection so mapper config forms don't
+    /// need a hand-written field per <see cref="IConfigurableMapper"/> settings type.
+    /// </summary>
+    public record ConfigFieldMeta(string Name, string Label, Type ClrType, bool Required, bool IsUserAttributeReference)
+    {
+        public static List<ConfigFieldMeta> BuildFrom(Type settingsType) =>
+            [.. settingsType.GetProperties(BindingFlags.Public | BindingFlags.Instance).Select(FromProperty)];
+
+        private static ConfigFieldMeta FromProperty(PropertyInfo property) => new(
+            property.Name,
+            property.GetCustomAttribute<DisplayAttribute>()?.Name ?? property.Name,
+            Nullable.GetUnderlyingType(property.PropertyType) ?? property.PropertyType,
+            property.GetCustomAttribute<RequiredAttribute>() is not null,
+            property.GetCustomAttribute<UserAttributeReferenceAttribute>() is not null);
+    }
+
+    [Parameter, EditorRequired] public List<ConfigFieldMeta> Fields { get; set; } = [];
+
+    // Mutated in place — the parent page reads this same dictionary back on save, so no two-way
+    // binding plumbing is needed for a plain reference type.
+    [Parameter, EditorRequired] public Dictionary<string, string> ConfigValues { get; set; } = [];
+
+    [Parameter] public List<UserAttribute> Attributes { get; set; } = [];
+
+    private string? GetValue(string key) => ConfigValues.GetValueOrDefault(key);
+
+    private void SetValue(string key, string? value) => ConfigValues[key] = value ?? string.Empty;
+
+    private int? GetInt(string key) => int.TryParse(GetValue(key), out var value) ? value : null;
+
+    private void SetInt(string key, int? value) => SetValue(key, value?.ToString());
+
+    private bool GetBool(string key) => bool.TryParse(GetValue(key), out var value) && value;
+
+    private void SetBool(string key, bool value) => SetValue(key, value.ToString());
+}

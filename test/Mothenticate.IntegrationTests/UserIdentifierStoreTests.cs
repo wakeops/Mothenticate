@@ -110,13 +110,11 @@ public class UserIdentifierStoreTests(MothenticateWebApplicationFactory factory)
                 var config = JsonSerializer.Serialize(new Dictionary<string, string>
                 {
                     ["TokenClaimName"] = "name",
-                    ["UserAttributeId"] = displayNameAttribute.Id.ToString(),
-                    ["IncludeAccessToken"] = "true",
-                    ["IncludeIdToken"] = "true",
-                    ["IncludeIntrospectionToken"] = "true",
-                    ["IncludeUserInfo"] = "true"
+                    ["UserAttributeId"] = displayNameAttribute.Id.ToString()
                 });
 
+                // IncludeAccessToken/IncludeIdToken/IncludeIntrospectionToken/IncludeUserInfo default to
+                // true on the entity, matching what an admin gets from a freshly created mapper.
                 await clientScopeService.AddMapperAsync(new ClientScopeMapper
                 {
                     ClientScopeId = profileScope.Id,

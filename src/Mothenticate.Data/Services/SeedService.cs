@@ -91,21 +91,11 @@ public class SeedService(
         var attributesByName = await db.UserAttributes.ToDictionaryAsync(a => a.Name, cancellationToken);
         var mappers = new List<ClientScopeMapper>();
 
-        static Dictionary<string, string> DefaultFlags(string claimName) => new()
-        {
-            ["TokenClaimName"] = claimName,
-            ["IncludeAccessToken"] = "true",
-            ["IncludeIdToken"] = "true",
-            ["IncludeIntrospectionToken"] = "true",
-            ["IncludeUserInfo"] = "true"
-        };
-
         void AddAttributeMapper(string scopeName, string attributeName, string claimName)
         {
             if (scopesByName.TryGetValue(scopeName, out var scope) && attributesByName.TryGetValue(attributeName, out var attribute))
             {
-                var config = DefaultFlags(claimName);
-                config["UserAttributeId"] = attribute.Id.ToString();
+                var config = new Dictionary<string, string> { ["TokenClaimName"] = claimName, ["UserAttributeId"] = attribute.Id.ToString() };
                 mappers.Add(new ClientScopeMapper { ClientScopeId = scope.Id, Name = claimName, MapperType = MapperType.UserAttribute, Config = JsonSerializer.Serialize(config) });
             }
         }
@@ -114,8 +104,7 @@ public class SeedService(
         {
             if (scopesByName.TryGetValue(scopeName, out var scope))
             {
-                var config = DefaultFlags(claimName);
-                config["UserProperty"] = field.ToString();
+                var config = new Dictionary<string, string> { ["TokenClaimName"] = claimName, ["UserProperty"] = field.ToString() };
                 mappers.Add(new ClientScopeMapper { ClientScopeId = scope.Id, Name = claimName, MapperType = MapperType.UserProperty, Config = JsonSerializer.Serialize(config) });
             }
         }
@@ -124,7 +113,7 @@ public class SeedService(
         {
             if (scopesByName.TryGetValue(scopeName, out var scope))
             {
-                mappers.Add(new ClientScopeMapper { ClientScopeId = scope.Id, Name = claimName, MapperType = MapperType.AuthenticationContextReference, Config = JsonSerializer.Serialize(DefaultFlags(claimName)) });
+                mappers.Add(new ClientScopeMapper { ClientScopeId = scope.Id, Name = claimName, MapperType = MapperType.AuthenticationContextReference });
             }
         }
 

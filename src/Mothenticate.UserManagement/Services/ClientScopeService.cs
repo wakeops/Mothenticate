@@ -1,10 +1,16 @@
+using Microsoft.Extensions.Caching.Memory;
 using Mothenticate.Data.Entities;
 using Mothenticate.Data.Repositories;
 
 namespace Mothenticate.UserManagement.Services;
 
-public class ClientScopeService(IClientScopeRepository clientScopeRepository) : IClientScopeService
+public class ClientScopeService(IClientScopeRepository clientScopeRepository, IMemoryCache cache) : IClientScopeService
 {
+    // Scope-mapper config is read on every authorize/token/userinfo/introspection request but changes
+    // only when an admin edits it, so a short cache window trades a bounded propagation delay for
+    // cutting a DB round trip out of every OIDC request.
+    private static readonly TimeSpan MapperCacheDuration = TimeSpan.FromSeconds(30);
+
     public Task<IReadOnlyList<ClientScope>> GetAllAsync(CancellationToken cancellationToken = default)
         => clientScopeRepository.GetAllAsync(cancellationToken);
 
@@ -39,6 +45,21 @@ public class ClientScopeService(IClientScopeRepository clientScopeRepository) : 
     public Task DeleteMapperAsync(int mapperId, CancellationToken cancellationToken = default)
         => clientScopeRepository.DeleteMapperAsync(mapperId, cancellationToken);
 
-    public Task<IReadOnlyList<ClientScopeMapper>> GetMappersByScopeNamesAsync(IReadOnlyList<string> scopeNames, CancellationToken cancellationToken = default)
-        => clientScopeRepository.GetMappersByScopeNamesAsync(scopeNames, cancellationToken);
+    public async Task<IReadOnlyList<ClientScopeMapper>> GetMappersByScopeNamesAsync(IReadOnlyList<string> scopeNames, CancellationToken cancellationToken = default)
+    {
+        if (scopeNames.Count == 0)
+        {
+            return [];
+        }
+
+        var cacheKey = $"{nameof(ClientScopeService)}:Mappers:{string.Join(',', scopeNames.OrderBy(s => s, StringComparer.Ordinal))}";
+        if (cache.TryGetValue(cacheKey, out IReadOnlyList<ClientScopeMapper>? cached) && cached is not null)
+        {
+            return cached;
+        }
+
+        var mappers = await clientScopeRepository.GetMappersByScopeNamesAsync(scopeNames, cancellationToken);
+        cache.Set(cacheKey, mappers, MapperCacheDuration);
+        return mappers;
+    }
 }

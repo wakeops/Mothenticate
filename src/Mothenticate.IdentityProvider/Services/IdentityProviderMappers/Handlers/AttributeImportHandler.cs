@@ -1,6 +1,7 @@
 using System.Text.Json;
 using Mothenticate.Data.Entities;
 using Mothenticate.IdentityProvider.Services.IdentityProviderMappers.Abstract;
+using Mothenticate.IdentityProvider.Services.ScopeMappers.Abstract;
 using Mothenticate.UserManagement.Services;
 using IdpEntity = Mothenticate.Data.Entities.IdentityProvider;
 
@@ -38,7 +39,7 @@ public static class AttributeImportHandler
                 continue;
             }
 
-            var config = DeserializeConfig(mapperRow.Config);
+            var config = MapperConfigSerializer.Deserialize(mapperRow.Config);
             var resolved = mapper.Resolve(providerProfile, config);
             if (resolved is null)
             {
@@ -56,7 +57,4 @@ public static class AttributeImportHandler
             await userAttributeService.SetUserValuesAsync(userId, userAttributeId, [value], cancellationToken);
         }
     }
-
-    private static Dictionary<string, string> DeserializeConfig(string json)
-        => JsonSerializer.Deserialize<Dictionary<string, string>>(json) ?? [];
 }
