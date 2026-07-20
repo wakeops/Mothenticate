@@ -1,4 +1,5 @@
 ﻿using System.Security.Claims;
+using System.Text.Json;
 using Microsoft.AspNetCore;
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Authorization;
@@ -8,6 +9,10 @@ using Microsoft.AspNetCore.Mvc;
 using Mothenticate.Data.Entities;
 using Mothenticate.Domain.Config;
 using Mothenticate.IdentityProvider.Services;
+using Mothenticate.IdentityProvider.Services.ScopeMappers;
+using Mothenticate.IdentityProvider.Services.ScopeMappers.Abstract;
+using Mothenticate.IdentityProvider.Services.ScopeMappers.Handlers;
+using Mothenticate.UserManagement.Services;
 using OpenIddict.Abstractions;
 using OpenIddict.Server.AspNetCore;
 
@@ -22,6 +27,9 @@ public class AuthorizationController(
     UserManager<ApplicationUser> userManager,
     IOpenIddictApplicationManager applicationManager,
     IOpenIddictAuthorizationManager authorizationManager,
+    IUserAttributeService userAttributeService,
+    IClientScopeService clientScopeService,
+    IScopeMapperResolver scopeMapperResolver,
     IClientService clientService) : Controller
 {
     // ── Authorization endpoint ────────────────────────────────────────────────
@@ -85,7 +93,6 @@ public class AuthorizationController(
             scopes: identity.GetScopes());
 
         identity.SetAuthorizationId(await authorizationManager.GetIdAsync(authorization));
-        identity.SetDestinations(GetDestinations);
 
         return SignIn(new ClaimsPrincipal(identity), OpenIddictServerAspNetCoreDefaults.AuthenticationScheme);
     }
@@ -136,7 +143,6 @@ public class AuthorizationController(
 
         var identity = await BuildUserIdentityAsync(user, result.Principal!.GetScopes());
         identity.SetAuthorizationId(result.Principal!.GetAuthorizationId());
-        identity.SetDestinations(GetDestinations);
 
         return SignIn(new ClaimsPrincipal(identity), OpenIddictServerAspNetCoreDefaults.AuthenticationScheme);
     }
@@ -157,7 +163,6 @@ public class AuthorizationController(
         }
 
         var identity = await BuildUserIdentityAsync(user, request.GetScopes());
-        identity.SetDestinations(GetDestinations);
 
         return SignIn(new ClaimsPrincipal(identity), OpenIddictServerAspNetCoreDefaults.AuthenticationScheme);
     }
@@ -218,29 +223,35 @@ public class AuthorizationController(
             [OpenIddictConstants.Claims.Subject] = userId
         };
 
-        if (User.HasScope(Scopes.Email))
-        {
-            claims[OpenIddictConstants.Claims.Email] = user.Email ?? string.Empty;
-            claims[OpenIddictConstants.Claims.EmailVerified] = await userManager.IsEmailConfirmedAsync(user);
-        }
+        var scopes = User.GetScopes().ToList();
 
-        if (User.HasScope(Scopes.Profile))
-        {
-            claims[OpenIddictConstants.Claims.Name] = user.DisplayName ?? user.UserName ?? string.Empty;
-            if (user.FirstName is not null)
-            {
-                claims[OpenIddictConstants.Claims.GivenName] = user.FirstName;
-            }
-
-            if (user.LastName is not null)
-            {
-                claims[OpenIddictConstants.Claims.FamilyName] = user.LastName;
-            }
-        }
-
-        if (User.HasScope(Scopes.Roles))
+        if (scopes.Contains(Scopes.Roles))
         {
             claims[OpenIddictConstants.Claims.Role] = await userManager.GetRolesAsync(user);
+        }
+
+        var mapperRows = await clientScopeService.GetMappersByScopeNamesAsync(scopes);
+        if (mapperRows.Count > 0)
+        {
+            var userAttributes = await userAttributeService.GetAllWithUserValuesAsync(userId);
+            var identity = User.Identity as ClaimsIdentity ?? new ClaimsIdentity();
+            var userInfo = new Dictionary<string, string>();
+
+            foreach (var mapperRow in mapperRows)
+            {
+                if (scopeMapperResolver.Resolve(mapperRow.MapperType) is not IUserInfoMapper userInfoMapper)
+                {
+                    continue;
+                }
+
+                var config = DeserializeConfig(mapperRow.Config);
+                await UserInfoMapperHandler.HandleAsync(userInfoMapper, config, identity, user, userAttributes, userInfo, HttpContext.RequestAborted);
+            }
+
+            foreach (var (key, value) in userInfo)
+            {
+                claims[key] = value;
+            }
         }
 
         return Ok(claims);
@@ -269,48 +280,55 @@ public class AuthorizationController(
             nameType: OpenIddictConstants.Claims.Name,
             roleType: OpenIddictConstants.Claims.Role);
 
-        identity
-            .SetClaim(OpenIddictConstants.Claims.Subject, await userManager.GetUserIdAsync(user))
-            .SetClaim(OpenIddictConstants.Claims.Email, await userManager.GetEmailAsync(user))
-            .SetClaim(OpenIddictConstants.Claims.EmailVerified,
-                (await userManager.IsEmailConfirmedAsync(user)).ToString().ToLowerInvariant())
-            .SetClaim(OpenIddictConstants.Claims.Name, user.DisplayName ?? user.UserName)
-            .SetClaim(OpenIddictConstants.Claims.GivenName, user.FirstName)
-            .SetClaim(OpenIddictConstants.Claims.FamilyName, user.LastName)
-            .SetClaims(OpenIddictConstants.Claims.Role, [.. await userManager.GetRolesAsync(user)]);
+        var scopeList = scopes.ToList();
+        var userId = await userManager.GetUserIdAsync(user);
 
-        identity.SetScopes(scopes);
+        AddClaim(identity, OpenIddictConstants.Claims.Subject, userId, Destinations.AccessToken, Destinations.IdentityToken);
+
+        if (scopeList.Contains(Scopes.Roles))
+        {
+            foreach (var role in await userManager.GetRolesAsync(user))
+            {
+                AddClaim(identity, OpenIddictConstants.Claims.Role, role, Destinations.AccessToken);
+            }
+        }
+
+        await ApplyScopeMapperClaimsAsync(identity, user, scopeList);
+
+        identity.SetScopes(scopeList);
 
         return identity;
     }
 
-    private static IEnumerable<string> GetDestinations(Claim claim)
+    private async Task ApplyScopeMapperClaimsAsync(ClaimsIdentity identity, ApplicationUser user, IReadOnlyList<string> scopes)
     {
-        var identity = (ClaimsIdentity)claim.Subject!;
-
-        return claim.Type switch
+        var mapperRows = await clientScopeService.GetMappersByScopeNamesAsync(scopes);
+        if (mapperRows.Count == 0)
         {
-            OpenIddictConstants.Claims.Subject =>
-                [Destinations.AccessToken, Destinations.IdentityToken],
+            return;
+        }
 
-            OpenIddictConstants.Claims.Email or OpenIddictConstants.Claims.EmailVerified =>
-                identity.GetScopes().Contains(Scopes.Email)
-                    ? [Destinations.AccessToken, Destinations.IdentityToken]
-                    : [],
+        var userAttributes = await userAttributeService.GetAllWithUserValuesAsync(user.Id);
 
-            OpenIddictConstants.Claims.Name or
-            OpenIddictConstants.Claims.GivenName or
-            OpenIddictConstants.Claims.FamilyName =>
-                identity.GetScopes().Contains(Scopes.Profile)
-                    ? [Destinations.AccessToken, Destinations.IdentityToken]
-                    : [],
+        foreach (var mapperRow in mapperRows)
+        {
+            if (scopeMapperResolver.Resolve(mapperRow.MapperType) is not ITokenMapper tokenMapper)
+            {
+                continue;
+            }
 
-            OpenIddictConstants.Claims.Role =>
-                identity.GetScopes().Contains(Scopes.Roles)
-                    ? [Destinations.AccessToken]
-                    : [],
+            var config = DeserializeConfig(mapperRow.Config);
+            await TokenMapperHandler.HandleAsync(tokenMapper, config, identity, user, userAttributes, HttpContext.RequestAborted);
+        }
+    }
 
-            _ => [Destinations.AccessToken]
-        };
+    private static Dictionary<string, string> DeserializeConfig(string config)
+        => JsonSerializer.Deserialize<Dictionary<string, string>>(config) ?? [];
+
+    private static void AddClaim(ClaimsIdentity identity, string type, string value, params string[] destinations)
+    {
+        var claim = new Claim(type, value);
+        claim.SetDestinations(destinations);
+        identity.AddClaim(claim);
     }
 }

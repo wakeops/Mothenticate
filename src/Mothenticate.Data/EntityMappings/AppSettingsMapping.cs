@@ -12,9 +12,5 @@ public class AppSettingsMapping : IEntityTypeConfiguration<AppSettings>
 
         builder.Property(s => s.BrandingTitle).HasMaxLength(200);
         builder.Property(s => s.BrandingSubtitle).HasMaxLength(500);
-        builder.Property(s => s.GoogleClientId).HasMaxLength(300);
-        builder.Property(s => s.GoogleClientSecret).HasMaxLength(300);
-        builder.Property(s => s.GitHubClientId).HasMaxLength(300);
-        builder.Property(s => s.GitHubClientSecret).HasMaxLength(300);
     }
 }

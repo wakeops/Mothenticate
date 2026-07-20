@@ -49,10 +49,10 @@ else
                     {
                         <MudStack Row="true" AlignItems="AlignItems.Center" Class="mb-1">
                             <MudAvatar Size="Size.Small" Color="Color.Primary">
-                                @((member.DisplayName ?? member.UserName ?? "?")[0].ToString().ToUpper())
+                                @((member.UserName ?? "?")[0].ToString().ToUpper())
                             </MudAvatar>
                             <MudStack Spacing="0">
-                                <MudText Typo="Typo.body2">@(member.DisplayName ?? member.UserName)</MudText>
+                                <MudText Typo="Typo.body2">@member.UserName</MudText>
                                 <MudText Typo="Typo.caption" Color="Color.Secondary">@member.Email</MudText>
                             </MudStack>
                             <MudSpacer />
@@ -69,7 +69,7 @@ else
                             @foreach (var user in _nonMembers)
                             {
                                 <MudSelectItem T="string?" Value="@user.Id">
-                                    @(user.DisplayName ?? user.UserName) (@user.Email)
+                                    @user.UserName (@user.Email)
                                 </MudSelectItem>
                             }
                         </MudSelect>

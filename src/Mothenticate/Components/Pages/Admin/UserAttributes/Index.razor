@@ -1,0 +1,114 @@
+@page "/admin/user-attributes"
+@attribute [Authorize(Policy = AuthDefaults.AppAdminUserPolicy)]
+@inject IUserAttributeService UserAttributeService
+@inject IDialogService DialogService
+@inject ISnackbar Snackbar
+@inject NavigationManager Navigation
+@inject IStringLocalizer<SharedResource> L
+
+<PageTitle>User Attributes — Mothenticate Admin</PageTitle>
+
+<MudStack Row="true" AlignItems="AlignItems.Center" Class="mb-4">
+    <MudText Typo="Typo.h4">@L["Admin_UserAttrs_Title"]</MudText>
+    <MudSpacer />
+    <MudButton Variant="Variant.Filled" Color="Color.Primary" StartIcon="@Icons.Material.Filled.Add"
+               OnClick='() => Navigation.NavigateTo("/admin/user-attributes/edit")'>
+        @L["Admin_UserAttrs_CreateAttribute"]
+    </MudButton>
+</MudStack>
+
+@if (_loading)
+{
+    <MudProgressLinear Indeterminate="true" />
+}
+else
+{
+    <MudTable Items="@_attributes" Hover="true" Dense="true">
+        <HeaderContent>
+            <MudTh Style="width:48px"></MudTh>
+            <MudTh>@L["Admin_UserAttrs_ColName"]</MudTh>
+            <MudTh>@L["Admin_UserAttrs_ColDisplayName"]</MudTh>
+            <MudTh Style="width:120px"></MudTh>
+        </HeaderContent>
+        <RowTemplate>
+            <MudTd>
+                <MudStack Row="true" Spacing="0">
+                    <MudIconButton Icon="@Icons.Material.Filled.ArrowUpward" Size="Size.Small"
+                                   Disabled="@(_attributes.IndexOf(context) == 0)"
+                                   OnClick="() => MoveUp(context)" />
+                    <MudIconButton Icon="@Icons.Material.Filled.ArrowDownward" Size="Size.Small"
+                                   Disabled="@(_attributes.IndexOf(context) == _attributes.Count - 1)"
+                                   OnClick="() => MoveDown(context)" />
+                </MudStack>
+            </MudTd>
+            <MudTd>
+                <MudLink Href="@("/admin/user-attributes/edit/" + context.Id)">@context.Name</MudLink>
+            </MudTd>
+            <MudTd>@context.DisplayName</MudTd>
+            <MudTd>
+                <MudIconButton Icon="@Icons.Material.Filled.Delete" Size="Size.Small" Color="Color.Error"
+                               Disabled="@context.IsBuiltIn"
+                               OnClick="() => DeleteAttribute(context)" />
+            </MudTd>
+        </RowTemplate>
+    </MudTable>
+}
+
+@code {
+    private List<UserAttribute> _attributes = [];
+    private bool _loading = true;
+
+    protected override async Task OnInitializedAsync()
+    {
+        await LoadAsync();
+    }
+
+    private async Task LoadAsync()
+    {
+        _attributes = [.. await UserAttributeService.GetAllDefinitionsAsync()];
+        _loading = false;
+    }
+
+    private async Task MoveUp(UserAttribute attribute)
+    {
+        var index = _attributes.IndexOf(attribute);
+        if (index <= 0) return;
+        (_attributes[index - 1], _attributes[index]) = (_attributes[index], _attributes[index - 1]);
+        await PersistOrderAsync();
+    }
+
+    private async Task MoveDown(UserAttribute attribute)
+    {
+        var index = _attributes.IndexOf(attribute);
+        if (index < 0 || index >= _attributes.Count - 1) return;
+        (_attributes[index + 1], _attributes[index]) = (_attributes[index], _attributes[index + 1]);
+        await PersistOrderAsync();
+    }
+
+    private async Task PersistOrderAsync()
+    {
+        var order = _attributes.Select((a, i) => (a.Id, SortOrder: i)).ToList();
+        await UserAttributeService.ReorderAsync(order);
+    }
+
+    private async Task DeleteAttribute(UserAttribute attribute)
+    {
+        var confirmed = await DialogService.ConfirmDeleteAsync(
+            L["Admin_UserAttrs_DeleteTitle"],
+            string.Format(L["Admin_UserAttrs_DeleteConfirm"], attribute.DisplayName));
+
+        if (confirmed == true)
+        {
+            try
+            {
+                await UserAttributeService.DeleteDefinitionAsync(attribute.Id);
+                await LoadAsync();
+                Snackbar.Add(L["Admin_UserAttrs_Deleted"], Severity.Success);
+            }
+            catch (InvalidOperationException ex)
+            {
+                Snackbar.Add(ex.Message, Severity.Error);
+            }
+        }
+    }
+}

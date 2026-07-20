@@ -1,0 +1,358 @@
+@page "/admin/identity-providers/{Id:int}"
+@attribute [Authorize(Policy = AuthDefaults.AppAdminUserPolicy)]
+@inject IIdentityProviderService IdentityProviderService
+@inject ISsoSettingsChangeNotifier SsoNotifier
+@inject IDialogService DialogService
+@inject ISnackbar Snackbar
+@inject NavigationManager Navigation
+@inject IJSRuntime JS
+@inject IStringLocalizer<SharedResource> L
+
+<PageTitle>@L["Admin_IdP_Edit_PageTitle"] — Mothenticate Admin</PageTitle>
+
+<MudButton StartIcon="@Icons.Material.Filled.ArrowBack" Variant="Variant.Text" Size="Size.Small"
+           OnClick='() => Navigation.NavigateTo("/admin/settings?tab=idp")' Class="mb-4">
+    @L["Admin_IdP_ReturnToList"]
+</MudButton>
+
+@if (_loading)
+{
+    <MudProgressLinear Indeterminate="true" />
+}
+else if (_provider is null)
+{
+    <MudAlert Severity="Severity.Error">@L["Admin_IdP_NotFound"]</MudAlert>
+}
+else
+{
+    <MudStack Row="true" AlignItems="AlignItems.Center" Class="mb-4">
+        <MudText Typo="Typo.h4">@_provider.DisplayName</MudText>
+        <MudSpacer />
+        <MudStack Row="true" AlignItems="AlignItems.Center" Spacing="1">
+            <MudText Typo="Typo.body2" Color="Color.Secondary">
+                @(_isEnabled ? L["Admin_IdP_Enabled"] : L["Admin_IdP_Disabled"])
+            </MudText>
+            <MudSwitch Value="@_isEnabled" Color="Color.Primary"
+                       ValueChanged="@((bool v) => ToggleEnabled(v))" />
+        </MudStack>
+    </MudStack>
+
+    <MudTabs Elevation="2" Rounded="true" ApplyEffectsToContainer="true" TabPanelsClass="pa-6">
+
+        <MudTabPanel Text="@L["Admin_IdP_TabSettings"]" >
+            <MudPaper Elevation="2" MaxWidth="700px" Class="pa-4 mb-4">
+                <MudForm @ref="_form">
+                    <MudStack Spacing="3">
+
+                        <!-- Redirect URI -->
+                        <MudStack Row="true" AlignItems="AlignItems.Center" Spacing="1">
+                            <MudTextField Value="@RedirectUri" Label="@L["Admin_IdP_RedirectUri"]"
+                                          Variant="Variant.Outlined" ReadOnly="true" Class="flex-1" />
+                            <MudIconButton Icon="@Icons.Material.Filled.ContentCopy" Size="Size.Medium"
+                                           aria-label="@L["Admin_IdP_CopyUri"]" OnClick="CopyRedirectUri" />
+                        </MudStack>
+
+                        <MudTextField @bind-Value="_alias" Label="@L["Admin_IdP_Alias"]"
+                                      Variant="Variant.Outlined" Required="true"
+                                      HelperText="@L["Admin_IdP_Alias_Helper"]"
+                                      Immediate="true" />
+
+                        <MudTextField @bind-Value="_displayName" Label="@L["Admin_IdP_DisplayName"]"
+                                      Variant="Variant.Outlined" Required="true" />
+
+                        @if (_showEndpointFields && _provider.ProviderType.ProtocolType == ProtocolType.OIDC)
+                        {
+                            <MudTextField @bind-Value="_discoveryUrl" Label="@L["Admin_IdP_DiscoveryUrl"]"
+                                          Variant="Variant.Outlined" />
+                        }
+
+                        @if (_showEndpointFields)
+                        {
+                            <MudTextField @bind-Value="_authorizationEndpoint" Label="@L["Admin_IdP_AuthorizationEndpoint"]"
+                                          Variant="Variant.Outlined" />
+                            <MudTextField @bind-Value="_tokenEndpoint" Label="@L["Admin_IdP_TokenEndpoint"]"
+                                          Variant="Variant.Outlined" />
+                            <MudTextField @bind-Value="_userinfoEndpoint" Label="@L["Admin_IdP_UserinfoEndpoint"]"
+                                          Variant="Variant.Outlined" />
+                            @if (_provider.ProviderType.ProtocolType == ProtocolType.OAuth2)
+                            {
+                                <MudTextField @bind-Value="_defaultScopes" Label="@L["Admin_IdP_DefaultScopes"]"
+                                              Variant="Variant.Outlined" />
+                            }
+                        }
+
+                        @if (_useCredentialFields)
+                        {
+                            <MudTextField @bind-Value="_clientId" Label="@L["Admin_IdP_ClientId"]"
+                                          Variant="Variant.Outlined" Required="true" />
+                            <MudTextField @bind-Value="_clientSecret" Label="@L["Admin_IdP_ClientSecret"]"
+                                          Variant="Variant.Outlined" Required="true"
+                                          InputType="@(_showSecret ? InputType.Text : InputType.Password)"
+                                          Adornment="Adornment.End"
+                                          AdornmentIcon="@(_showSecret ? Icons.Material.Filled.VisibilityOff : Icons.Material.Filled.Visibility)"
+                                          OnAdornmentClick="() => _showSecret = !_showSecret" />
+                        }
+
+                        @if (_showEndpointFields)
+                        {
+                            <MudTextField @bind-Value="_idField" Label="@L["Admin_IdP_IdField"]"
+                                          Variant="Variant.Outlined" />
+                            <MudTextField @bind-Value="_nameField" Label="@L["Admin_IdP_NameField"]"
+                                          Variant="Variant.Outlined" />
+                            <MudTextField @bind-Value="_emailField" Label="@L["Admin_IdP_EmailField"]"
+                                          Variant="Variant.Outlined" />
+                        }
+
+                        <MudNumericField @bind-Value="_displayOrder" Label="@L["Admin_IdP_DisplayOrder"]"
+                                         Variant="Variant.Outlined" />
+
+                        <MudSelect @bind-Value="_syncMode" Label="@L["Admin_IdP_SyncMode"]"
+                                   Variant="Variant.Outlined">
+                            <MudSelectItem Value="SyncMode.Import">@L["Admin_IdP_SyncMode_Import"]</MudSelectItem>
+                            <MudSelectItem Value="SyncMode.Update">@L["Admin_IdP_SyncMode_Update"]</MudSelectItem>
+                        </MudSelect>
+
+                        <MudSelect @bind-Value="_showInAccountConsole" Label="@L["Admin_IdP_ShowInConsole"]"
+                                   Variant="Variant.Outlined">
+                            <MudSelectItem Value="ShowInAccountConsole.Always">@L["Admin_IdP_ShowInConsole_Always"]</MudSelectItem>
+                            <MudSelectItem Value="ShowInAccountConsole.WhenLinked">@L["Admin_IdP_ShowInConsole_WhenLinked"]</MudSelectItem>
+                            <MudSelectItem Value="ShowInAccountConsole.Never">@L["Admin_IdP_ShowInConsole_Never"]</MudSelectItem>
+                        </MudSelect>
+
+                        <MudStack>
+                            <MudSwitch @bind-Value="_accountLinkingOnly" Color="Color.Primary"
+                                       Label="@L["Admin_IdP_AccountLinkingOnly"]" />
+                            <MudSwitch @bind-Value="_hideOnLoginPage" Color="Color.Primary"
+                                       Label="@L["Admin_IdP_HideOnLoginPage"]" />
+                        </MudStack>
+
+                        <MudStack Row="true" Spacing="2" Class="mt-2">
+                            <MudButton Variant="Variant.Filled" Color="Color.Primary" OnClick="Save" Disabled="@_saving">
+                                @(_saving ? L["Admin_IdP_Saving"] : L["Admin_IdP_Save"])
+                            </MudButton>
+                            <MudButton Variant="Variant.Text" OnClick="Revert" Disabled="@_saving">
+                                @L["Admin_IdP_Revert"]
+                            </MudButton>
+                        </MudStack>
+
+                    </MudStack>
+                </MudForm>
+            </MudPaper>
+        </MudTabPanel>
+
+        <MudTabPanel Text="@L["Admin_IdP_TabMappers"]">
+            <MudStack Row="true" AlignItems="AlignItems.Center" Spacing="2" Class="mb-4">
+                <MudTextField @bind-Value="_mapperSearch" Placeholder="@L["Admin_IdP_MapperSearch"]" Immediate="true"
+                              Adornment="Adornment.Start" AdornmentIcon="@Icons.Material.Filled.Search"
+                              Variant="Variant.Outlined" Margin="Margin.Dense" Class="flex-1" />
+                <MudButton Variant="Variant.Filled" Color="Color.Primary" StartIcon="@Icons.Material.Filled.Add"
+                           OnClick='() => Navigation.NavigateTo($"/admin/identity-providers/{Id}/mappers/edit")'>
+                    @L["Admin_IdP_AddMapper"]
+                </MudButton>
+            </MudStack>
+
+            <MudTable Items="@FilteredMappers" Hover="true" Dense="true">
+                <HeaderContent>
+                    <MudTh>@L["Admin_IdP_ColMapperName"]</MudTh>
+                    <MudTh>@L["Admin_IdP_ColMapperType"]</MudTh>
+                    <MudTh>@L["Admin_IdP_SyncMode"]</MudTh>
+                    <MudTh Style="width:56px"></MudTh>
+                </HeaderContent>
+                <RowTemplate>
+                    <MudTd>
+                        <MudLink Href="@($"/admin/identity-providers/{Id}/mappers/edit/{context.Id}")">@context.Name</MudLink>
+                    </MudTd>
+                    <MudTd>@context.MapperType</MudTd>
+                    <MudTd>@context.SyncMode</MudTd>
+                    <MudTd>
+                        <MudIconButton Icon="@Icons.Material.Filled.Delete" Size="Size.Small" Color="Color.Error"
+                                       OnClick="() => DeleteMapper(context)" />
+                    </MudTd>
+                </RowTemplate>
+            </MudTable>
+        </MudTabPanel>
+
+    </MudTabs>
+}
+
+@code {
+    [Parameter] public int Id { get; set; }
+
+    private IdentityProvider? _provider;
+    private bool _loading = true;
+    private bool _saving;
+    private MudForm _form = default!;
+
+    private bool _useCredentialFields;
+    private bool _showEndpointFields;
+
+    private string _alias = string.Empty;
+    private string _displayName = string.Empty;
+    private bool _isEnabled = true;
+    private bool _accountLinkingOnly = false;
+    private bool _hideOnLoginPage = false;
+    private ShowInAccountConsole _showInAccountConsole = ShowInAccountConsole.Always;
+    private SyncMode _syncMode = SyncMode.Import;
+    private int? _displayOrder;
+
+    private string _clientId = string.Empty;
+    private string _clientSecret = string.Empty;
+    private bool _showSecret;
+    private string _discoveryUrl = string.Empty;
+    private string _authorizationEndpoint = string.Empty;
+    private string _tokenEndpoint = string.Empty;
+    private string _userinfoEndpoint = string.Empty;
+    private string _defaultScopes = string.Empty;
+    private string _idField = string.Empty;
+    private string _nameField = string.Empty;
+    private string _emailField = string.Empty;
+
+    private string _mapperSearch = string.Empty;
+
+    private IEnumerable<IdentityProviderMapper> FilteredMappers => (_provider?.Mappers ?? []).Where(m =>
+        string.IsNullOrWhiteSpace(_mapperSearch) || m.Name.Contains(_mapperSearch, StringComparison.OrdinalIgnoreCase));
+
+    private string RedirectUri =>
+        Navigation.BaseUri.TrimEnd('/') + "/connect/external/" + _alias + "/finalize";
+
+    protected override async Task OnInitializedAsync()
+    {
+        _provider = await IdentityProviderService.GetProviderAsync(Id);
+        if (_provider is not null)
+            LoadFromProvider(_provider);
+        _loading = false;
+    }
+
+    private void LoadFromProvider(IdentityProvider p)
+    {
+        _alias                = p.Alias;
+        _displayName          = p.DisplayName;
+        _isEnabled            = p.IsEnabled;
+        _accountLinkingOnly   = p.AccountLinkingOnly;
+        _hideOnLoginPage      = p.HideOnLoginPage;
+        _showInAccountConsole = p.ShowInAccountConsole;
+        _syncMode             = p.SyncMode;
+        _displayOrder         = p.DisplayOrder;
+
+        _useCredentialFields = p.ProviderType.ProtocolType is ProtocolType.OIDC or ProtocolType.OAuth2;
+        _showEndpointFields  = _useCredentialFields && p.ProviderType.DefaultConfiguration is null;
+
+        var config = p.Configuration is not null
+            ? DeserializeProps(p.Configuration.Properties)
+            : new Dictionary<string, string>();
+
+        _clientId                = config.GetValueOrDefault("client_id", string.Empty);
+        _clientSecret            = config.GetValueOrDefault("client_secret", string.Empty);
+        _discoveryUrl            = config.GetValueOrDefault("discovery_url", string.Empty);
+        _authorizationEndpoint   = config.GetValueOrDefault("authorization_endpoint", string.Empty);
+        _tokenEndpoint           = config.GetValueOrDefault("token_endpoint", string.Empty);
+        _userinfoEndpoint        = config.GetValueOrDefault("userinfo_endpoint", string.Empty);
+        _defaultScopes           = config.GetValueOrDefault("default_scopes", string.Empty);
+        _idField                 = config.GetValueOrDefault("id_field", string.Empty);
+        _nameField               = config.GetValueOrDefault("name_field", string.Empty);
+        _emailField              = config.GetValueOrDefault("email_field", string.Empty);
+    }
+
+    private async Task DeleteMapper(IdentityProviderMapper mapper)
+    {
+        var confirmed = await DialogService.ConfirmDeleteAsync(
+            L["Admin_IdP_DeleteMapperTitle"],
+            string.Format(L["Admin_IdP_DeleteMapperConfirm"], mapper.Name));
+
+        if (confirmed == true && _provider is not null)
+        {
+            await IdentityProviderService.DeleteMapperAsync(mapper.Id);
+            _provider.Mappers.Remove(mapper);
+            Snackbar.Add(L["Admin_IdP_MapperDeleted"], Severity.Success);
+        }
+    }
+
+    private async Task ToggleEnabled(bool value)
+    {
+        _isEnabled = value;
+        await IdentityProviderService.SetProviderEnabledAsync(Id, value);
+        SsoNotifier.NotifyChanged();
+        Snackbar.Add(value ? L["Admin_IdP_EnabledSuccess"] : L["Admin_IdP_DisabledSuccess"], Severity.Success);
+    }
+
+    private async Task Save()
+    {
+        if (_provider is null) return;
+
+        await _form.ValidateAsync();
+        if (!_form.IsValid) return;
+
+        _saving = true;
+        try
+        {
+            var props = BuildProps();
+            var json = System.Text.Json.JsonSerializer.Serialize(props);
+
+            var config = _provider.Configuration ?? new IdentityProviderConfiguration();
+            config.Properties = json;
+
+            _provider.Alias                = _alias;
+            _provider.DisplayName          = _displayName;
+            _provider.IsEnabled            = _isEnabled;
+            _provider.AccountLinkingOnly   = _accountLinkingOnly;
+            _provider.HideOnLoginPage      = _hideOnLoginPage;
+            _provider.ShowInAccountConsole = _showInAccountConsole;
+            _provider.SyncMode             = _syncMode;
+            _provider.DisplayOrder         = _displayOrder;
+            _provider.Configuration        = config;
+
+            await IdentityProviderService.UpdateProviderAsync(_provider);
+            SsoNotifier.NotifyChanged();
+            Snackbar.Add(L["Admin_IdP_Saved"], Severity.Success);
+        }
+        catch (Exception ex)
+        {
+            Snackbar.Add($"Error: {ex.Message}", Severity.Error);
+        }
+        finally
+        {
+            _saving = false;
+        }
+    }
+
+    private void Revert()
+    {
+        if (_provider is null) return;
+        LoadFromProvider(_provider);
+        Snackbar.Add(L["Admin_IdP_Reverted"], Severity.Info);
+    }
+
+    private Dictionary<string, string> BuildProps()
+    {
+        var props = new Dictionary<string, string>();
+        if (_useCredentialFields)
+        {
+            props["client_id"] = _clientId;
+            props["client_secret"] = _clientSecret;
+        }
+        if (_showEndpointFields)
+        {
+            if (!string.IsNullOrWhiteSpace(_discoveryUrl)) props["discovery_url"] = _discoveryUrl;
+            if (!string.IsNullOrWhiteSpace(_authorizationEndpoint)) props["authorization_endpoint"] = _authorizationEndpoint;
+            if (!string.IsNullOrWhiteSpace(_tokenEndpoint)) props["token_endpoint"] = _tokenEndpoint;
+            if (!string.IsNullOrWhiteSpace(_userinfoEndpoint)) props["userinfo_endpoint"] = _userinfoEndpoint;
+            if (!string.IsNullOrWhiteSpace(_defaultScopes)) props["default_scopes"] = _defaultScopes;
+            if (!string.IsNullOrWhiteSpace(_idField)) props["id_field"] = _idField;
+            if (!string.IsNullOrWhiteSpace(_nameField)) props["name_field"] = _nameField;
+            if (!string.IsNullOrWhiteSpace(_emailField)) props["email_field"] = _emailField;
+        }
+        return props;
+    }
+
+    private async Task CopyRedirectUri()
+    {
+        await JS.InvokeVoidAsync("navigator.clipboard.writeText", RedirectUri);
+        Snackbar.Add(L["Admin_IdP_UriCopied"], Severity.Info);
+    }
+
+    private static Dictionary<string, string> DeserializeProps(string json)
+    {
+        try { return System.Text.Json.JsonSerializer.Deserialize<Dictionary<string, string>>(json) ?? []; }
+        catch { return []; }
+    }
+}

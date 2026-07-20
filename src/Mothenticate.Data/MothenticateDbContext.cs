@@ -8,8 +8,12 @@ namespace Mothenticate.Data;
 public class MothenticateDbContext(DbContextOptions<MothenticateDbContext> options)
     : IdentityDbContext<ApplicationUser>(options)
 {
-    public DbSet<UserProperty> UserProperties => Set<UserProperty>();
-    public DbSet<UserPropertyValue> UserPropertyValues => Set<UserPropertyValue>();
+    public DbSet<UserAttribute> UserAttributes => Set<UserAttribute>();
+    public DbSet<UserAttributeValue> UserAttributeValues => Set<UserAttributeValue>();
+    public DbSet<UserAttributeScope> UserAttributeScopes => Set<UserAttributeScope>();
+    public DbSet<UserAttributeValidator> UserAttributeValidators => Set<UserAttributeValidator>();
+    public DbSet<ClientScope> ClientScopes => Set<ClientScope>();
+    public DbSet<ClientScopeMapper> ClientScopeMappers => Set<ClientScopeMapper>();
     public DbSet<Group> Groups => Set<Group>();
     public DbSet<AppRole> AppRoles => Set<AppRole>();
     public DbSet<GroupRole> GroupRoles => Set<GroupRole>();
@@ -20,6 +24,10 @@ public class MothenticateDbContext(DbContextOptions<MothenticateDbContext> optio
     public DbSet<ClientSecret> ClientSecrets => Set<ClientSecret>();
     public DbSet<AppLauncher> AppLaunchers => Set<AppLauncher>();
     public DbSet<AppLauncherAccess> AppLauncherAccess => Set<AppLauncherAccess>();
+    public DbSet<IdentityProviderType> IdentityProviderTypes => Set<IdentityProviderType>();
+    public DbSet<IdentityProviderConfiguration> IdentityProviderConfigurations => Set<IdentityProviderConfiguration>();
+    public DbSet<IdentityProvider> IdentityProviders => Set<IdentityProvider>();
+    public DbSet<IdentityProviderMapper> IdentityProviderMappers => Set<IdentityProviderMapper>();
 
     protected override void OnModelCreating(ModelBuilder builder)
     {
@@ -28,8 +36,12 @@ public class MothenticateDbContext(DbContextOptions<MothenticateDbContext> optio
         builder.UseOpenIddict();
 
         builder.ApplyConfiguration(new ApplicationUserMapping());
-        builder.ApplyConfiguration(new UserPropertyMapping());
-        builder.ApplyConfiguration(new UserPropertyValueMapping());
+        builder.ApplyConfiguration(new UserAttributeMapping());
+        builder.ApplyConfiguration(new UserAttributeValueMapping());
+        builder.ApplyConfiguration(new UserAttributeScopeMapping());
+        builder.ApplyConfiguration(new UserAttributeValidatorMapping());
+        builder.ApplyConfiguration(new ClientScopeMapping());
+        builder.ApplyConfiguration(new ClientScopeMapperMapping());
         builder.ApplyConfiguration(new GroupMapping());
         builder.ApplyConfiguration(new AppRoleMapping());
         builder.ApplyConfiguration(new GroupRoleMapping());
@@ -40,5 +52,9 @@ public class MothenticateDbContext(DbContextOptions<MothenticateDbContext> optio
         builder.ApplyConfiguration(new ClientSecretMapping());
         builder.ApplyConfiguration(new AppLauncherMapping());
         builder.ApplyConfiguration(new AppLauncherAccessMapping());
+        builder.ApplyConfiguration(new IdentityProviderConfigurationMapping());
+        builder.ApplyConfiguration(new IdentityProviderTypeMapping());
+        builder.ApplyConfiguration(new IdentityProviderMapping());
+        builder.ApplyConfiguration(new IdentityProviderMapperMapping());
     }
 }

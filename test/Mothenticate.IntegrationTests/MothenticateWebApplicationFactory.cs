@@ -76,6 +76,7 @@ public class MothenticateWebApplicationFactory : WebApplicationFactory<Program>,
                     OpenIddictConstants.Permissions.Prefixes.Scope + OpenIddictConstants.Scopes.OpenId,
                     OpenIddictConstants.Permissions.Prefixes.Scope + OpenIddictConstants.Scopes.Email,
                     OpenIddictConstants.Permissions.Prefixes.Scope + OpenIddictConstants.Scopes.Profile,
+                    OpenIddictConstants.Permissions.Prefixes.Scope + "acr",
                     OpenIddictConstants.Permissions.ResponseTypes.Token
                 },
                 Properties =

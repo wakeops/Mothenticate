@@ -1,5 +1,6 @@
 using Microsoft.EntityFrameworkCore;
 using Mothenticate.Data.Entities;
+using Mothenticate.Data.Services;
 
 namespace Mothenticate.Data.Repositories;
 
@@ -58,8 +59,12 @@ public class GroupRepository(MothenticateDbContext db) : IGroupRepository
     }
 
     public async Task<IReadOnlyList<ApplicationUser>> GetMembersAsync(int groupId, CancellationToken cancellationToken = default)
-        => await db.UserGroups
+    {
+        var members = await db.UserGroups
             .Where(ug => ug.GroupId == groupId)
             .Select(ug => ug.User)
             .ToListAsync(cancellationToken);
+        await ApplicationUserHydrator.HydrateManyAsync(db, members, cancellationToken);
+        return members;
+    }
 }

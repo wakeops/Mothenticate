@@ -1,0 +1,91 @@
+@page "/admin/client-scopes"
+@attribute [Authorize(Policy = AuthDefaults.AppAdminUserPolicy)]
+@inject IClientScopeService ClientScopeService
+@inject IDialogService DialogService
+@inject ISnackbar Snackbar
+@inject NavigationManager Navigation
+@inject IStringLocalizer<SharedResource> L
+
+<PageTitle>Client Scopes — Mothenticate Admin</PageTitle>
+
+<MudText Typo="Typo.h4" Class="mb-4">@L["Admin_ClientScopes_Title"]</MudText>
+
+<MudStack Row="true" AlignItems="AlignItems.Center" Spacing="2" Class="mb-4">
+    <MudTextField @bind-Value="_search" Placeholder="@L["Admin_ClientScopes_Search"]" Immediate="true"
+                  Adornment="Adornment.Start" AdornmentIcon="@Icons.Material.Filled.Search"
+                  Variant="Variant.Outlined" Margin="Margin.Dense" Class="flex-1" />
+    <MudSelect T="ProtocolType?" @bind-Value="_protocolFilter" Placeholder="@L["Admin_ClientScopes_AllProtocols"]"
+               Variant="Variant.Outlined" Margin="Margin.Dense" Clearable="true" Style="min-width:200px">
+        @foreach (var protocol in Enum.GetValues<ProtocolType>())
+        {
+            <MudSelectItem T="ProtocolType?" Value="@protocol">@protocol</MudSelectItem>
+        }
+    </MudSelect>
+    <MudButton Variant="Variant.Filled" Color="Color.Primary" StartIcon="@Icons.Material.Filled.Add"
+               OnClick='() => Navigation.NavigateTo("/admin/client-scopes/edit")'>
+        @L["Admin_ClientScopes_CreateScope"]
+    </MudButton>
+</MudStack>
+
+@if (_loading)
+{
+    <MudProgressLinear Indeterminate="true" />
+}
+else
+{
+    <MudTable Items="@FilteredScopes" Hover="true" Dense="true">
+        <HeaderContent>
+            <MudTh>@L["Admin_ClientScopes_ColName"]</MudTh>
+            <MudTh>@L["Admin_ClientScopes_ColProtocol"]</MudTh>
+            <MudTh>@L["Admin_ClientScopes_ColDescription"]</MudTh>
+            <MudTh Style="width:56px"></MudTh>
+        </HeaderContent>
+        <RowTemplate>
+            <MudTd>
+                <MudLink Href="@("/admin/client-scopes/edit/" + context.Id)">@context.Name</MudLink>
+            </MudTd>
+            <MudTd>@context.Protocol</MudTd>
+            <MudTd>@context.Description</MudTd>
+            <MudTd>
+                <MudIconButton Icon="@Icons.Material.Filled.Delete" Size="Size.Small" Color="Color.Error"
+                               OnClick="() => DeleteScope(context)" />
+            </MudTd>
+        </RowTemplate>
+    </MudTable>
+}
+
+@code {
+    private List<ClientScope> _scopes = [];
+    private bool _loading = true;
+    private string _search = string.Empty;
+    private ProtocolType? _protocolFilter;
+
+    private IEnumerable<ClientScope> FilteredScopes => _scopes.Where(s =>
+        (string.IsNullOrWhiteSpace(_search) || s.Name.Contains(_search, StringComparison.OrdinalIgnoreCase))
+        && (_protocolFilter is null || s.Protocol == _protocolFilter));
+
+    protected override async Task OnInitializedAsync()
+    {
+        await LoadAsync();
+    }
+
+    private async Task LoadAsync()
+    {
+        _scopes = [.. await ClientScopeService.GetAllAsync()];
+        _loading = false;
+    }
+
+    private async Task DeleteScope(ClientScope scope)
+    {
+        var confirmed = await DialogService.ConfirmDeleteAsync(
+            L["Admin_ClientScopes_DeleteTitle"],
+            string.Format(L["Admin_ClientScopes_DeleteConfirm"], scope.Name));
+
+        if (confirmed == true)
+        {
+            await ClientScopeService.DeleteAsync(scope.Id);
+            await LoadAsync();
+            Snackbar.Add(L["Admin_ClientScopes_Deleted"], Severity.Success);
+        }
+    }
+}

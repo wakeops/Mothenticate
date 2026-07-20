@@ -11,7 +11,8 @@ public static class Bootstrap
         services.AddScoped<IUserService, UserService>();
         services.AddScoped<IGroupService, GroupService>();
         services.AddScoped<IRoleService, RoleService>();
-        services.AddScoped<IUserPropertyService, UserPropertyService>();
+        services.AddScoped<IUserAttributeService, UserAttributeService>();
+        services.AddScoped<IClientScopeService, ClientScopeService>();
         services.AddScoped<IAppLauncherService, AppLauncherService>();
 
         return services;

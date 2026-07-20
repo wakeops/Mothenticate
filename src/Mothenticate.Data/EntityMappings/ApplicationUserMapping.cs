@@ -8,19 +8,21 @@ public class ApplicationUserMapping : IEntityTypeConfiguration<ApplicationUser>
 {
     public void Configure(EntityTypeBuilder<ApplicationUser> builder)
     {
-        builder.Property(u => u.FirstName).HasMaxLength(100);
-        builder.Property(u => u.LastName).HasMaxLength(100);
-        builder.Property(u => u.DisplayName).HasMaxLength(150);
-        builder.Property(u => u.AvatarContentType).HasMaxLength(50);
+        // UserName, NormalizedUserName, and Email/NormalizedEmail live exclusively in UserAttributeValue
+        // (see ApplicationUserStore / ApplicationUserHydrator) — not mapped columns.
+        builder.Ignore(u => u.UserName);
+        builder.Ignore(u => u.NormalizedUserName);
+        builder.Ignore(u => u.Email);
+        builder.Ignore(u => u.NormalizedEmail);
 
         builder.HasMany(u => u.UserGroups)
             .WithOne(ug => ug.User)
             .HasForeignKey(ug => ug.UserId)
             .OnDelete(DeleteBehavior.Cascade);
 
-        builder.HasMany(u => u.PropertyValues)
-            .WithOne(pv => pv.User)
-            .HasForeignKey(pv => pv.UserId)
+        builder.HasMany(u => u.AttributeValues)
+            .WithOne(v => v.User)
+            .HasForeignKey(v => v.UserId)
             .OnDelete(DeleteBehavior.Cascade);
 
         builder.HasMany(u => u.Sessions)

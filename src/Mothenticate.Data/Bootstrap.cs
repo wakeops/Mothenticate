@@ -29,15 +29,22 @@ public static class Bootstrap
             .AddEntityFrameworkStores<MothenticateDbContext>()
             .AddTokenProvider<AuthenticatorTokenProvider<ApplicationUser>>(TokenOptions.DefaultAuthenticatorProvider);
 
+        // Replaces the default EF Core user store: UserName/Email/DisplayName live exclusively in
+        // UserAttributeValue, not AspNetUsers columns. Must be registered after AddEntityFrameworkStores
+        // so it wins DI resolution for IUserStore<ApplicationUser>.
+        services.AddScoped<IUserStore<ApplicationUser>, ApplicationUserStore>();
+
         services.AddScoped<IUserRepository, UserRepository>();
         services.AddScoped<IGroupRepository, GroupRepository>();
         services.AddScoped<IRoleRepository, RoleRepository>();
-        services.AddScoped<IUserPropertyRepository, UserPropertyRepository>();
+        services.AddScoped<IUserAttributeRepository, UserAttributeRepository>();
+        services.AddScoped<IClientScopeRepository, ClientScopeRepository>();
         services.AddScoped<ISessionRepository, SessionRepository>();
         services.AddScoped<IAuditRepository, AuditRepository>();
         services.AddScoped<IAppSettingsRepository, AppSettingsRepository>();
         services.AddScoped<IClientSecretRepository, ClientSecretRepository>();
         services.AddScoped<IAppLauncherRepository, AppLauncherRepository>();
+        services.AddScoped<IIdentityProviderRepository, IdentityProviderRepository>();
 
         services.AddScoped<ISeedService, SeedService>();
         services.AddSingleton<SetupState>();

@@ -129,7 +129,7 @@ else
                             var u = _users.FirstOrDefault(x => x.Id == entry.UserId);
                             <MudStack Row="true" AlignItems="AlignItems.Center" Class="mb-1">
                                 <MudIcon Icon="@Icons.Material.Filled.Person" Size="Size.Small" />
-                                <MudText Typo="Typo.body2" Class="flex-1">@(u?.DisplayName ?? u?.UserName ?? L["Admin_AppDetail_UnknownUser"])</MudText>
+                                <MudText Typo="Typo.body2" Class="flex-1">@(u?.UserName ?? L["Admin_AppDetail_UnknownUser"])</MudText>
                                 <MudIconButton Icon="@Icons.Material.Filled.Close" Size="Size.Small"
                                                OnClick="() => RemoveAccess(entry.Id)" />
                             </MudStack>
@@ -139,7 +139,7 @@ else
                                        Margin="Margin.Dense" Class="flex-1">
                                 @foreach (var u in _users.Where(u => !_accessEntries.Any(e => e.UserId == u.Id)))
                                 {
-                                    <MudSelectItem Value="@u.Id">@(u.DisplayName ?? u.UserName)</MudSelectItem>
+                                    <MudSelectItem Value="@u.Id">@u.UserName</MudSelectItem>
                                 }
                             </MudSelect>
                             <MudIconButton Icon="@Icons.Material.Filled.Add" Color="Color.Primary"

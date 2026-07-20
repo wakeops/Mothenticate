@@ -1,0 +1,152 @@
+@inject IStringLocalizer<SharedResource> L
+
+@if (!Attribute.IsMultivalued)
+{
+    @RenderControl(0)
+}
+else
+{
+    <MudText Typo="Typo.subtitle2" Class="mb-1">@Attribute.DisplayName</MudText>
+    <MudStack Spacing="2" Class="mb-2">
+        @for (var i = 0; i < Values.Count; i++)
+        {
+            var index = i;
+            <MudStack Row="true" AlignItems="AlignItems.Center" Spacing="1">
+                <div class="flex-1">@RenderControl(index)</div>
+                @if (!ReadOnly)
+                {
+                    <MudIconButton Icon="@Icons.Material.Filled.RemoveCircleOutline" Size="Size.Small" Color="Color.Error"
+                                   OnClick="@(() => RemoveAt(index))" />
+                }
+            </MudStack>
+        }
+        @if (!ReadOnly)
+        {
+            <MudButton Variant="Variant.Text" Size="Size.Small" StartIcon="@Icons.Material.Filled.Add"
+                       OnClick="AddItem">
+                @L["Common_AddItem"]
+            </MudButton>
+        }
+    </MudStack>
+}
+
+@code {
+    [Parameter, EditorRequired] public UserAttribute Attribute { get; set; } = null!;
+    [Parameter, EditorRequired] public List<string?> Values { get; set; } = [];
+    [Parameter] public bool ReadOnly { get; set; }
+
+    private string? GetValue(int index) => index < Values.Count ? Values[index] : null;
+
+    private void SetValue(int index, string? value)
+    {
+        while (Values.Count <= index)
+        {
+            Values.Add(null);
+        }
+
+        Values[index] = value;
+    }
+
+    private void AddItem() => Values.Add(null);
+
+    private void RemoveAt(int index)
+    {
+        if (index < Values.Count)
+        {
+            Values.RemoveAt(index);
+        }
+    }
+
+    private async Task UploadImage(int index, IBrowserFile file)
+    {
+        const long maxSize = 5 * 1024 * 1024;
+        using var ms = new System.IO.MemoryStream();
+        await file.OpenReadStream(maxSize).CopyToAsync(ms);
+        var dataUrl = $"data:{file.ContentType};base64,{Convert.ToBase64String(ms.ToArray())}";
+        SetValue(index, dataUrl);
+    }
+
+    private RenderFragment RenderControl(int index) =>
+    @<text>
+        @{
+            var label = Attribute.IsMultivalued ? null : Attribute.DisplayName;
+            var value = GetValue(index);
+        }
+        switch (Attribute.InputType)
+        {
+            case AttributeInputType.Boolean:
+                <MudCheckBox Value="@(bool.TryParse(value, out var b) && b)"
+                             ValueChanged="@((bool v) => SetValue(index, v.ToString()))"
+                             Label="@label" Color="Color.Primary" Disabled="@ReadOnly" />
+                break;
+            case AttributeInputType.Number:
+                <MudTextField Label="@label"
+                              Value="@value"
+                              ValueChanged="@((string v) => SetValue(index, v))"
+                              Variant="Variant.Outlined" InputType="MudBlazor.InputType.Number"
+                              ReadOnly="@ReadOnly" />
+                break;
+            case AttributeInputType.Date:
+                <MudTextField Label="@label"
+                              Value="@value"
+                              ValueChanged="@((string v) => SetValue(index, v))"
+                              Variant="Variant.Outlined" InputType="MudBlazor.InputType.Date"
+                              ReadOnly="@ReadOnly" />
+                break;
+            case AttributeInputType.Time:
+                <MudTextField Label="@label"
+                              Value="@value"
+                              ValueChanged="@((string v) => SetValue(index, v))"
+                              Variant="Variant.Outlined" InputType="MudBlazor.InputType.Time"
+                              ReadOnly="@ReadOnly" />
+                break;
+            case AttributeInputType.DateTime:
+                <MudTextField Label="@label"
+                              Value="@value"
+                              ValueChanged="@((string v) => SetValue(index, v))"
+                              Variant="Variant.Outlined" InputType="MudBlazor.InputType.DateTimeLocal"
+                              ReadOnly="@ReadOnly" />
+                break;
+            case AttributeInputType.Image:
+                <MudStack Spacing="1">
+                    @if (label is not null)
+                    {
+                        <MudText Typo="Typo.subtitle2">@label</MudText>
+                    }
+                    @if (!string.IsNullOrEmpty(value))
+                    {
+                        <MudImage Src="@value" Class="profile-attribute-image" />
+                    }
+                    @if (!ReadOnly)
+                    {
+                        <MudStack Row="true" Spacing="2">
+                            <MudFileUpload T="IBrowserFile" FilesChanged="@(file => UploadImage(index, file))" Accept="image/*">
+                                <CustomContent>
+                                    <MudButton Variant="Variant.Outlined" Color="Color.Primary" Size="Size.Small"
+                                               StartIcon="@Icons.Material.Filled.Image" OnClick="@context.OpenFilePickerAsync">
+                                        @L["Profile_Upload"]
+                                    </MudButton>
+                                </CustomContent>
+                                <SelectedTemplate />
+                            </MudFileUpload>
+                            @if (!string.IsNullOrEmpty(value))
+                            {
+                                <MudButton Variant="Variant.Text" Color="Color.Error" Size="Size.Small"
+                                           OnClick="@(() => SetValue(index, null))">
+                                    @L["Profile_Remove"]
+                                </MudButton>
+                            }
+                        </MudStack>
+                    }
+                </MudStack>
+                break;
+            default:
+                <MudTextField Label="@label"
+                              Value="@value"
+                              ValueChanged="@((string v) => SetValue(index, v))"
+                              Variant="Variant.Outlined"
+                              ReadOnly="@ReadOnly" />
+                break;
+        }
+    </text>;
+}
