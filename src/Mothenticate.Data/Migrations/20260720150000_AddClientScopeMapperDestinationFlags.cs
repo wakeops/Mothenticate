@@ -37,34 +37,11 @@ namespace Mothenticate.Data.Migrations
                 type: "boolean",
                 nullable: false,
                 defaultValue: true);
-
-            // Backfill the new columns from the existing free-form Config JSON, then drop those keys —
-            // Config now holds only mapper-specific settings, not generic destination routing.
-            migrationBuilder.Sql(
-                """
-                UPDATE "ClientScopeMappers" SET
-                    "IncludeAccessToken" = COALESCE(("Config"->>'IncludeAccessToken')::boolean, TRUE),
-                    "IncludeIdToken" = COALESCE(("Config"->>'IncludeIdToken')::boolean, TRUE),
-                    "IncludeIntrospectionToken" = COALESCE(("Config"->>'IncludeIntrospectionToken')::boolean, TRUE),
-                    "IncludeUserInfo" = COALESCE(("Config"->>'IncludeUserInfo')::boolean, TRUE);
-
-                UPDATE "ClientScopeMappers"
-                SET "Config" = "Config" - 'IncludeAccessToken' - 'IncludeIdToken' - 'IncludeIntrospectionToken' - 'IncludeUserInfo';
-                """);
         }
 
         /// <inheritdoc />
         protected override void Down(MigrationBuilder migrationBuilder)
         {
-            migrationBuilder.Sql(
-                """
-                UPDATE "ClientScopeMappers" SET "Config" = "Config"
-                    || jsonb_build_object('IncludeAccessToken', "IncludeAccessToken"::text)
-                    || jsonb_build_object('IncludeIdToken', "IncludeIdToken"::text)
-                    || jsonb_build_object('IncludeIntrospectionToken', "IncludeIntrospectionToken"::text)
-                    || jsonb_build_object('IncludeUserInfo', "IncludeUserInfo"::text);
-                """);
-
             migrationBuilder.DropColumn(
                 name: "IncludeAccessToken",
                 table: "ClientScopeMappers");

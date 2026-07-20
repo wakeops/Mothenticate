@@ -2,6 +2,7 @@ using System.Security.Claims;
 using Mothenticate.Data.Entities;
 using Mothenticate.IdentityProvider.Services.ScopeMappers.Abstract;
 using Mothenticate.UserManagement.Services;
+using OpenIddict.Abstractions;
 using static OpenIddict.Abstractions.OpenIddictConstants;
 
 namespace Mothenticate.IdentityProvider.Services.ScopeMappers;
@@ -37,11 +38,6 @@ public class ScopeMapperClaimsService(
             if (tokenMapper is IIdTokenMapper && mapperRow.IncludeIdToken)
             {
                 destinations.Add(Destinations.IdentityToken);
-            }
-
-            if (tokenMapper is IIntrospectionTokenMapper && mapperRow.IncludeIntrospectionToken)
-            {
-                destinations.Add(Destinations.IssuedToken);
             }
 
             if (destinations.Count == 0)
