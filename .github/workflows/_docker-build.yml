@@ -19,6 +19,10 @@ on:
         description: Is a release build?
         default: false
         type: boolean
+      dev:
+        description: Is a dev branch build?
+        default: false
+        type: boolean
     outputs:
       image-digest:
         value: ${{ jobs.build.outputs.image-digest }}
@@ -78,6 +82,8 @@ jobs:
             type=semver,pattern={{major}}.{{minor}}
             type=semver,pattern={{major}}
             type=raw,value=latest,enable=${{ inputs.release }}
+            type=sha,prefix=dev-,format=short,enable=${{ inputs.dev }}
+            type=raw,value=dev-latest,enable=${{ inputs.dev }}
 
       - name: Build and push
         id: push
