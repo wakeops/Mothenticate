@@ -96,7 +96,17 @@ public class SeedService(
             if (scopesByName.TryGetValue(scopeName, out var scope) && attributesByName.TryGetValue(attributeName, out var attribute))
             {
                 var config = new Dictionary<string, string> { ["TokenClaimName"] = claimName, ["UserAttributeId"] = attribute.Id.ToString() };
-                mappers.Add(new ClientScopeMapper { ClientScopeId = scope.Id, Name = claimName, MapperType = MapperType.UserAttribute, Config = JsonSerializer.Serialize(config) });
+                mappers.Add(new ClientScopeMapper
+                {
+                    ClientScopeId = scope.Id,
+                    Name = claimName,
+                    MapperType = MapperType.UserAttribute,
+                    Config = JsonSerializer.Serialize(config),
+                    IncludeAccessToken = true,
+                    IncludeIdToken = true,
+                    IncludeIntrospectionToken = false,
+                    IncludeUserInfo = true
+                });
             }
         }
 
@@ -105,7 +115,17 @@ public class SeedService(
             if (scopesByName.TryGetValue(scopeName, out var scope))
             {
                 var config = new Dictionary<string, string> { ["TokenClaimName"] = claimName, ["UserProperty"] = field.ToString() };
-                mappers.Add(new ClientScopeMapper { ClientScopeId = scope.Id, Name = claimName, MapperType = MapperType.UserProperty, Config = JsonSerializer.Serialize(config) });
+                mappers.Add(new ClientScopeMapper
+                {
+                    ClientScopeId = scope.Id,
+                    Name = claimName,
+                    MapperType = MapperType.UserProperty,
+                    Config = JsonSerializer.Serialize(config),
+                    IncludeAccessToken = true,
+                    IncludeIdToken = true,
+                    IncludeIntrospectionToken = true,
+                    IncludeUserInfo = true
+                });
             }
         }
 
@@ -113,7 +133,16 @@ public class SeedService(
         {
             if (scopesByName.TryGetValue(scopeName, out var scope))
             {
-                mappers.Add(new ClientScopeMapper { ClientScopeId = scope.Id, Name = claimName, MapperType = MapperType.AuthenticationContextReference });
+                mappers.Add(new ClientScopeMapper
+                {
+                    ClientScopeId = scope.Id,
+                    Name = claimName,
+                    MapperType = MapperType.AuthenticationContextReference,
+                    IncludeAccessToken = true,
+                    IncludeIdToken = true,
+                    IncludeIntrospectionToken = true,
+                    IncludeUserInfo = true
+                });
             }
         }
 

@@ -114,13 +114,18 @@ public class UserIdentifierStoreTests(MothenticateWebApplicationFactory factory)
                 });
 
                 // IncludeAccessToken/IncludeIdToken/IncludeIntrospectionToken/IncludeUserInfo default to
-                // true on the entity, matching what an admin gets from a freshly created mapper.
+                // false on the entity; set them explicitly here to match what an admin gets from a
+                // freshly created mapper (the admin UI's view model defaults these to true).
                 await clientScopeService.AddMapperAsync(new ClientScopeMapper
                 {
                     ClientScopeId = profileScope.Id,
                     Name = "name",
                     MapperType = MapperType.UserAttribute,
-                    Config = config
+                    Config = config,
+                    IncludeAccessToken = true,
+                    IncludeIdToken = true,
+                    IncludeIntrospectionToken = true,
+                    IncludeUserInfo = true
                 });
             }
 

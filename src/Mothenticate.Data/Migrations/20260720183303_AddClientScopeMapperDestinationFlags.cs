@@ -1,4 +1,4 @@
-using Microsoft.EntityFrameworkCore.Migrations;
+﻿using Microsoft.EntityFrameworkCore.Migrations;
 
 #nullable disable
 
@@ -15,28 +15,28 @@ namespace Mothenticate.Data.Migrations
                 table: "ClientScopeMappers",
                 type: "boolean",
                 nullable: false,
-                defaultValue: true);
+                defaultValue: false);
 
             migrationBuilder.AddColumn<bool>(
                 name: "IncludeIdToken",
                 table: "ClientScopeMappers",
                 type: "boolean",
                 nullable: false,
-                defaultValue: true);
+                defaultValue: false);
 
             migrationBuilder.AddColumn<bool>(
                 name: "IncludeIntrospectionToken",
                 table: "ClientScopeMappers",
                 type: "boolean",
                 nullable: false,
-                defaultValue: true);
+                defaultValue: false);
 
             migrationBuilder.AddColumn<bool>(
                 name: "IncludeUserInfo",
                 table: "ClientScopeMappers",
                 type: "boolean",
                 nullable: false,
-                defaultValue: true);
+                defaultValue: false);
         }
 
         /// <inheritdoc />

@@ -12,7 +12,7 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 namespace Mothenticate.Data.Migrations
 {
     [DbContext(typeof(MothenticateDbContext))]
-    [Migration("20260720150000_AddClientScopeMapperDestinationFlags")]
+    [Migration("20260720183303_AddClientScopeMapperDestinationFlags")]
     partial class AddClientScopeMapperDestinationFlags
     {
         /// <inheritdoc />
@@ -20,7 +20,7 @@ namespace Mothenticate.Data.Migrations
         {
 #pragma warning disable 612, 618
             modelBuilder
-                .HasAnnotation("ProductVersion", "10.0.9")
+                .HasAnnotation("ProductVersion", "10.0.10")
                 .HasAnnotation("Relational:MaxIdentifierLength", 63);
 
             NpgsqlModelBuilderExtensions.UseIdentityByDefaultColumns(modelBuilder);
@@ -447,16 +447,24 @@ namespace Mothenticate.Data.Migrations
                         .HasColumnType("jsonb");
 
                     b.Property<bool>("IncludeAccessToken")
-                        .HasColumnType("boolean");
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("boolean")
+                        .HasDefaultValue(false);
 
                     b.Property<bool>("IncludeIdToken")
-                        .HasColumnType("boolean");
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("boolean")
+                        .HasDefaultValue(false);
 
                     b.Property<bool>("IncludeIntrospectionToken")
-                        .HasColumnType("boolean");
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("boolean")
+                        .HasDefaultValue(false);
 
                     b.Property<bool>("IncludeUserInfo")
-                        .HasColumnType("boolean");
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("boolean")
+                        .HasDefaultValue(false);
 
                     b.Property<string>("MapperType")
                         .IsRequired()

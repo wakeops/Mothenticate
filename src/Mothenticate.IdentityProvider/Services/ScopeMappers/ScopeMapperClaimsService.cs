@@ -65,12 +65,7 @@ public class ScopeMapperClaimsService(
 
         foreach (var mapperRow in mapperRows)
         {
-            if (!mapperRow.IncludeUserInfo)
-            {
-                continue;
-            }
-
-            if (scopeMapperResolver.Resolve(mapperRow.MapperType) is not IUserInfoMapper userInfoMapper)
+            if (scopeMapperResolver.Resolve(mapperRow.MapperType) is not IUserInfoMapper userInfoMapper || !mapperRow.IncludeUserInfo)
             {
                 continue;
             }
@@ -101,12 +96,7 @@ public class ScopeMapperClaimsService(
 
         foreach (var mapperRow in mapperRows)
         {
-            if (!mapperRow.IncludeIntrospectionToken)
-            {
-                continue;
-            }
-
-            if (scopeMapperResolver.Resolve(mapperRow.MapperType) is not IIntrospectionTokenMapper introspectionMapper)
+            if (scopeMapperResolver.Resolve(mapperRow.MapperType) is not IIntrospectionTokenMapper introspectionMapper || !mapperRow.IncludeIntrospectionToken)
             {
                 continue;
             }
