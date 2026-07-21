@@ -265,6 +265,9 @@ devsettings.json
 *.sh
 *.rsa
 
+# VSCode files
+.vscode/
+
 # CSS generated output
 **/wwwroot/css/tailwind.css
 **/wwwroot/css/app.css
